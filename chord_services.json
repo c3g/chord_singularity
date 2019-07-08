@@ -7,6 +7,10 @@
     "apt_dependencies": [],
     "python_module": "candig_rnaget",
     "python_callable": "application",
-    "python_args": []
+    "python_args": [
+      "--database", "{CHORD_TMP}/services/rnaget.db",
+      "--logfile", "{CHORD_TMP}/services/rnaget.log",
+      "--tmpdata", "{CHORD_TMP}/services/"
+    ]
   }
 ]

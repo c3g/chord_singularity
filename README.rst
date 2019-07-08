@@ -65,6 +65,7 @@ python script needed to parse and run apt, generate nginx conf file for chord pr
 * start all services and then start reverse proxy
 
 How do updates work?
+
 * git pull for each service
 * call some regeneration script which does apt dependencies + steps 3-n above
 

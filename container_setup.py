@@ -61,7 +61,7 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"module = {s['python_module']}\n"
         uwsgi_conf += f"callable = {s['python_callable']}\n"
         uwsgi_conf += f"mount = /{s['id']}={s['python_module']}:{s['python_callable']}\n"
-        uwsgi_conf += f"pyargv = {' '.join(s['python_args'])}\n"
+        uwsgi_conf += f"pyargv = {' '.join([a.format(CHORD_TMP='/chord/tmp') for a in s['python_args']])}\n"
 
         uwsgi_confs.append(uwsgi_conf)
 
@@ -150,6 +150,9 @@ def main():
 
         with open("/etc/nginx/nginx.conf", "w") as nf:
             nf.write(generate_nginx_conf(services))
+
+        # TODO: Start script hooks for services
+        # TODO: Persistent data directory binding
 
 
 if __name__ == "__main__":
