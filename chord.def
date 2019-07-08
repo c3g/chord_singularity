@@ -17,7 +17,8 @@ From: python:3.7-slim-stretch
     touch /chord/tmp/nginx/error.log
     ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
     ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
-    pip install --no-cache-dir virtualenv uwsgi
+    pip install --no-cache-dir virtualenv
+    pip install --no-cache-dir -r requirements.txt
     python3 ./container_setup.py ./chord_services.json
     apt purge -y git gcc
     apt autoremove -y

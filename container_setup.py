@@ -5,6 +5,8 @@ import os
 import subprocess
 import sys
 
+from jsonschema import validate
+
 NGINX_CONF_HEADER = """
 daemon off;
 
@@ -91,11 +93,11 @@ def main():
         print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity container.")
         exit(1)
 
-    with open(args[0], "r") as sf:
+    with open("./chord_services.schema.json") as cf, open(args[0], "r") as sf:
+        schema = json.load(cf)
         services = json.load(sf)
 
-        # TODO: validate services schema
-        # TODO: ID should only be alphanumerics, dashes?, underscores [cannot be .., ., etc]
+        validate(instance=services, schema=schema)
 
         # STEP 1: Install deduplicated apt dependencies.
 
