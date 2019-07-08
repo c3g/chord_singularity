@@ -5,8 +5,6 @@ CHORD plan
 CHORD Service Registry
 ----------------------
 
-Type: unregistered
-
 * Implements GA4GH Service Registry Spec
 
 * Loads services from chord-services.json into a SQLite DB
@@ -45,18 +43,15 @@ chord_services.json spec
        }
    ]
 
-ARE WE ALLOWED TO PULL FROM REPOSITORIES OR IS THAT TOO MUCH OF A VULNERABILITY? MAYBE PIP...
+TODO: SHOULD WE PULL DIRECTLY FROM REPOSITORIES OR IS THAT TOO MUCH OF A VULNERABILITY? MAYBE PIP...
 
 TODO: SOME WAY TO SPECIFY INGESTION SCRIPTS... WITH A STANDARDIZED FORMAT
 
-All services must have a requirements.txt, implement /service-info and be able to take --port as an argument
+All services must have a requirements.txt and implement /service-info.
 
 How do updates work?
 
-* git pull for each service
-* call some regeneration script which does apt dependencies + steps 3-n above
+* ``pip install -U`` for each service
+* call some regeneration script which re-checks ``apt`` dependencies + runs steps 3-n above
 
-TODO: HOW TO DO SEARCH / SEARCH DISCOVERY???
-
-Search can be done perhaps with existing GA4GH search API
-Discovering fields however...
+TODO: HOW TO DO SEARCH / SEARCH DISCOVERY? - Search can be done perhaps with WIP GA4GH search API.
