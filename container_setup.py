@@ -55,6 +55,7 @@ def generate_uwsgi_confs(services):
     for s in services:
         uwsgi_conf = "[uwsgi]\n"
         uwsgi_conf += "vhost = true\n"
+        uwsgi_conf += "manage-script-name = true\n"
         uwsgi_conf += f"socket = /chord/tmp/{s['id']}.sock\n"
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
@@ -109,32 +110,18 @@ def main():
 
         subprocess.run(["apt", "install", "-y"] + list(apt_dependencies), check=True)
 
-        # STEP 2: Fetch services
-
-        print("[CHORD] Fetching services...")
-
-        # TODO: CHECKOUT SPECIFIC TAGS
-
-        os.chdir("/chord/services")
-
-        for s in services:
-            subprocess.run(["git", "clone", s["repository"], s["id"]], check=True)  # Clone as a specific name
-            os.chdir(f"/chord/services/{s['id']}")
-
-        os.chdir("/chord")
-
-        # STEP 3: Create virtual environments and install packages
+        # STEP 2: Create virtual environments and install packages
 
         print("[CHORD] Creating virtual environments...")
 
         for s in services:
             subprocess.run(
-                f"/bin/bash -c 'virtualenv env;"
+                f"/bin/bash -c 'cd /chord/services;"
+                f"              mkdir {s['id']};"
                 f"              cd /chord/services/{s['id']}; "
                 f"              virtualenv env; "
                 f"              source env/bin/activate; "
-                f"              pip install -r requirements.txt; "
-                f"              python setup.py install; "
+                f"              pip install git+{s['repository']};"
                 f"              deactivate'",
                 shell=True,
                 check=True
@@ -142,7 +129,7 @@ def main():
 
         os.chdir("/chord")
 
-        # STEP 4: Generate uWSGI configuration files
+        # STEP 3: Generate uWSGI configuration files
 
         print("[CHORD] Generating uWSGI configuration files...")
 
@@ -156,7 +143,7 @@ def main():
             with open(conf_path, "w") as uf:
                 uf.write(c)
 
-        # STEP 5: Generate NGINX configuration file
+        # STEP 4: Generate NGINX configuration file
 
         print("[CHORD] Generating NGINX configuration file...")
 
