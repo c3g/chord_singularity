@@ -52,6 +52,12 @@ def generate_uwsgi_confs(services):
     uwsgi_confs = []
 
     for s in services:
+        config_vars = {
+            "SERVICE_DATA": f"/chord/data/{s['id']}",
+            "SERVICE_LOGS": f"/chord/tmp/logs/{s['id']}",
+            "SERVICE_TEMP": f"/chord/tmp/data/{s['id']}"
+        }
+
         uwsgi_conf = "[uwsgi]\n"
         uwsgi_conf += "vhost = true\n"
         uwsgi_conf += "manage-script-name = true\n"
@@ -59,7 +65,7 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
         uwsgi_conf += f"mount = /{s['id']}={s['python_module']}:{s['python_callable']}\n"
-        uwsgi_conf += f"pyargv = {' '.join(s['python_args'])}\n"
+        uwsgi_conf += f"pyargv = {' '.join([a.format(**config_vars) for a in s['python_args']])}\n"
 
         uwsgi_confs.append(uwsgi_conf)
 
@@ -145,9 +151,6 @@ def main():
 
         with open("/etc/nginx/nginx.conf", "w") as nf:
             nf.write(generate_nginx_conf(services))
-
-        # TODO: Start script hooks for services
-        # TODO: Persistent data directory binding
 
 
 if __name__ == "__main__":

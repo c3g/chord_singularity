@@ -7,9 +7,9 @@
     "python_module": "candig_rnaget.app",
     "python_callable": "application",
     "python_args": [
-      "--database", "/chord/data/services/rnaget.db",
-      "--logfile", "/chord/tmp/services/rnaget.log",
-      "--tmpdata", "/chord/tmp/services/"
+      "--database", "{SERVICE_DATA}/rnaget.db",
+      "--logfile", "{SERVICE_LOGS}/rnaget.log",
+      "--tmpdata", "{SERVICE_TEMP}/"
     ]
   }
 ]

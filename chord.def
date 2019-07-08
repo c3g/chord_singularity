@@ -7,29 +7,23 @@ From: python:3.7-slim-stretch
 %post
     apt update && apt install -y nginx git gcc
     export HOME="/chord"
-    cd /chord
-    mkdir -p data/services
-    mkdir -p tmp/nginx
-    mkdir services
-    mkdir vassals
+    mkdir -p /chord/data
+    mkdir -p /chord/tmp/nginx
+    mkdir /chord/services
+    mkdir /chord/vassals
     rm /var/log/nginx/*.log
     touch /chord/tmp/nginx/access.log
     touch /chord/tmp/nginx/error.log
     ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
     ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
     pip install --no-cache-dir virtualenv
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r /chord/requirements.txt
+    cd /chord
     python3 ./container_setup.py ./chord_services.json
     apt purge -y git gcc
     apt autoremove -y
 
 %startscript
-    mkdir -p /chord/tmp/services
-    mkdir -p /chord/tmp/nginx/client_tmp
-    mkdir -p /chord/tmp/nginx/proxy_tmp
-    mkdir -p /chord/tmp/nginx/fastcgi_tmp
-    mkdir -p /chord/tmp/nginx/uwsgi_tmp
-    mkdir -p /chord/tmp/nginx/scgi_tmp
     exec bash /chord/start_script.bash
 
 %labels
