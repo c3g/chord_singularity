@@ -20,7 +20,7 @@ Type: unregistered
   * chordServiceType: other or data
 
 chord_services.json spec
-""""""""""""""""""""""""
+------------------------
 
 .. code-block:: json
 
@@ -49,18 +49,7 @@ ARE WE ALLOWED TO PULL FROM REPOSITORIES OR IS THAT TOO MUCH OF A VULNERABILITY?
 
 TODO: SOME WAY TO SPECIFY INGESTION SCRIPTS... WITH A STANDARDIZED FORMAT
 
-all services must have a requirements.txt, implement /service-info and be able to take --port as an argument
-
-should run everything with uWSGI...
-
-python script needed to parse and run apt, generate nginx conf file for chord proxy, ...
-
-* collect deduplicated apt dependencies and install
-* clone each service into /chord/services/
-* create virtual environments for each
-* generate chord.conf NGINX configuration with all different servers as reverse proxies
-* create upstart / systemd service files for each service + reverse proxy
-* start all services and then start reverse proxy
+All services must have a requirements.txt, implement /service-info and be able to take --port as an argument
 
 How do updates work?
 
