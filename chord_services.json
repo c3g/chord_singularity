@@ -1,0 +1,12 @@
+[
+  {
+    "id": "rnaget",
+    "type": "data",
+    "repository": "https://github.com/CanDIG/rnaget_service",
+    "internal_port": 3000,
+    "apt_dependencies": [],
+    "python_module": "candig_rnaget",
+    "python_callable": "application",
+    "python_args": []
+  }
+]

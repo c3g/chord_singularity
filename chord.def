@@ -1,0 +1,35 @@
+Bootstrap: docker
+From: python:3.7-slim-stretch
+
+%files
+    . /chord
+
+%post
+    apt update && apt install -y nginx git gcc
+    which git
+    export HOME="/chord"
+    cd /chord
+    mkdir -p tmp/nginx
+    mkdir services
+    mkdir vassals
+    rm /var/log/nginx/*.log
+    touch /chord/tmp/nginx/access.log
+    touch /chord/tmp/nginx/error.log
+    ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
+    ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
+    pip install --no-cache-dir virtualenv uwsgi
+    python3 ./container_setup.py ./chord_services.json
+    apt purge -y git gcc
+    apt autoremove -y
+
+%startscript
+    cd /chord
+    mkdir -p tmp/nginx/client_tmp
+    mkdir -p tmp/nginx/proxy_tmp
+    mkdir -p tmp/nginx/fastcgi_tmp
+    mkdir -p tmp/nginx/uwsgi_tmp
+    mkdir -p tmp/nginx/scgi_tmp
+    exec bash ./start_script.bash
+
+%labels
+    Author David Lougheed
