@@ -26,9 +26,9 @@ def main():
         validate(instance=services, schema=schema)
 
         for s in services:
-            subprocess.run(["mkdir", f"/chord/data/{s['id']}"], check=True)
-            subprocess.run(["mkdir", f"/chord/tmp/logs/{s['id']}"], check=True)
-            subprocess.run(["mkdir", f"/chord/tmp/data/{s['id']}"], check=True)
+            subprocess.run(["mkdir", "-p", f"/chord/data/{s['id']}"], check=True)
+            subprocess.run(["mkdir", "-p", f"/chord/tmp/logs/{s['id']}"], check=True)
+            subprocess.run(["mkdir", "-p", f"/chord/tmp/data/{s['id']}"], check=True)
 
 
 if __name__ == "__main__":

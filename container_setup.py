@@ -119,7 +119,7 @@ def main():
 
         for s in services:
             subprocess.run(
-                f"/bin/bash -c 'mkdir /chord/services/{s['id']};"
+                f"/bin/bash -c 'mkdir -p /chord/services/{s['id']};"
                 f"              cd /chord/services/{s['id']}; "
                 f"              virtualenv env; "
                 f"              source env/bin/activate; "
