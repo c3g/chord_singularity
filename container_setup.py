@@ -59,8 +59,6 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"socket = /chord/tmp/{s['id']}.sock\n"
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
-        uwsgi_conf += f"module = {s['python_module']}\n"
-        uwsgi_conf += f"callable = {s['python_callable']}\n"
         uwsgi_conf += f"mount = /{s['id']}={s['python_module']}:{s['python_callable']}\n"
         uwsgi_conf += f"pyargv = {' '.join([a.format(CHORD_TMP='/chord/tmp') for a in s['python_args']])}\n"
 
