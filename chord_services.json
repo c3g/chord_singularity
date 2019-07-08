@@ -5,7 +5,7 @@
     "repository": "https://github.com/CanDIG/rnaget_service",
     "internal_port": 3000,
     "apt_dependencies": [],
-    "python_module": "candig_rnaget",
+    "python_module": "candig_rnaget.app",
     "python_callable": "application",
     "python_args": [
       "--database", "{CHORD_TMP}/services/rnaget.db",

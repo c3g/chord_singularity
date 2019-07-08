@@ -113,20 +113,32 @@ def main():
 
         print("[CHORD] Fetching services...")
 
+        # TODO: CHECKOUT SPECIFIC TAGS
+
         os.chdir("/chord/services")
 
         for s in services:
             subprocess.run(["git", "clone", s["repository"], s["id"]], check=True)  # Clone as a specific name
+            os.chdir(f"/chord/services/{s['id']}")
 
         os.chdir("/chord")
 
-        # STEP 3: Create virtual environments?
+        # STEP 3: Create virtual environments and install packages
 
         print("[CHORD] Creating virtual environments...")
 
         for s in services:
-            os.chdir(f"/chord/services/{s['id']}")
-            subprocess.run(["virtualenv", "env"], check=True)
+            subprocess.run(
+                f"/bin/bash -c 'virtualenv env;"
+                f"              cd /chord/services/{s['id']}; "
+                f"              virtualenv env; "
+                f"              source env/bin/activate; "
+                f"              pip install -r requirements.txt; "
+                f"              python setup.py install; "
+                f"              deactivate'",
+                shell=True,
+                check=True
+            )
 
         os.chdir("/chord")
 
@@ -141,8 +153,8 @@ def main():
                 print(f"Error: File already exists: '{conf_path}'")
                 exit(1)
 
-            with open(conf_path, "w") as cf:
-                cf.write(c)
+            with open(conf_path, "w") as uf:
+                uf.write(c)
 
         # STEP 5: Generate NGINX configuration file
 
