@@ -23,10 +23,6 @@
         "repository": {
           "type": "string"
         },
-        "internal_port": {
-          "type": "integer",
-          "minimum": 1024
-        },
         "apt_dependencies": {
           "type": "array",
           "items": {

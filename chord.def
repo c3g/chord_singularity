@@ -6,9 +6,9 @@ From: python:3.7-slim-stretch
 
 %post
     apt update && apt install -y nginx git gcc
-    which git
     export HOME="/chord"
     cd /chord
+    mkdir -p data/services
     mkdir -p tmp/nginx
     mkdir services
     mkdir vassals

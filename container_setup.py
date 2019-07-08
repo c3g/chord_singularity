@@ -10,7 +10,6 @@ from jsonschema import validate
 NGINX_CONF_HEADER = """
 daemon off;
 
-user www-data;
 worker_processes 1;
 pid /chord/tmp/nginx.pid;
 
@@ -36,7 +35,7 @@ http {
   index index.html index.htm;
 
   server {
-    listen 80;
+    listen unix:/chord/tmp/nginx.sock;
     root /var/www/html;
     index index.html index.htm index.nginx-debian.html;
     server_name _;
@@ -60,7 +59,7 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
         uwsgi_conf += f"mount = /{s['id']}={s['python_module']}:{s['python_callable']}\n"
-        uwsgi_conf += f"pyargv = {' '.join([a.format(CHORD_TMP='/chord/tmp') for a in s['python_args']])}\n"
+        uwsgi_conf += f"pyargv = {' '.join(s['python_args'])}\n"
 
         uwsgi_confs.append(uwsgi_conf)
 
@@ -114,8 +113,7 @@ def main():
 
         for s in services:
             subprocess.run(
-                f"/bin/bash -c 'cd /chord/services;"
-                f"              mkdir {s['id']};"
+                f"/bin/bash -c 'mkdir /chord/services/{s['id']};"
                 f"              cd /chord/services/{s['id']}; "
                 f"              virtualenv env; "
                 f"              source env/bin/activate; "
