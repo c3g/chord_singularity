@@ -17,32 +17,6 @@ CHORD Service Registry
   * chordServiceID: unique human-readable ID for service (ex. rnaget)
   * chordServiceType: other or data
 
-chord_services.json spec
-------------------------
-
-.. code-block:: json
-
-   [
-       {
-           "id": "services",
-           "type": "other",
-           "repository": "http://...",
-           "apt_dependencies": [],
-           "python_module": "chord_service_registry",
-           "python_callable": "app",
-           "python_args": ["TODO"]
-       },
-       {
-           "id": "rnaget",
-           "type": "data",
-           "repository": "http://",
-           "apt_dependencies": [],
-           "python_module": "candig_rnaget",
-           "python_callable": "app",
-           "python_args": ["TODO"]
-       }
-   ]
-
 TODO: SHOULD WE PULL DIRECTLY FROM REPOSITORIES OR IS THAT TOO MUCH OF A VULNERABILITY? MAYBE PIP...
 
 TODO: SOME WAY TO SPECIFY INGESTION SCRIPTS... WITH A STANDARDIZED FORMAT

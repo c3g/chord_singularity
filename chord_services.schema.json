@@ -16,12 +16,11 @@
           "type": "string",
           "pattern": "^[a-zA-Z\\-_][a-zA-Z0-9\\-_]*$"
         },
-        "type": {
-          "type": "string",
-          "enum": ["data", "other"]
-        },
         "repository": {
           "type": "string"
+        },
+        "data_service": {
+          "type": "boolean"
         },
         "apt_dependencies": {
           "type": "array",
