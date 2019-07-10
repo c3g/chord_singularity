@@ -64,7 +64,7 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"socket = /chord/tmp/{s['id']}.sock\n"
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
-        uwsgi_conf += f"mount = /{s['id']}={s['python_module']}:{s['python_callable']}\n"
+        uwsgi_conf += f"mount = /api/{s['id']}={s['python_module']}:{s['python_callable']}\n"
 
         if "python_args" in s:
             uwsgi_conf += f"pyargv = {' '.join([a.format(**config_vars) for a in s['python_args']])}\n"
@@ -82,8 +82,8 @@ def generate_nginx_conf(services):
     nginx_conf = NGINX_CONF_HEADER
 
     for s in services:
-        nginx_conf += f"    location = /{s['id']} {{ rewrite ^ /{s['id']}/; }}\n"
-        nginx_conf += f"    location /{s['id']} {{ try_files $uri @{s['id']}; }}\n"
+        nginx_conf += f"    location = /api/{s['id']} {{ rewrite ^ /api/{s['id']}/; }}\n"
+        nginx_conf += f"    location /api/{s['id']} {{ try_files $uri @{s['id']}; }}\n"
         nginx_conf += f"    location @{s['id']} {{ include uwsgi_params; " \
             f"uwsgi_pass unix:/chord/tmp/{s['id']}.sock; }}\n"
 
