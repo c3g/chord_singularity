@@ -36,10 +36,14 @@ http {
 
   server {
     listen unix:/chord/tmp/nginx.sock;
-    root /var/www/html;
+    root /chord/web/public;
     index index.html index.htm index.nginx-debian.html;
     server_name _;
     
+    location /dist/ {
+      alias /chord/web/dist/;
+    }
+
 """
 
 NGINX_CONF_FOOTER = """

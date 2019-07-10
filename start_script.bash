@@ -10,7 +10,7 @@ mkdir -p /chord/tmp/nginx/scgi_tmp
 
 cd /chord
 
-python3 ./container_pre_start.py ./chord_services.json
+python3.7 ./container_pre_start.py ./chord_services.json
 
 echo "Starting NGINX..."
 nohup nginx &

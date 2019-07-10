@@ -5,8 +5,15 @@ From: python:3.7-slim-stretch
     . /chord
 
 %post
-    apt update && apt install -y nginx git gcc
+    apt update && apt install -y nginx git gcc curl
+    curl -sL https://deb.nodesource.com/setup_10.x | bash -
+    apt install -y nodejs
     export HOME="/chord"
+    cd /chord
+    git clone https://bitbucket.org/genap/chord_web.git web
+    cd /chord/web
+    NODE_ENV=development npm install
+    NODE_ENV=production npm run build
     mkdir -p /chord/data
     mkdir -p /chord/tmp/nginx
     mkdir /chord/services
@@ -16,11 +23,11 @@ From: python:3.7-slim-stretch
     touch /chord/tmp/nginx/error.log
     ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
     ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
-    pip install --no-cache-dir virtualenv
-    pip install --no-cache-dir -r /chord/requirements.txt
+    pip3 install --no-cache-dir virtualenv
+    pip3 install --no-cache-dir -r /chord/requirements.txt
     cd /chord
-    python3 ./container_setup.py ./chord_services.json
-    apt purge -y git gcc
+    python3.7 ./container_setup.py ./chord_services.json
+    apt purge -y git gcc curl
     apt autoremove -y
 
 %startscript
