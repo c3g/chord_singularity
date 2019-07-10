@@ -42,8 +42,17 @@
           "items": {
             "type": "string"
           }
+        },
+        "python_environment": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Z_]+$": {
+              "type": "string"
+            }
+          }
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }
