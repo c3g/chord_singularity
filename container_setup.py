@@ -119,7 +119,7 @@ def main():
 
         apt_dependencies = set()
         for s in services:
-            apt_dependencies = apt_dependencies.union(s["apt_dependencies"])
+            apt_dependencies = apt_dependencies.union(s["apt_dependencies"] if "apt_dependencies" in s else [])
 
         subprocess.run(["apt", "install", "-y"] + list(apt_dependencies), check=True)
 

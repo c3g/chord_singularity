@@ -23,5 +23,16 @@
       "--logfile", "{SERVICE_LOGS}/rnaget.log",
       "--tmpdata", "{SERVICE_TEMP}/"
     ]
+  },
+  {
+    "id": "example",
+    "repository": "https://bitbucket.org/genap/chord_example_service",
+    "data_service": true,
+    "apt_dependencies": [],
+    "python_module": "chord_example_service.app",
+    "python_callable": "application",
+    "python_environment": {
+      "DATABASE": "{SERVICE_DATA}/example_service.db"
+    }
   }
 ]
