@@ -12,6 +12,14 @@
     }
   },
   {
+    "id": "federation",
+    "repository": "https://bitbucket.org/genap/chord_federation",
+    "data_service": false,
+    "apt_dependencies": [],
+    "python_module": "chord_federation.app",
+    "python_callable": "application"
+  },
+  {
     "id": "rnaget",
     "repository": "https://github.com/CanDIG/rnaget_service",
     "data_service": true,
