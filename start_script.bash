@@ -8,7 +8,7 @@ mkdir -p /chord/tmp/nginx/fastcgi_tmp
 mkdir -p /chord/tmp/nginx/uwsgi_tmp
 mkdir -p /chord/tmp/nginx/scgi_tmp
 
-cd /chord
+cd /chord || exit
 
 python3.7 ./container_pre_start.py ./chord_services.json
 

@@ -17,7 +17,10 @@
     "data_service": false,
     "apt_dependencies": [],
     "python_module": "chord_federation.app",
-    "python_callable": "application"
+    "python_callable": "application",
+    "python_environment": {
+      "DATABASE": "{SERVICE_DATA}/federation.db"
+    }
   },
   {
     "id": "rnaget",

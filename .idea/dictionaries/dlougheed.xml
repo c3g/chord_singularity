@@ -5,6 +5,7 @@
       <w>candig</w>
       <w>confs</w>
       <w>debian</w>
+      <w>dlougheed</w>
       <w>genomics</w>
       <w>lougheed</w>
       <w>nginx</w>
@@ -13,6 +14,7 @@
       <w>pyargv</w>
       <w>rnaget</w>
       <w>scgi</w>
+      <w>singularityenv</w>
       <w>startscript</w>
       <w>systemd</w>
       <w>tmpdata</w>
