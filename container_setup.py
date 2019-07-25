@@ -40,6 +40,10 @@ http {
     index index.html index.htm index.nginx-debian.html;
     server_name _;
     
+    location / {
+      try_files $uri /index.html;
+    }
+
     location /dist/ {
       alias /chord/web/dist/;
     }
