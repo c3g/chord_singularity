@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source /chord/tmp/env
+
 mkdir -p /chord/tmp/logs
 mkdir -p /chord/tmp/data
 mkdir -p /chord/tmp/nginx/client_tmp

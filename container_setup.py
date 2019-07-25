@@ -69,6 +69,9 @@ def generate_uwsgi_confs(services):
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
         uwsgi_conf += f"mount = /api/{s['id']}={s['python_module']}:{s['python_callable']}\n"
+        uwsgi_conf += "for-readline = /chord/tmp/env\n"
+        uwsgi_conf += "    env = %(_)\n"
+        uwsgi_conf += "endfor =\n"
 
         if "python_args" in s:
             uwsgi_conf += f"pyargv = {' '.join([a.format(**config_vars) for a in s['python_args']])}\n"

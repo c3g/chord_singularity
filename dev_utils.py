@@ -18,12 +18,16 @@ def main():
     elif args.action == "start":
         for i in range(1, args.cluster_size + 1):
             print(f"[CHORD DEV UTILS] Starting instance {i}...")
+            with open(f"/tmp/chord/{i}/env", "w") as f:
+                f.write(f"CHORD_URL=http://{i}.chord.dlougheed.com/\n")
+
             user_dir = os.path.expanduser("~")
             subprocess.run(["mkdir", "-p", f"/tmp/chord/{i}"])
             subprocess.run(["mkdir", "-p", os.path.join(user_dir, f"chord_data/{i}")])
-            subprocess.run(["singularity", "instance", "start", "--bind", f"/tmp/chord/{i}:/chord/tmp",
-                            "--bind", os.path.join(user_dir, f"chord_data/{i}") + ":/chord/data", "chord.sif",
-                            f"chord{i}"])
+            subprocess.run(["singularity", "instance", "start",
+                            "--bind", f"/tmp/chord/{i}:/chord/tmp",
+                            "--bind", os.path.join(user_dir, f"chord_data/{i}") + ":/chord/data",
+                            "chord.sif", f"chord{i}"])
 
     elif args.action == "stop":
         for i in range(1, args.cluster_size + 1):

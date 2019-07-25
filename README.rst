@@ -29,3 +29,18 @@ How do updates work?
 * call some regeneration script which re-checks ``apt`` dependencies + runs steps 3-n above
 
 TODO: HOW TO DO SEARCH / SEARCH DISCOVERY? - Search can be done perhaps with WIP GA4GH search API.
+
+Example Dev. NGINX Configuration
+--------------------------------
+
+Configuration for a development CHORD cluster, to use with ``dev_utils.py``::
+
+    server {
+        listen 80;
+
+        server_name ~^(\d+)\.chord\.dlougheed\.com$;
+
+        location / {
+            proxy_pass http://unix:/tmp/chord/$1/nginx.sock;
+        }
+    }
