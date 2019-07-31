@@ -69,6 +69,7 @@ def generate_uwsgi_confs(services):
         uwsgi_conf = "[uwsgi]\n"
         uwsgi_conf += "vhost = true\n"
         uwsgi_conf += "manage-script-name = true\n"
+        uwsgi_conf += "threads = 4\n"  # To allow some "parallel" requests; important for peer discovery/confirmation.
         uwsgi_conf += f"socket = /chord/tmp/{s['id']}.sock\n"
         uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
