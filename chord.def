@@ -2,7 +2,14 @@ Bootstrap: docker
 From: python:3.7-slim-stretch
 
 %files
-    . /chord
+    chord_services.json /chord/chord_services.json
+    chord_services.schema.json /chord/chord_services.schema.json
+    container_pre_start.py /chord/container_pre_start.py
+    container_setup.py /chord/container_setup.py
+    LICENSE /chord/LICENSE
+    README.rst /chord/README.rst
+    requirements.txt /chord/requirements.txt
+    start_script.bash /chord/start_script.bash
 
 %post
     apt update && apt install -y nginx git gcc curl
@@ -27,6 +34,7 @@ From: python:3.7-slim-stretch
     pip3 install --no-cache-dir -r /chord/requirements.txt
     cd /chord
     python3.7 ./container_setup.py ./chord_services.json
+    rm -rf /chord/.cache
     apt purge -y git gcc curl
     apt autoremove -y
 
