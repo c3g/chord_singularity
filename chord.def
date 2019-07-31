@@ -10,7 +10,7 @@ From: python:3.7-slim-stretch
     apt install -y nodejs
     export HOME="/chord"
     cd /chord
-    git clone https://bitbucket.org/genap/chord_web.git web
+    git clone --depth 1 https://bitbucket.org/genap/chord_web.git web
     cd /chord/web
     NODE_ENV=development npm install
     NODE_ENV=production npm run build
