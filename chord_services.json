@@ -45,5 +45,16 @@
     "python_environment": {
       "DATABASE": "{SERVICE_DATA}/example_service.db"
     }
+  },
+  {
+    "id": "variant",
+    "repository": "https://bitbucket.org/genap/chord_variant_service",
+    "data_service": true,
+    "apt_dependencies": ["zlib1g-dev", "libbz2-dev", "liblzma-dev", "samtools"],
+    "python_module": "chord_variant_service.app",
+    "python_callable": "application",
+    "python_environment": {
+      "DATA": "{SERVICE_DATA}/"
+    }
   }
 ]
