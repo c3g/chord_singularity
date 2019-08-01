@@ -12,7 +12,7 @@ From: python:3.7-slim-stretch
     start_script.bash /chord/start_script.bash
 
 %post
-    apt update && apt install -y nginx git gcc curl
+    apt update && apt install -y nginx build-essential git curl
     curl -sL https://deb.nodesource.com/setup_10.x | bash -
     apt install -y nodejs
     export HOME="/chord"
@@ -35,7 +35,7 @@ From: python:3.7-slim-stretch
     cd /chord
     python3.7 ./container_setup.py ./chord_services.json
     rm -rf /chord/.cache
-    apt purge -y git gcc curl
+    apt purge -y build-essential git curl
     apt autoremove -y
 
 %startscript
