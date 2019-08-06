@@ -29,6 +29,13 @@
             "pattern": "^[^\\s\\\\/]+$"
           }
         },
+        "wsgi": {
+          "type": "boolean"
+        },
+        "python_runnable": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9\\-_.]+$"
+        },
         "python_module": {
           "type": "string",
           "pattern": "^[a-zA-Z0-9_.]+$"

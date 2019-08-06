@@ -4,6 +4,7 @@
     "repository": "https://bitbucket.org/genap/chord_service_registry",
     "data_service": false,
     "apt_dependencies": [],
+    "wsgi": true,
     "python_module": "chord_service_registry.app",
     "python_callable": "application",
     "python_environment": {
@@ -13,12 +14,14 @@
   },
   {
     "id": "federation",
-    "repository": "https://bitbucket.org/genap/chord_federation",
+    "repository": "https://bitbucket.org/genap/chord_federation_async",
     "data_service": false,
     "apt_dependencies": [],
-    "python_module": "chord_federation.app",
-    "python_callable": "application",
+    "wsgi": false,
+    "python_runnable": "chord_federation_async",
     "python_environment": {
+      "SOCKET": "{SERVICE_SOCKET}",
+      "BASE_URL": "{SERVICE_BASE_URL}",
       "DATABASE": "{SERVICE_DATA}/federation.db"
     }
   },
@@ -27,6 +30,7 @@
     "repository": "https://github.com/CanDIG/rnaget_service",
     "data_service": true,
     "apt_dependencies": [],
+    "wsgi": true,
     "python_module": "candig_rnaget.app",
     "python_callable": "application",
     "python_args": [
@@ -40,6 +44,7 @@
     "repository": "https://bitbucket.org/genap/chord_example_service",
     "data_service": true,
     "apt_dependencies": [],
+    "wsgi": true,
     "python_module": "chord_example_service.app",
     "python_callable": "application",
     "python_environment": {
@@ -51,6 +56,7 @@
     "repository": "https://bitbucket.org/genap/chord_variant_service",
     "data_service": true,
     "apt_dependencies": ["zlib1g-dev", "libbz2-dev", "liblzma-dev", "samtools"],
+    "wsgi": true,
     "python_module": "chord_variant_service.app",
     "python_callable": "application",
     "python_environment": {
