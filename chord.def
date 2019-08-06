@@ -4,7 +4,9 @@ From: python:3.7-slim-stretch
 %files
     chord_services.json /chord/chord_services.json
     chord_services.schema.json /chord/chord_services.schema.json
+    chord_common.py /chord/chord_common.py
     container_pre_start.py /chord/container_pre_start.py
+    container_non_wsgi_start.py /chord/container_non_wsgi_start.py
     container_setup.py /chord/container_setup.py
     LICENSE /chord/LICENSE
     README.rst /chord/README.rst

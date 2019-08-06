@@ -20,3 +20,4 @@ nohup nginx &
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log
 nohup uwsgi --emperor /chord/vassals --master --log-master --logto /chord/tmp/uwsgi/uwsgi.log &
+python3.7 ./container_non_wsgi_start.py ./chord_services.json

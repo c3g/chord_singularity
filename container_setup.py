@@ -8,6 +8,8 @@ import sys
 from jsonschema import validate
 from typing import Dict, List
 
+from chord_common import get_config_vars
+
 NGINX_CONF_HEADER = """
 daemon off;
 
@@ -35,6 +37,9 @@ http {
 
   index index.html index.htm;
 
+"""
+
+NGINX_CONF_SERVER_HEADER = """
   server {
     listen unix:/chord/tmp/nginx.sock;
     root /chord/web/public;
@@ -48,7 +53,6 @@ http {
     location /dist/ {
       alias /chord/web/dist/;
     }
-
 """
 
 NGINX_CONF_FOOTER = """
@@ -61,18 +65,17 @@ def generate_uwsgi_confs(services: List[Dict]):
     uwsgi_confs = []
 
     for s in services:
-        config_vars = {
-            "SERVICE_DATA": f"/chord/data/{s['id']}",
-            "SERVICE_LOGS": f"/chord/tmp/logs/{s['id']}",
-            "SERVICE_TEMP": f"/chord/tmp/data/{s['id']}"
-        }
+        if "wsgi" in s and not s["wsgi"]:
+            continue
+
+        config_vars = get_config_vars(s)
 
         uwsgi_conf = "[uwsgi]\n"
         uwsgi_conf += "vhost = true\n"
         uwsgi_conf += "manage-script-name = true\n"
         uwsgi_conf += "threads = 4\n"  # To allow some "parallel" requests; important for peer discovery/confirmation.
-        uwsgi_conf += f"socket = /chord/tmp/{s['id']}.sock\n"
-        uwsgi_conf += f"venv = /chord/services/{s['id']}/env\n"
+        uwsgi_conf += f"socket = {config_vars['SERVICE_SOCKET']}\n"
+        uwsgi_conf += f"venv = {config_vars['SERVICE_VENV']}\n"
         uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
         uwsgi_conf += f"mount = /api/{s['id']}={s['python_module']}:{s['python_callable']}\n"
         uwsgi_conf += "for-readline = /chord/tmp/env\n"
@@ -95,10 +98,29 @@ def generate_nginx_conf(services: List[Dict]):
     nginx_conf = NGINX_CONF_HEADER
 
     for s in services:
-        nginx_conf += f"    location = /api/{s['id']} {{ rewrite ^ /api/{s['id']}/; }}\n"
-        nginx_conf += f"    location /api/{s['id']} {{ try_files $uri @{s['id']}; }}\n"
-        nginx_conf += f"    location @{s['id']} {{ include uwsgi_params; " \
-            f"uwsgi_pass unix:/chord/tmp/{s['id']}.sock; }}\n"
+        config_vars = get_config_vars(s)
+        nginx_conf += f"  upstream chord_{s['id']} {{ server unix:{config_vars['SERVICE_SOCKET']}; }}\n"
+
+    nginx_conf += NGINX_CONF_SERVER_HEADER
+
+    for s in services:
+        config_vars = get_config_vars(s)
+        base_url = config_vars['SERVICE_BASE_URL']
+
+        nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
+        nginx_conf += f"    location {base_url} {{ try_files $uri @{s['id']}; }}\n"
+
+        if "wsgi" not in s or s["wsgi"]:
+            nginx_conf += f"    location @{s['id']} {{ include uwsgi_params; uwsgi_pass chord_{s['id']}; }}\n"
+
+        else:
+            nginx_conf += f"    location @{s['id']} {{ proxy_pass_header Server; " \
+                          f"proxy_set_header Host $http_host; " \
+                          f"proxy_set_header X-Real-IP $remote_addr; " \
+                          f"proxy_set_header X-Scheme $scheme; " \
+                          f"proxy_pass http://chord_{s['id']}; }}\n"
+
+        nginx_conf += "\n"
 
     nginx_conf += NGINX_CONF_FOOTER
 
