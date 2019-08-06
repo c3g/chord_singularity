@@ -1,3 +1,4 @@
 env
 *.sif
 .idea/workspace.xml
+__pycache__
