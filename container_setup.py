@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 from jsonschema import validate
+from typing import Dict, List
 
 NGINX_CONF_HEADER = """
 daemon off;
@@ -56,7 +57,7 @@ NGINX_CONF_FOOTER = """
 """
 
 
-def generate_uwsgi_confs(services):
+def generate_uwsgi_confs(services: List[Dict]):
     uwsgi_confs = []
 
     for s in services:
@@ -90,7 +91,7 @@ def generate_uwsgi_confs(services):
     return uwsgi_confs
 
 
-def generate_nginx_conf(services):
+def generate_nginx_conf(services: List[Dict]):
     nginx_conf = NGINX_CONF_HEADER
 
     for s in services:
