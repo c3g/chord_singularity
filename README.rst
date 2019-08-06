@@ -2,6 +2,15 @@
 CHORD plan
 ==========
 
+CHORD Data to Support
+---------------------
+
+* Variants
+
+* RNAseq data
+
+* TODO
+
 CHORD Service Registry
 ----------------------
 
