@@ -32,6 +32,9 @@ http {
 
   sendfile off;
   keepalive_timeout 120;
+
+  proxy_http_version 1.1;
+  proxy_set_header Connection "";
   
   server_names_hash_bucket_size 128;
 
