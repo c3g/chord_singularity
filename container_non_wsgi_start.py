@@ -16,7 +16,9 @@ def job(services: List[Dict]):
                    if "python_environment" in s else "")
 
         subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
-                       f"{env_str} nohup {s['python_runnable']} &'", shell=True, check=True)
+                       f"source {config_vars['CHORD_ENV']} && "
+                       f"{env_str} nohup {s['python_runnable']} &> {config_vars['SERVICE_LOGS']}/{s['id']}.log &'",
+                       shell=True, check=True)
 
 
 if __name__ == "__main__":
