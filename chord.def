@@ -4,14 +4,14 @@ From: python:3.7-slim-stretch
 %files
     chord_services.json /chord/chord_services.json
     chord_services.schema.json /chord/chord_services.schema.json
-    chord_common.py /chord/chord_common.py
-    container_pre_start.py /chord/container_pre_start.py
-    container_non_wsgi_start.py /chord/container_non_wsgi_start.py
-    container_setup.py /chord/container_setup.py
+    container_scripts/chord_common.py /chord/chord_common.py
+    container_scripts/container_pre_start.py /chord/container_pre_start.py
+    container_scripts/container_non_wsgi_start.py /chord/container_non_wsgi_start.py
+    container_scripts/container_setup.py /chord/container_setup.py
     LICENSE /chord/LICENSE
     README.rst /chord/README.rst
     requirements.txt /chord/requirements.txt
-    start_script.bash /chord/start_script.bash
+    container_scripts/start_script.bash /chord/start_script.bash
 
 %post
     apt update && apt install -y nginx build-essential git curl
@@ -39,6 +39,7 @@ From: python:3.7-slim-stretch
     rm -rf /chord/.cache
     apt purge -y build-essential git curl
     apt autoremove -y
+    apt clean
 
 %startscript
     exec bash /chord/start_script.bash
