@@ -18,8 +18,8 @@ CHORD Service Registry
 
 * Loads services from chord-services.json into a SQLite DB
 
-* If chordServiceID not in DB, generate a new GUID for service in this CHORD context, delete ones
-  that are no longer present
+* If chordServiceID not in DB, generate a new GUID for service in this CHORD
+  context, delete ones that are no longer present
 
 * Additional metadata:
 
@@ -39,8 +39,27 @@ How do updates work?
 
 TODO: HOW TO DO SEARCH / SEARCH DISCOVERY? - Search can be done perhaps with WIP GA4GH search API.
 
+Development
+-----------
+
+Setup
+^^^^^
+
+To install Singularity, follow the `Singularity installation guide`_.
+
+.. _`Singularity installation guide`: https://sylabs.io/guides/3.3/user-guide/installation.html
+
+To create the virtual environment::
+
+    virtualenv -p python3 ./env
+    source env/bin/activate
+    pip install -r requirements.txt
+
+NGINX can be set up as a reverse proxy outside of the containers to create a
+development CHORD cluster.
+
 Example Dev. NGINX Configuration
---------------------------------
+""""""""""""""""""""""""""""""""
 
 Configuration for a development CHORD cluster, to use with ``dev_utils.py``::
 
@@ -53,3 +72,29 @@ Configuration for a development CHORD cluster, to use with ``dev_utils.py``::
             proxy_pass http://unix:/tmp/chord/$1/nginx.sock;
         }
     }
+
+
+This configuration assumes that ``*.chord.dlougheed.com`` (in this example) has
+a DNS record set up to point at 127.0.0.1.
+
+
+Building
+^^^^^^^^
+
+To build the image::
+
+    ./dev_utils.py build
+
+You will be asked for your password by Singularity.
+
+
+Running a Development Cluster
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Assumes ``/tmp/chord`` and ``~/chord_data`` are writable directories.
+
+To run a development cluster with ``n`` nodes, where ``n`` is some positive integer::
+
+    ./dev_utils.py --cluster n start
+
+Other available actions for ``./dev_utils.py`` are ``stop`` and ``restart``.
