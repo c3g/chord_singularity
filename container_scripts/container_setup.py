@@ -8,6 +8,7 @@ import sys
 from jsonschema import validate
 from typing import Dict, List
 
+# noinspection PyUnresolvedReferences
 from chord_common import get_config_vars
 
 NGINX_CONF_HEADER = """
@@ -141,7 +142,7 @@ def main():
         print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity container.")
         exit(1)
 
-    with open("./chord_services.schema.json") as cf, open(args[0], "r") as sf:
+    with open("/chord/chord_services.schema.json") as cf, open(args[0], "r") as sf:
         schema = json.load(cf)
         services = json.load(sf)
 
