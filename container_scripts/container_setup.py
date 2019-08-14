@@ -113,6 +113,7 @@ def generate_nginx_conf(services: List[Dict]):
 
         nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
         nginx_conf += f"    location {base_url} {{ try_files $uri @{s['id']}; }}\n"
+        nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"
 
         if "wsgi" not in s or s["wsgi"]:
             nginx_conf += f"    location @{s['id']} {{ include uwsgi_params; uwsgi_pass chord_{s['id']}; }}\n"
