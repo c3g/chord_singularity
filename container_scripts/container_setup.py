@@ -11,6 +11,20 @@ from typing import Dict, List
 # noinspection PyUnresolvedReferences
 from chord_common import get_config_vars
 
+# threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
+UWSGI_CONF_TEMPLATE = """[uwsgi]
+vhost = true
+manage-script-name = true
+threads = 4
+socket = {service_socket}
+venv = {service_venv}
+chdir = /chord/services/{service_id}
+mount = /api/{service_id}={service_python_module}:{service_python_callable}
+for-readline = /chord/tmp/env
+    env = %(_)
+endfor
+"""
+
 NGINX_CONF_HEADER = """
 daemon off;
 
@@ -74,17 +88,13 @@ def generate_uwsgi_confs(services: List[Dict]):
 
         config_vars = get_config_vars(s)
 
-        uwsgi_conf = "[uwsgi]\n"
-        uwsgi_conf += "vhost = true\n"
-        uwsgi_conf += "manage-script-name = true\n"
-        uwsgi_conf += "threads = 4\n"  # To allow some "parallel" requests; important for peer discovery/confirmation.
-        uwsgi_conf += f"socket = {config_vars['SERVICE_SOCKET']}\n"
-        uwsgi_conf += f"venv = {config_vars['SERVICE_VENV']}\n"
-        uwsgi_conf += f"chdir = /chord/services/{s['id']}\n"
-        uwsgi_conf += f"mount = /api/{s['id']}={s['python_module']}:{s['python_callable']}\n"
-        uwsgi_conf += "for-readline = /chord/tmp/env\n"
-        uwsgi_conf += "    env = %(_)\n"
-        uwsgi_conf += "endfor =\n"
+        uwsgi_conf = UWSGI_CONF_TEMPLATE.format(
+            service_id=s["id"],
+            service_socket=config_vars["SERVICE_SOCKET"],
+            service_venv=config_vars["SERVICE_VENV"],
+            service_python_module=s["python_module"],
+            service_python_callable=s["python_callable"]
+        )
 
         if "python_args" in s:
             uwsgi_conf += f"pyargv = {' '.join([a.format(**config_vars) for a in s['python_args']])}\n"
