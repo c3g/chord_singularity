@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
+# noinspection PyUnresolvedReferences
 from chord_common import main
 
 

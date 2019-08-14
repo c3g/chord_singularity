@@ -2,6 +2,7 @@
 
 import subprocess
 from typing import Dict, List
+# noinspection PyUnresolvedReferences
 from chord_common import get_config_vars, main
 
 
