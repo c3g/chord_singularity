@@ -11,6 +11,7 @@ CHORD Data to Support
 
 * TODO
 
+
 CHORD Search Description
 ------------------------
 
@@ -53,6 +54,7 @@ Response:
      {"id" "dataset_2", "data_type": "some_type"}
    ]
 
+
 CHORD Service Registry
 ----------------------
 
@@ -80,6 +82,7 @@ How do updates work?
 * call some regeneration script which re-checks ``apt`` dependencies + runs steps 3-n above
 
 TODO: HOW TO DO SEARCH / SEARCH DISCOVERY? - Search can be done perhaps with WIP GA4GH search API.
+
 
 Development
 -----------
