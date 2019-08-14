@@ -11,6 +11,48 @@ CHORD Data to Support
 
 * TODO
 
+CHORD Search Description
+------------------------
+
+The CHORD search endpoint roughly looks like this:
+
+POST ``/search``
+^^^^^^^^^^^^^^^^
+
+Request:
+
+.. code-block:: json
+
+   {
+     "dataTypeID": "some_type",
+     "conditions": [
+       {
+         "field": "[dataset object].some_object.some_property",
+         "operation": "eq",
+         "negated": false,
+         "searchValue": "some_value"
+       }
+     ]
+   }
+
+``field`` is a dot-notation accessor for the field in question. ``[dataset object]`` means the root dataset object, and
+``[array item]`` refers to any item in an array.
+
+``operation`` is one of ``eq, lt, le, gt, ge co``.
+
+``negated`` is a boolean which can negate the operation.
+
+``searchValue`` is the value to be searched.
+
+Response:
+
+.. code-block:: json
+
+   [
+     {"id" "dataset_1", "data_type": "some_type"},
+     {"id" "dataset_2", "data_type": "some_type"}
+   ]
+
 CHORD Service Registry
 ----------------------
 
