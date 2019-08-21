@@ -1,7 +1,7 @@
 {
-  "$id": "https://github.com/davidlougheed/chord_server/blob/master/chord_services.schema.json",
+  "$id": "https://bitbucket.org/genap/chord_server/raw/master/chord_services.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Chord Services File",
+  "title": "CHORD Services File",
   "description": "Schema defining chord_services.json, which manages CHORD services within a Singularity container.",
   "type": "array",
   "items": {
