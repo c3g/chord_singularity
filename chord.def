@@ -10,32 +10,7 @@ From: python:3.7-slim-stretch
     requirements.txt /chord/requirements.txt
 
 %post
-    apt update && apt install -y nginx build-essential git curl
-    curl -sL https://deb.nodesource.com/setup_10.x | bash -
-    apt install -y nodejs
-    export HOME="/chord"
-    cd /chord
-    git clone --depth 1 https://bitbucket.org/genap/chord_web.git web
-    cd /chord/web
-    NODE_ENV=development npm install
-    NODE_ENV=production npm run build
-    mkdir -p /chord/data
-    mkdir -p /chord/tmp/nginx
-    mkdir /chord/services
-    mkdir /chord/vassals
-    rm /var/log/nginx/*.log
-    touch /chord/tmp/nginx/access.log
-    touch /chord/tmp/nginx/error.log
-    ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
-    ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
-    python3.7 -m pip install --no-cache-dir virtualenv
-    python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt
-    cd /chord
-    python3.7 ./container_scripts/container_setup.py ./chord_services.json
-    rm -rf /chord/.cache
-    apt purge -y build-essential git curl
-    apt autoremove -y
-    apt clean
+    exec bash /chord/container_scripts/post_script.bash
 
 %startscript
     exec bash /chord/container_scripts/start_script.bash
