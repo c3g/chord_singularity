@@ -9,6 +9,32 @@ apt install -y nginx build-essential git curl
 curl -sL https://deb.nodesource.com/setup_10.x | bash -
 apt install -y nodejs
 
+# Install Redis
+cd /chord || exit
+curl -o redis-stable.tar.gz http://download.redis.io/redis-stable.tar.gz
+tar -xzf redis-stable.tar.gz
+cd redis-stable || exit
+make
+make install
+cd /chord || exit
+rm redis-stable.tar.gz
+rm -r redis-stable
+mkdir -p /etc/redis
+# TODO: SECURITY: Make sure redis isn't exposed publically in any way
+cat > /etc/redis/redis.conf <<- EOC
+# Don't bind a port, listen on localhost
+port 0
+bind 127.0.0.1
+
+# Use a unix socket for communications
+unixsocket /chord/tmp/redis.sock
+unixsocketperm 770
+
+pidfile /chord/tmp/redis.pid
+
+daemonize yes
+EOC
+
 export HOME="/chord"
 
 # Install CHORD Web
