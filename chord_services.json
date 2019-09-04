@@ -25,6 +25,23 @@
     }
   },
   {
+    "id": "wes",
+    "repository": "https://bitbucket.org/genap/chord_wes",
+    "data_service": false,
+    "apt_dependencies": [],
+    "wsgi": true,
+    "python_module": "chord_wes.app",
+    "python_callable": "application",
+    "python_environment": {
+      "CHORD_SERVICES": "/chord/chord_services.json",
+      "CELERY_RESULT_BACKEND":  "redis+socket:///chord/tmp/redis.sock",
+      "CELERY_BROKER_URL": "redis+socket:///chord/tmp/redis.sock",
+      "DATABASE":  "{SERVICE_DATA}/wes.db",
+      "SERVICE_BASE_URL": "{SERVICE_BASE_URL}",
+      "SERVICE_TEMP":  "{SERVICE_TEMP}"
+    }
+  },
+  {
     "id": "federation",
     "repository": "https://bitbucket.org/genap/chord_federation_async",
     "data_service": false,
