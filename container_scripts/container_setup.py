@@ -165,11 +165,20 @@ def main():
 
         apt_dependencies = set()
         for s in services:
-            apt_dependencies = apt_dependencies.union(s["apt_dependencies"] if "apt_dependencies" in s else [])
+            apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", []))
 
         subprocess.run(["apt", "install", "-y"] + list(apt_dependencies), check=True)
 
-        # STEP 2: Create virtual environments and install packages
+        # STEP 2: Run pre-install commands
+
+        print("[CHORD] Running service pre-install commands...")
+
+        for s in services:
+            commands = s.get("pre_install_commands", [])
+            for c in commands:
+                subprocess.run(c, shell=True, check=True)
+
+        # STEP 3: Create virtual environments and install packages
 
         print("[CHORD] Creating virtual environments...")
 
@@ -187,7 +196,7 @@ def main():
 
         os.chdir("/chord")
 
-        # STEP 3: Generate uWSGI configuration files
+        # STEP 4: Generate uWSGI configuration files
 
         print("[CHORD] Generating uWSGI configuration files...")
 
@@ -201,7 +210,7 @@ def main():
             with open(conf_path, "w") as uf:
                 uf.write(c)
 
-        # STEP 4: Generate NGINX configuration file
+        # STEP 5: Generate NGINX configuration file
 
         print("[CHORD] Generating NGINX configuration file...")
 
