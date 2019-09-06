@@ -30,6 +30,7 @@
       <w>uwsgi</w>
       <w>venv</w>
       <w>vhost</w>
+      <w>womtool</w>
     </words>
   </dictionary>
 </component>

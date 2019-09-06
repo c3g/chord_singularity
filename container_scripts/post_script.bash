@@ -35,6 +35,10 @@ pidfile /chord/tmp/redis.pid
 daemonize yes
 EOC
 
+# Download WOM tool
+# TODO: This should be a hook in WES
+curl -o /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar
+
 export HOME="/chord"
 
 # Install CHORD Web

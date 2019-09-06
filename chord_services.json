@@ -38,7 +38,8 @@
       "CELERY_BROKER_URL": "redis+socket:///chord/tmp/redis.sock",
       "DATABASE":  "{SERVICE_DATA}/wes.db",
       "SERVICE_BASE_URL": "{SERVICE_BASE_URL}",
-      "SERVICE_TEMP":  "{SERVICE_TEMP}"
+      "SERVICE_TEMP":  "{SERVICE_TEMP}",
+      "WOM_TOOL_LOCATION": "/chord/womtool.jar"
     }
   },
   {
