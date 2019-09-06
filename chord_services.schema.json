@@ -10,7 +10,7 @@
   "definitions": {
     "chord_service": {
       "type": "object",
-      "required": [],
+      "required": ["id", "repository", "data_service", "wsgi"],
       "properties": {
         "id": {
           "type": "string",
@@ -28,6 +28,10 @@
             "type": "string",
             "pattern": "^[^\\s\\\\/]+$"
           }
+        },
+        "pre_install_commands": {
+          "type": "array",
+          "items": {"type":  "string"}
         },
         "wsgi": {
           "type": "boolean"
