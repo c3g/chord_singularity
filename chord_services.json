@@ -23,6 +23,17 @@
     }
   },
   {
+    "id": "drop_box",
+    "repository": "https://bitbucket.org/genap/chord_drop_box_service",
+    "data_service": false,
+    "wsgi": true,
+    "python_module": "chord_drop_box_service.app",
+    "python_callable": "application",
+    "python_environment": {
+      "SERVICE_DATA": "{SERVICE_DATA}"
+    }
+  },
+  {
     "id": "wes",
     "repository": "https://bitbucket.org/genap/chord_wes",
     "data_service": false,
