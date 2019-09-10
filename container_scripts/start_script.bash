@@ -13,13 +13,15 @@ mkdir -p /chord/tmp/nginx/scgi_tmp
 
 cd /chord || exit
 
-python3.7 ./container_scripts/container_pre_start.py ./chord_services.json
+mkdir -p /chord/data/redis
 
 echo "Starting Redis..."
 nohup redis-server /etc/redis/redis.conf &> /dev/null  # Daemonized, so doesn't need &
 
 echo "Starting NGINX..."
 nohup nginx &> /dev/null &
+
+python3.7 ./container_scripts/container_pre_start.py ./chord_services.json
 
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log

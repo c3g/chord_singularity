@@ -33,6 +33,9 @@ unixsocketperm 770
 pidfile /chord/tmp/redis.pid
 
 daemonize yes
+
+dbfilename redis.rdb
+dir /chord/data/redis
 EOC
 
 export HOME="/chord"
