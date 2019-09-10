@@ -10,6 +10,7 @@ def get_config_vars(s: Dict) -> Dict:
     return {
         "CHORD_ENV": "/chord/tmp/env",  # TODO: Should this be in tmp?
 
+        "SERVICE_ID": s["id"],
         "SERVICE_SOCKET": f"/chord/tmp/{s['id']}.sock",
         "SERVICE_VENV": f"/chord/services/{s['id']}/env",
         "SERVICE_BASE_URL": f"/api/{s['id']}",
