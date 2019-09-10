@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Make sure man folder is present (for Java...)  TODO
+mkdir -p /usr/share/man/man1
+
 # Update and install shared build dependencies
 apt update
 apt full-upgrade -y
