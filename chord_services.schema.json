@@ -33,6 +33,10 @@
           "type": "array",
           "items": {"type":  "string"}
         },
+        "pre_start_commands": {
+          "type": "array",
+          "items": {"type":  "string"}
+        },
         "wsgi": {
           "type": "boolean"
         },

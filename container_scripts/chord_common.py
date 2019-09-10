@@ -20,6 +20,11 @@ def get_config_vars(s: Dict) -> Dict:
     }
 
 
+def get_env_str(s, config_vars):
+    return (" ".join(f"{k}={v.format(**config_vars)}" for k, v in s["python_environment"].items())
+            if "python_environment" in s else "")
+
+
 def main(job: Callable[[List[Dict]], None]):
     args = sys.argv[1:]
 

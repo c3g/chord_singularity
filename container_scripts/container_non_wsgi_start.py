@@ -3,7 +3,7 @@
 import subprocess
 from typing import Dict, List
 # noinspection PyUnresolvedReferences
-from chord_common import get_config_vars, main
+from chord_common import get_config_vars, get_env_str, main
 
 
 def job(services: List[Dict]):
@@ -12,9 +12,7 @@ def job(services: List[Dict]):
             continue
 
         config_vars = get_config_vars(s)
-
-        env_str = (" ".join(f"{k}={v.format(**config_vars)}" for k, v in s["python_environment"].items())
-                   if "python_environment" in s else "")
+        env_str = get_env_str(s, config_vars)
 
         subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
                        f"source {config_vars['CHORD_ENV']} && "
