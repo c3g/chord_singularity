@@ -1,6 +1,20 @@
-==========
-CHORD plan
-==========
+============
+CHORD Server
+============
+
+What's included in a CHORD Server Singularity container?
+
+* NodeJS 10
+
+* Python 3.7
+
+* Java 1.8
+
+* A Redis instance running at ``/chord/tmp/redis.sock``
+
+* ``zlib1g-dev``, ``libbz2-dev``, and ``liblzma-dev``
+
+* ``htslib``
 
 CHORD Data to Support
 ---------------------
