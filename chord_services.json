@@ -97,7 +97,7 @@
     "id": "variant",
     "repository": "https://bitbucket.org/genap/chord_variant_service",
     "data_service": true,
-    "apt_dependencies": ["zlib1g-dev", "libbz2-dev", "liblzma-dev", "samtools"],
+    "apt_dependencies": ["samtools"],
     "wsgi": true,
     "python_module": "chord_variant_service.app",
     "python_callable": "application",

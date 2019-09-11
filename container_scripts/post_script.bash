@@ -6,7 +6,7 @@ mkdir -p /usr/share/man/man1
 # Update and install shared build dependencies
 apt update
 apt full-upgrade -y
-apt install -y nginx build-essential git curl
+apt install -y nginx build-essential autoconf git curl
 
 # Install Node.JS
 curl -sL https://deb.nodesource.com/setup_10.x | bash -
@@ -41,6 +41,22 @@ dbfilename redis.rdb
 dir /chord/data/redis
 EOC
 
+# Install HTSLib (may as well provide it, it'll likely be commonly used)
+# TODO: Do we want to move this into pre_install for WES/variant/something, or no?
+apt install -y zlib1g-dev libbz2-dev liblzma-dev
+cd /chord || exit
+curl -Lo htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
+tar -xjf htslib.tar.bz2
+cd htslib-1.9 || exit
+autoheader
+autoconf
+./configure
+make
+make install
+cd /chord || exit
+rm htslib.tar.bz2
+rm -r htslib-1.9
+
 export HOME="/chord"
 
 # Install CHORD Web
@@ -73,6 +89,6 @@ python3.7 ./container_scripts/container_setup.py ./chord_services.json
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache
-apt purge -y build-essential git curl
+apt purge -y build-essential autoconf git curl
 apt autoremove -y
 apt clean
