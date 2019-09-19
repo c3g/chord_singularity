@@ -5,28 +5,39 @@ import os
 import subprocess
 
 
+USER_DIR = os.path.expanduser("~")
+CHORD_DATA_DIRECTORY = os.path.join(USER_DIR, "chord_data")
+CHORD_TEMP_DIRECTORY = "/tmp/chord"
+
+
+def get_instance_name(i: int):
+    return f"chord{i}"
+
+
 def action_start(args):
     for i in range(1, args.cluster_size + 1):
         print(f"[CHORD DEV UTILS] Starting instance {i}...")
 
-        subprocess.run(["mkdir", "-p", f"/tmp/chord/{i}"])
+        instance_data = os.path.join(CHORD_DATA_DIRECTORY, str(i))
+        instance_temp = os.path.join(CHORD_TEMP_DIRECTORY, str(i))
 
-        with open(f"/tmp/chord/{i}/env", "w") as f:
+        subprocess.run(["mkdir", "-p",  instance_temp])
+
+        with open(os.path.join(instance_temp, "env"), "w") as f:
             f.write(f"export CHORD_URL=http://{i}.chord.dlougheed.com/\n")  # TODO: Should this be a common var?
             f.write("export CHORD_REGISTRY_URL=http://1.chord.dlougheed.com/\n")  # TODO: Above
 
-        user_dir = os.path.expanduser("~")
-        subprocess.run(["mkdir", "-p", os.path.join(user_dir, f"chord_data/{i}")])
+        subprocess.run(["mkdir", "-p", instance_data])
         subprocess.run(["singularity", "instance", "start",
-                        "--bind", f"/tmp/chord/{i}:/chord/tmp",
-                        "--bind", os.path.join(user_dir, f"chord_data/{i}") + ":/chord/data",
-                        "chord.sif", f"chord{i}"])
+                        "--bind", f"{instance_temp}:/chord/tmp",
+                        "--bind", f"{instance_data}:/chord/data",
+                        "chord.sif", get_instance_name(i)])
 
 
 def action_stop(args):
     for i in range(1, args.cluster_size + 1):
         print(f"[CHORD DEV UTILS] Stopping instance {i}...")
-        subprocess.run(["singularity", "instance", "stop", f"chord{i}"])
+        subprocess.run(["singularity", "instance", "stop", get_instance_name(i)])
 
 
 def main():
