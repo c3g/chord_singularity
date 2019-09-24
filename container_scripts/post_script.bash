@@ -57,6 +57,10 @@ cd /chord || exit
 rm htslib.tar.bz2
 rm -r htslib-1.9
 
+# Install bcftools
+# TODO: Do we want to move this into pre_install for WES/variant/something, or no?
+apt install -y bcftools
+
 export HOME="/chord"
 
 # Install CHORD Web
