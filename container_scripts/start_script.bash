@@ -22,7 +22,7 @@ nohup redis-server /etc/redis/redis.conf &> /dev/null  # Daemonized, so doesn't 
 mkdir -p /chord/data/postgresql
 
 echo "Starting Postgres..."
-/usr/lib/postgresql/9.6/bin/initdb -D /chord/data/postgresql  # Initialize DB if nothing's there
+/usr/lib/postgresql/9.6/bin/initdb -D /chord/data/postgresql &> /dev/null  # Initialize DB if nothing's there
 pg_ctlcluster 9.6 main start
 
 echo "Starting NGINX..."
