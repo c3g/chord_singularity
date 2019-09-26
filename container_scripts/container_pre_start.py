@@ -12,6 +12,18 @@ def job(services):
         subprocess.run(["mkdir", "-p", f"/chord/tmp/data/{s['id']}"], check=True)
 
         config_vars = get_config_vars(s)
+
+        # Postgres setup
+        #  - Create a user with the service ID as the username
+        #  - Create a database with cs_{service ID} as the database name
+        #  - Only let the owner connect to the database
+        # TODO: Create with password, store somewhere secure/locked down
+        subprocess.run(("createuser", "-D", "-R", "-S", "-h", config_vars["POSTGRES_SOCKET_DIR"], "-p", "5433",
+                        config_vars["POSTGRES_USER"]))
+        subprocess.run(("createdb", "-O", config_vars["POSTGRES_USER"], config_vars["POSTGRES_DATABASE"]))
+        subprocess.run(("psql", "-U", config_vars["POSTGRES_USER"], "-d", config_vars["POSTGRES_DATABASE"], "-c",
+                        f"REVOKE CONNECT ON DATABASE {config_vars['POSTGRES_DATABASE']} FROM PUBLIC;"))
+
         env_str = get_env_str(s, config_vars)
 
         pre_start_commands = s.get("pre_start_commands", [])

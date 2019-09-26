@@ -5,6 +5,8 @@
       <w>autoremove</w>
       <w>candig</w>
       <w>confs</w>
+      <w>createdb</w>
+      <w>createuser</w>
       <w>ctype</w>
       <w>datasets</w>
       <w>debian</w>
@@ -21,6 +23,9 @@
       <w>nodelay</w>
       <w>nohup</w>
       <w>nopush</w>
+      <w>pgsql</w>
+      <w>postgresql</w>
+      <w>psql</w>
       <w>pyargv</w>
       <w>rnaget</w>
       <w>samtools</w>
