@@ -7,9 +7,9 @@ from chord_common import get_config_vars, get_env_str, main
 
 def job(services):
     for s in services:
-        subprocess.run(["mkdir", "-p", f"/chord/data/{s['id']}"], check=True)
-        subprocess.run(["mkdir", "-p", f"/chord/tmp/logs/{s['id']}"], check=True)
-        subprocess.run(["mkdir", "-p", f"/chord/tmp/data/{s['id']}"], check=True)
+        subprocess.run(("mkdir", "-p", f"/chord/data/{s['id']}"), check=True)
+        subprocess.run(("mkdir", "-p", f"/chord/tmp/logs/{s['id']}"), check=True)
+        subprocess.run(("mkdir", "-p", f"/chord/tmp/data/{s['id']}"), check=True)
 
         config_vars = get_config_vars(s)
 
