@@ -15,7 +15,7 @@ def get_config_vars(s: Dict) -> Dict:
         "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5433",
         "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
         "POSTGRES_DATABASE": f"{s['id']}_db",
-        "POSTGRES_USER": f"{['id']}_acct",
+        "POSTGRES_USER": f"{s['id']}_acct",
 
         "SERVICE_ID": s["id"],
         "SERVICE_SOCKET": f"/chord/tmp/{s['id']}.sock",
