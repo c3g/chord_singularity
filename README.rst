@@ -12,6 +12,9 @@ What's included in a CHORD Server Singularity container?
 
 * A Redis instance running at ``/chord/tmp/redis.sock``
 
+* A PostgreSQL instance running at ``/chord/tmp/postgresql/.s.PGSQL.5433``, with a username stored in the environment
+  variable ``POSTGRES_USER`` and a service-specific database stored in the environment variable ``POSTGRES_DATABASE``
+
 * ``zlib1g-dev``, ``libbz2-dev``, and ``liblzma-dev``
 
 * ``htslib``

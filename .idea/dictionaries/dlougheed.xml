@@ -24,6 +24,7 @@
       <w>nohup</w>
       <w>nopush</w>
       <w>pgsql</w>
+      <w>postgre</w>
       <w>postgresql</w>
       <w>psql</w>
       <w>pyargv</w>

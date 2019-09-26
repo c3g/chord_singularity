@@ -9,6 +9,7 @@ def job(services):
     for s in services:
         config_vars = get_config_vars(s)
 
+        # Create required directories if needed at startup
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
