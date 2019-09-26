@@ -6,10 +6,6 @@ from jsonschema import validate
 from typing import Callable, Dict, List
 
 
-def get_postgres_database_name(s: Dict) -> str:
-    return f"cs_{s['id']}"
-
-
 def get_config_vars(s: Dict) -> Dict:
     return {
         "CHORD_ENV": "/chord/tmp/env",  # TODO: Should this be in tmp?
@@ -18,7 +14,7 @@ def get_config_vars(s: Dict) -> Dict:
 
         "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5433",
         "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
-        "POSTGRES_DATABASE": get_postgres_database_name(s),
+        "POSTGRES_DATABASE": f"cs_{s['id']}",
         "POSTGRES_USER": s["id"],
 
         "SERVICE_ID": s["id"],
