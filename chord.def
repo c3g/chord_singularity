@@ -1,6 +1,10 @@
 Bootstrap: docker
 From: python:3.7-slim-stretch
 
+%environment
+    export LANG=en_US.UTF-8
+    export LC_CTYPE=en_US.UTF-8
+
 %files
     chord_services.json /chord/chord_services.json
     chord_services.schema.json /chord/chord_services.schema.json
