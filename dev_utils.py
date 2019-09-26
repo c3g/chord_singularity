@@ -21,17 +21,17 @@ def action_start(args):
         instance_data = os.path.join(CHORD_DATA_DIRECTORY, str(i))
         instance_temp = os.path.join(CHORD_TEMP_DIRECTORY, str(i))
 
-        subprocess.run(["mkdir", "-p",  instance_temp])
+        subprocess.run(("mkdir", "-p",  instance_temp))
 
         with open(os.path.join(instance_temp, "env"), "w") as f:
             f.write(f"export CHORD_URL=http://{i}.chord.dlougheed.com/\n")  # TODO: Should this be a common var?
             f.write("export CHORD_REGISTRY_URL=http://1.chord.dlougheed.com/\n")  # TODO: Above
 
-        subprocess.run(["mkdir", "-p", instance_data])
-        subprocess.run(["singularity", "instance", "start",
+        subprocess.run(("mkdir", "-p", instance_data))
+        subprocess.run(("singularity", "instance", "start",
                         "--bind", f"{instance_temp}:/chord/tmp",
                         "--bind", f"{instance_data}:/chord/data",
-                        "chord.sif", get_instance_name(i)])
+                        "chord.sif", get_instance_name(i)))
 
 
 def action_stop(args):
@@ -43,12 +43,12 @@ def action_stop(args):
 def main():
     parser = argparse.ArgumentParser(description="Helpers for CHORD server development.")
     parser.add_argument("--cluster-size", dest="cluster_size", type=int, default=1)
-    parser.add_argument("action", metavar="action", type=str, choices=["build", "start", "stop", "restart"],
+    parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart"),
                         help="build|start|stop|restart")
     args = parser.parse_args()
 
     if args.action == "build":
-        subprocess.run(["sudo", "singularity", "build", "chord.sif", "chord.def"])
+        subprocess.run(("sudo", "singularity", "build", "chord.sif", "chord.def"))
 
     elif args.action == "start":
         action_start(args)
