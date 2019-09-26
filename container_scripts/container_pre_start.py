@@ -7,11 +7,11 @@ from chord_common import get_config_vars, get_env_str, main
 
 def job(services):
     for s in services:
-        subprocess.run(("mkdir", "-p", f"/chord/data/{s['id']}"), check=True)
-        subprocess.run(("mkdir", "-p", f"/chord/tmp/logs/{s['id']}"), check=True)
-        subprocess.run(("mkdir", "-p", f"/chord/tmp/data/{s['id']}"), check=True)
-
         config_vars = get_config_vars(s)
+
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
 
         # Postgres setup
         #  - Create a user with the service ID as the username
