@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+CPG="9.6"
+
 source /chord/tmp/env
 
 mkdir -p /chord/tmp/logs
@@ -22,8 +24,9 @@ nohup redis-server /etc/redis/redis.conf &> /dev/null  # Daemonized, so doesn't 
 mkdir -p /chord/data/postgresql
 
 echo "Starting Postgres..."
-/usr/lib/postgresql/9.6/bin/initdb -D /chord/data/postgresql &> /dev/null  # Initialize DB if nothing's there
-pg_ctlcluster 9.6 main start
+# Initialize DB if nothing's there, then start the cluster
+/usr/lib/postgresql/${CPG}/bin/initdb -D /chord/data/postgresql &> /dev/null
+pg_ctlcluster ${CPG} main start
 
 echo "Starting NGINX..."
 nohup nginx &> /dev/null &
