@@ -67,6 +67,7 @@ sed -i 's=/var/lib/postgresql/9.6/main=/chord/data/postgresql=g' /etc/postgresql
 sed -i 's=/var/run/postgresql/9.6-main.pid=/chord/tmp/postgresql/9.6-main.pid=g' \
   /etc/postgresql/9.6/main/postgresql.conf
 sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\'''\''/g' /etc/postgresql/9.6/main/postgresql.conf
+sed -i -r 's/port = [0-9]{4}/port = 5433/g' /etc/postgresql/9.6/main/postgresql.conf
 sed -i 's,unix_socket_directories = '\''/var/run/postgresql'\'',unix_socket_directories = '\''/chord/tmp/postgresql'\'',g' \
   /etc/postgresql/9.6/main/postgresql.conf
 sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' /etc/postgresql/9.6/main/postgresql.conf
@@ -84,6 +85,7 @@ sed -i 's,pg_ctl_options = '\'''\'',pg_ctl_options = '\''-l /chord/tmp/postgresq
 
 sed -i 's/all                                     peer/all                                     trust/g' \
   /etc/postgresql/9.6/main/pg_hba.conf
+
 chmod o+r /etc/postgresql/9.6/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
 
 
