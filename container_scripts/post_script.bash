@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+CNODE="10.x"
+CPG="9.6"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Make sure man folders are present (for Java and Postgres)
@@ -22,7 +25,7 @@ apt full-upgrade -y
 apt install -y nginx build-essential autoconf git curl
 
 # Install Node.JS
-curl -sL https://deb.nodesource.com/setup_10.x | bash -
+curl -sL https://deb.nodesource.com/setup_${CNODE} | bash -
 apt install -y nodejs
 
 ###############################################################################
@@ -63,30 +66,31 @@ EOC
 # TODO: Use sd if we have cargo or if it's available in Debian in the future (thanks Romain)
 
 apt install -y postgresql postgresql-contrib
-sed -i 's=/var/lib/postgresql/9.6/main=/chord/data/postgresql=g' /etc/postgresql/9.6/main/postgresql.conf
-sed -i 's=/var/run/postgresql/9.6-main.pid=/chord/tmp/postgresql/9.6-main.pid=g' \
-  /etc/postgresql/9.6/main/postgresql.conf
-sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\'''\''/g' /etc/postgresql/9.6/main/postgresql.conf
-sed -i -r 's/port = [0-9]{4}/port = 5433/g' /etc/postgresql/9.6/main/postgresql.conf
+sed -i "s=/var/lib/postgresql/${CPG}/main=/chord/data/postgresql=g" /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i "s=/var/run/postgresql/${CPG}-main.pid=/chord/tmp/postgresql/${CPG}-main.pid=g" \
+  /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\'''\''/g' \
+  /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i -r 's/port = [0-9]{4}/port = 5433/g' /etc/postgresql/${CPG}/main/postgresql.conf
 sed -i 's,unix_socket_directories = '\''/var/run/postgresql'\'',unix_socket_directories = '\''/chord/tmp/postgresql'\'',g' \
-  /etc/postgresql/9.6/main/postgresql.conf
-sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' /etc/postgresql/9.6/main/postgresql.conf
+  /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' /etc/postgresql/${CPG}/main/postgresql.conf
 
-sed -i 's/ssl = true/ssl = false/g' /etc/postgresql/9.6/main/postgresql.conf
+sed -i 's/ssl = true/ssl = false/g' /etc/postgresql/${CPG}/main/postgresql.conf
 
-sed -i 's/#logging_collector = off/logging_collector = on/g' /etc/postgresql/9.6/main/postgresql.conf
+sed -i 's/#logging_collector = off/logging_collector = on/g' /etc/postgresql/${CPG}/main/postgresql.conf
 sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgresql/logs'\'',g' \
-  /etc/postgresql/9.6/main/postgresql.conf
-sed -i 's=/var/run/postgresql/9.6-main.pg_stat_tmp=/chord/tmp/postgresql/9.6-main.pg_stat_tmp=g' \
-  /etc/postgresql/9.6/main/postgresql.conf
+  /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i "s=/var/run/postgresql/${CPG}-main.pg_stat_tmp=/chord/tmp/postgresql/${CPG}-main.pg_stat_tmp=g" \
+  /etc/postgresql/${CPG}/main/postgresql.conf
 
-sed -i 's,pg_ctl_options = '\'''\'',pg_ctl_options = '\''-l /chord/tmp/postgresql/postgresql-9.6-main.log'\'',g' \
-  /etc/postgresql/9.6/main/pg_ctl.conf
+sed -i "s,pg_ctl_options = '',pg_ctl_options = '-l /chord/tmp/postgresql/postgresql-${CPG}-main.log',g" \
+  /etc/postgresql/${CPG}/main/pg_ctl.conf
 
 sed -i 's/all                                     peer/all                                     trust/g' \
-  /etc/postgresql/9.6/main/pg_hba.conf
+  /etc/postgresql/${CPG}/main/pg_hba.conf
 
-chmod o+r /etc/postgresql/9.6/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
+chmod o+r /etc/postgresql/${CPG}/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
 
 
 ###############################################################################
