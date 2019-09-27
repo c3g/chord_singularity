@@ -1,8 +1,8 @@
-============
-CHORD Server
-============
+=================
+CHORD Singularity
+=================
 
-What's included in a CHORD Server Singularity container?
+What's included in a CHORD Singularity container?
 
 * NodeJS 10
 
