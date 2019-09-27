@@ -67,8 +67,8 @@ Response:
 .. code-block:: json
 
    [
-     {"id" "dataset_1", "data_type": "some_type"},
-     {"id" "dataset_2", "data_type": "some_type"}
+     {"id": "dataset_1", "data_type": "some_type"},
+     {"id": "dataset_2", "data_type": "some_type"}
    ]
 
 
