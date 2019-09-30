@@ -97,7 +97,7 @@ def generate_uwsgi_confs(services: List[Dict]):
         )
 
         if "python_args" in s:
-            uwsgi_conf += f"pyargv = {' '.join([a.format(**config_vars) for a in s['python_args']])}\n"
+            uwsgi_conf += f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}\n"
 
         if "python_environment" in s:
             for e, val in s["python_environment"].items():
@@ -165,16 +165,16 @@ def main():
 
         apt_dependencies = set()
         for s in services:
-            apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", []))
+            apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", ()))
 
-        subprocess.run(["apt", "install", "-y"] + list(apt_dependencies), check=True)
+        subprocess.run(("apt", "install", "-y") + tuple(apt_dependencies), check=True)
 
         # STEP 2: Run pre-install commands
 
         print("[CHORD] Running service pre-install commands...")
 
         for s in services:
-            commands = s.get("pre_install_commands", [])
+            commands = s.get("pre_install_commands", ())
             for c in commands:
                 subprocess.run(c, shell=True, check=True)
 

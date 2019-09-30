@@ -27,7 +27,7 @@ def job(services):
 
         env_str = get_env_str(s, config_vars)
 
-        pre_start_commands = s.get("pre_start_commands", [])
+        pre_start_commands = s.get("pre_start_commands", ())
         for command in pre_start_commands:
             subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
                            f"source {config_vars['CHORD_ENV']} && "

@@ -14,6 +14,7 @@
       <w>endfor</w>
       <w>genomics</w>
       <w>htslib</w>
+      <w>jsonschema</w>
       <w>libbz</w>
       <w>liblzma</w>
       <w>libncurses</w>
@@ -28,6 +29,7 @@
       <w>postgresql</w>
       <w>psql</w>
       <w>pyargv</w>
+      <w>pyrsistent</w>
       <w>rnaget</w>
       <w>samtools</w>
       <w>scgi</w>
