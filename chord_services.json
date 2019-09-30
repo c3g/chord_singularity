@@ -37,7 +37,7 @@
     "id": "wes",
     "repository": "https://github.com/c3g/chord_wes",
     "data_service": false,
-    "apt_dependencies": ["openjdk-8-jre-headless"],
+    "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
       "curl -Lo /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar"
     ],

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CPG="9.6"
+CPG="11"
 
 source /chord/tmp/env
 

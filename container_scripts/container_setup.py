@@ -186,9 +186,9 @@ def main():
             subprocess.run(
                 f"/bin/bash -c 'mkdir -p /chord/services/{s['id']};"
                 f"              cd /chord/services/{s['id']}; "
-                f"              virtualenv env; "
+                f"              python3.7 -m virtualenv -p python3.7 env; "
                 f"              source env/bin/activate; "
-                f"              pip install git+{s['repository']};"
+                f"              pip install --no-cache-dir git+{s['repository']};"
                 f"              deactivate'",
                 shell=True,
                 check=True

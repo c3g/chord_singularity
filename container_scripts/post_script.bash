@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CNODE="10.x"
-CPG="9.6"
+CPG="11"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -23,6 +23,9 @@ export LC_CTYPE="en_US.UTF-8"
 # Install shared build dependencies
 apt full-upgrade -y
 apt install -y nginx build-essential autoconf git curl
+
+# Install Python 3.7
+apt install -y python3 python3-pip python3-virtualenv
 
 # Install Node.JS
 curl -sL https://deb.nodesource.com/setup_${CNODE} | bash -
@@ -127,6 +130,7 @@ git clone --depth 1 https://bitbucket.org/genap/chord_web.git web
 cd /chord/web || exit
 NODE_ENV=development npm install
 NODE_ENV=production npm run build
+rm -r node_modules  # Don't need sources anymore after the bundle is built
 
 # Create CHORD folder structure
 mkdir -p /chord/data
@@ -142,7 +146,6 @@ ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
 ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
 
 # Install common Python dependencies
-python3.7 -m pip install --no-cache-dir virtualenv
 python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt
 
 # Run Python container setup script
@@ -151,6 +154,6 @@ python3.7 ./container_scripts/container_setup.py ./chord_services.json
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache
-apt purge -y build-essential autoconf git curl
+apt purge -y build-essential autoconf git curl python3-virtualenv
 apt autoremove -y
 apt clean

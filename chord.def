@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: python:3.7-slim-stretch
+From: debian:buster-slim
 
 %environment
     export LANG=en_US.UTF-8
