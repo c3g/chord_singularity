@@ -8,11 +8,11 @@ What's included in a CHORD Singularity container?
 
 * Python 3.7
 
-* Java 1.8
+* Java 11
 
 * A Redis instance running at ``/chord/tmp/redis.sock``
 
-* A PostgreSQL instance running at ``/chord/tmp/postgresql/.s.PGSQL.5433``, with a username stored in the environment
+* A PostgreSQL 11 instance running at ``/chord/tmp/postgresql/.s.PGSQL.5433``, with a username stored in the environment
   variable ``POSTGRES_USER`` and a service-specific database stored in the environment variable ``POSTGRES_DATABASE``
 
 * ``zlib1g-dev``, ``libbz2-dev``, and ``liblzma-dev``
