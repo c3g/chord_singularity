@@ -1,7 +1,7 @@
 [
   {
     "id": "service_registry",
-    "repository": "https://bitbucket.org/genap/chord_service_registry",
+    "repository": "https://github.com/c3g/chord_service_registry",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_service_registry.app",
@@ -13,7 +13,7 @@
   },
   {
     "id": "project",
-    "repository": "https://bitbucket.org/genap/chord_project_service",
+    "repository": "https://github.com/c3g/chord_project_service",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_project_service.app",
@@ -24,7 +24,7 @@
   },
   {
     "id": "drop_box",
-    "repository": "https://bitbucket.org/genap/chord_drop_box_service",
+    "repository": "https://github.com/c3g/chord_drop_box_service",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drop_box_service.app",
@@ -35,7 +35,7 @@
   },
   {
     "id": "wes",
-    "repository": "https://bitbucket.org/genap/chord_wes",
+    "repository": "https://github.com/c3g/chord_wes",
     "data_service": false,
     "apt_dependencies": ["openjdk-8-jre-headless"],
     "pre_install_commands": [
@@ -59,10 +59,10 @@
   },
   {
     "id": "federation",
-    "repository": "https://bitbucket.org/genap/chord_federation_async",
+    "repository": "https://github.com/c3g/chord_federation",
     "data_service": false,
     "wsgi": false,
-    "python_runnable": "chord_federation_async",
+    "python_runnable": "chord_federation",
     "python_environment": {
       "SOCKET": "{SERVICE_SOCKET}",
       "BASE_URL": "{SERVICE_BASE_URL}",
@@ -84,7 +84,7 @@
   },
   {
     "id": "example",
-    "repository": "https://bitbucket.org/genap/chord_example_service",
+    "repository": "https://github.com/c3g/chord_example_service",
     "data_service": true,
     "wsgi": true,
     "python_module": "chord_example_service.app",
@@ -95,7 +95,7 @@
   },
   {
     "id": "variant",
-    "repository": "https://bitbucket.org/genap/chord_variant_service",
+    "repository": "https://github.com/c3g/chord_variant_service",
     "data_service": true,
     "apt_dependencies": ["samtools"],
     "wsgi": true,
