@@ -1,7 +1,8 @@
+dist: bionic
 language: python
 
 python:
-  - 3.7
+  - "3.7"
 
 env:
   - GO111MODULE=on VERSION=1.12.10 OS=linux ARCH=amd64 GOPATH=${HOME}/go /usr/local/go/bin:${PATH}:${GOPATH}/bin
@@ -25,4 +26,4 @@ script:
   - cd $TRAVIS_BUILD_DIR
   - sudo which python
   - sudo which python3
-  - sudo python ./dev_utils.py build
+  - sudo python3 ./dev_utils.py build
