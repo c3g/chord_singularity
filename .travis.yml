@@ -6,6 +6,9 @@ go:
 python:
   - 3.7
 
+env:
+  - GO111MODULE=on
+
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y build-essential libssl-dev uuid-dev libseccomp-dev pkg-config squashfs-tools cryptsetup
