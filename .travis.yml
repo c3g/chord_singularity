@@ -23,4 +23,6 @@ before_install:
 
 script:
   - cd $TRAVIS_BUILD_DIR
-  - sudo python3.7 ./dev_utils.py build
+  - sudo which python
+  - sudo which python3
+  - sudo python ./dev_utils.py build
