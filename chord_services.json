@@ -70,6 +70,18 @@
     }
   },
   {
+    "id": "metadata",
+    "repository": "https://github.com/c3g/chord_metadata_service",
+    "data_service": false,
+    "wsgi": true,
+    "python_module": "chord_metadata_service.metadata.wsgi",
+    "python_callable": "application",
+    "python_environment": {
+      "POSTGRES_USER": "{POSTGRES_USER}",
+      "POSTGRES_DATABASE": "{POSTGRES_DATABASE}"
+    }
+  },
+  {
     "id": "rnaget",
     "repository": "https://github.com/CanDIG/rnaget_service",
     "data_service": true,
