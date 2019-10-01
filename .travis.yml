@@ -24,6 +24,4 @@ before_install:
 
 script:
   - cd $TRAVIS_BUILD_DIR
-  - sudo which python
-  - sudo which python3
-  - sudo python3 ./dev_utils.py build
+  - sudo python3 ./dev_utils.py build  # The sudo call doesn't use Python 3.7, but it's still used inside the container.
