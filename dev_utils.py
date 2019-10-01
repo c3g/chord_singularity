@@ -37,7 +37,7 @@ def action_start(args):
 def action_stop(args):
     for i in range(1, args.cluster_size + 1):
         print(f"[CHORD DEV UTILS] Stopping instance {i}...")
-        subprocess.run(["singularity", "instance", "stop", get_instance_name(i)])
+        subprocess.run(("singularity", "instance", "stop", get_instance_name(i)))
 
 
 def main():
