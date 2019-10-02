@@ -1,9 +1,18 @@
 import json
+import random
 import os
 import sys
 
 from jsonschema import validate
 from typing import Callable, Dict, List
+
+
+SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
+SECRET_LENGTH = 64
+
+
+def generate_secret_key() -> str:
+    return "".join([random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH)])
 
 
 def get_config_vars(s: Dict) -> Dict:
@@ -16,6 +25,8 @@ def get_config_vars(s: Dict) -> Dict:
         "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
         "POSTGRES_DATABASE": f"{s['id']}_db",
         "POSTGRES_USER": f"{s['id']}_acct",
+
+        "SERVICE_SECRET_KEY": generate_secret_key(),  # General-purpose secret key
 
         "SERVICE_ID": s["id"],
         "SERVICE_SOCKET": f"/chord/tmp/{s['id']}.sock",

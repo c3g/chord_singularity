@@ -77,6 +77,7 @@
     "python_module": "chord_metadata_service.metadata.wsgi",
     "python_callable": "application",
     "python_environment": {
+      "SERVICE_SECRET_KEY": "{SERVICE_SECRET_KEY}",
       "POSTGRES_USER": "{POSTGRES_USER}",
       "POSTGRES_DATABASE": "{POSTGRES_DATABASE}"
     }
