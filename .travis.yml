@@ -4,6 +4,10 @@ language: python
 python:
   - "3.7"
 
+branches:
+  only:
+    - master
+
 env:
   - GO111MODULE=on VERSION=1.12.10 OS=linux ARCH=amd64 GOPATH=${HOME}/go /usr/local/go/bin:${PATH}:${GOPATH}/bin
 
