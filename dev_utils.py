@@ -40,11 +40,17 @@ def action_stop(args):
         subprocess.run(("singularity", "instance", "stop", get_instance_name(i)))
 
 
+def action_shell(args):
+    subprocess.run(("singularity", "shell", f"instance://{get_instance_name(args.node)}"))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Helpers for CHORD server development.")
     parser.add_argument("--cluster-size", dest="cluster_size", type=int, default=1)
-    parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart"),
-                        help="build|start|stop|restart")
+    parser.add_argument("--node", dest="node", type=int, help="[node index]", default=1)
+    parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart", "shell"),
+                        help="build|start|stop|restart|shell")
+
     args = parser.parse_args()
 
     if args.action == "build":
@@ -59,6 +65,9 @@ def main():
     elif args.action == "restart":
         action_stop(args)
         action_start(args)
+
+    elif args.action == "shell":
+        action_shell(args)
 
 
 if __name__ == "__main__":
