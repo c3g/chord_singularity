@@ -26,6 +26,9 @@ def job(services: List[Dict], services_config_path: str):
         subprocess.run(("createdb", "-O", config_vars["POSTGRES_USER"], config_vars["POSTGRES_DATABASE"]))
         subprocess.run(("psql", "-U", config_vars["POSTGRES_USER"], "-d", config_vars["POSTGRES_DATABASE"], "-c",
                         f"REVOKE CONNECT ON DATABASE {config_vars['POSTGRES_DATABASE']} FROM PUBLIC;"))
+        subprocess.run(("psql", "-U", config_vars["POSTGRES_USER"], "-d", config_vars["POSTGRES_DATABASE"], "-c",
+                        f"ALTER USER {config_vars['POSTGRES_USER']} ENCRYPTED PASSWORD "
+                        f"'f{config_vars['POSTGRES_PASSWORD']}'"))
 
         env_str = get_env_str(s, config_vars)
         env_str = env_str.replace("'", r"'\''")

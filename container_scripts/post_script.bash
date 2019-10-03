@@ -90,7 +90,7 @@ sed -i "s=/var/run/postgresql/${CPG}-main.pg_stat_tmp=/chord/tmp/postgresql/${CP
 sed -i "s,pg_ctl_options = '',pg_ctl_options = '-l /chord/tmp/postgresql/postgresql-${CPG}-main.log',g" \
   /etc/postgresql/${CPG}/main/pg_ctl.conf
 
-sed -i 's/all                                     peer/all                                     trust/g' \
+sed -i 's/all                                     peer/all                                     md5/g' \
   /etc/postgresql/${CPG}/main/pg_hba.conf
 
 chmod o+r /etc/postgresql/${CPG}/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.

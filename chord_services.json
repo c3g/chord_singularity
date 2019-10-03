@@ -73,13 +73,19 @@
     "id": "metadata",
     "repository": "https://github.com/c3g/chord_metadata_service",
     "data_service": false,
+    "pre_start_commands": [
+      "django-admin migrate"
+    ],
     "wsgi": true,
     "python_module": "chord_metadata_service.metadata.wsgi",
     "python_callable": "application",
     "python_environment": {
-      "SERVICE_SECRET_KEY": "{SERVICE_SECRET_KEY}",
+      "CHORD_DEBUG": "{CHORD_DEBUG}",
+      "DJANGO_SETTINGS_MODULE": "chord_metadata_service.metadata.settings",
+      "POSTGRES_DATABASE": "{POSTGRES_DATABASE}",
       "POSTGRES_USER": "{POSTGRES_USER}",
-      "POSTGRES_DATABASE": "{POSTGRES_DATABASE}"
+      "POSTGRES_PASSWORD": "{POSTGRES_PASSWORD}",
+      "SERVICE_SECRET_KEY": "{SERVICE_SECRET_KEY}"
     }
   },
   {
