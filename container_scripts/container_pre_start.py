@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 import subprocess
+from typing import Dict, List
+
 # noinspection PyUnresolvedReferences
 from chord_common import get_config_vars, get_env_str, main
 
 
-def job(services):
+def job(services: List[Dict], services_config_path: str):
     for s in services:
-        config_vars = get_config_vars(s)
+        config_vars = get_config_vars(s, services_config_path)
 
         # Create required directories if needed at startup
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
@@ -26,12 +28,20 @@ def job(services):
                         f"REVOKE CONNECT ON DATABASE {config_vars['POSTGRES_DATABASE']} FROM PUBLIC;"))
 
         env_str = get_env_str(s, config_vars)
+        env_str = env_str.replace("'", r"'\''")
 
         pre_start_commands = s.get("pre_start_commands", ())
         for command in pre_start_commands:
-            subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
-                           f"source {config_vars['CHORD_ENV']} && "
-                           f"{env_str} {command.format(**config_vars)}'", shell=True, check=True)
+            full_command = (
+                f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
+                f"source {config_vars['CHORD_ENV']} && "
+                f"{env_str} {command.format(**config_vars)}'"
+            )
+
+            try:
+                subprocess.run(full_command, shell=True, check=True)
+            except subprocess.CalledProcessError:
+                print(f"Error running command: \n\t{full_command}")
 
 
 if __name__ == "__main__":

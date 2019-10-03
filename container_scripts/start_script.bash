@@ -31,11 +31,11 @@ pg_ctlcluster ${CPG} main start
 echo "Starting NGINX..."
 nohup nginx &> /dev/null &
 
-python3.7 ./container_scripts/container_pre_start.py ./chord_services.json
+python3.7 ./container_scripts/container_pre_start.py ./chord_services.json ./chord_services_config.json
 
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log
 nohup uwsgi --emperor /chord/vassals --master --log-master --logto /chord/tmp/uwsgi/uwsgi.log &> /dev/null &
 
 echo "Starting other services..."
-python3.7 ./container_scripts/container_non_wsgi_start.py ./chord_services.json
+python3.7 ./container_scripts/container_non_wsgi_start.py ./chord_services.json ./chord_services_config.json

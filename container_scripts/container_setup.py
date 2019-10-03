@@ -79,14 +79,14 @@ NGINX_CONF_FOOTER = """
 """
 
 
-def generate_uwsgi_confs(services: List[Dict]):
+def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
     uwsgi_confs = []
 
     for s in services:
         if "wsgi" in s and not s["wsgi"]:
             continue
 
-        config_vars = get_config_vars(s)
+        config_vars = get_config_vars(s, services_config_path)
 
         uwsgi_conf = UWSGI_CONF_TEMPLATE.format(
             service_id=s["id"],
@@ -108,17 +108,17 @@ def generate_uwsgi_confs(services: List[Dict]):
     return uwsgi_confs
 
 
-def generate_nginx_conf(services: List[Dict]):
+def generate_nginx_conf(services: List[Dict], services_config_path: str):
     nginx_conf = NGINX_CONF_HEADER
 
     for s in services:
-        config_vars = get_config_vars(s)
+        config_vars = get_config_vars(s, services_config_path)
         nginx_conf += f"  upstream chord_{s['id']} {{ server unix:{config_vars['SERVICE_SOCKET']}; }}\n"
 
     nginx_conf += NGINX_CONF_SERVER_HEADER
 
     for s in services:
-        config_vars = get_config_vars(s)
+        config_vars = get_config_vars(s, services_config_path)
         base_url = config_vars['SERVICE_BASE_URL']
 
         nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
@@ -145,8 +145,8 @@ def generate_nginx_conf(services: List[Dict]):
 def main():
     args = sys.argv[1:]
 
-    if len(args) != 1:
-        print(f"Usage: {sys.argv[0]} chord_services.json")
+    if len(args) != 2:
+        print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json")
         exit(1)
 
     if os.environ.get("SINGULARITY_ENVIRONMENT", "") == "":
@@ -158,6 +158,8 @@ def main():
         services = json.load(sf)
 
         validate(instance=services, schema=schema)
+
+        services_config_path = args[1]
 
         # STEP 1: Install deduplicated apt dependencies.
 
@@ -200,7 +202,7 @@ def main():
 
         print("[CHORD] Generating uWSGI configuration files...")
 
-        for s, c in zip(services, generate_uwsgi_confs(services)):
+        for s, c in zip(services, generate_uwsgi_confs(services, services_config_path)):
             conf_path = f"/chord/vassals/{s['id']}.ini"
 
             if os.path.exists(conf_path):
@@ -215,7 +217,7 @@ def main():
         print("[CHORD] Generating NGINX configuration file...")
 
         with open("/etc/nginx/nginx.conf", "w") as nf:
-            nf.write(generate_nginx_conf(services))
+            nf.write(generate_nginx_conf(services, services_config_path))
 
 
 if __name__ == "__main__":
