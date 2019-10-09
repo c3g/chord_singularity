@@ -79,7 +79,7 @@ sed -i 's,unix_socket_directories = '\''/var/run/postgresql'\'',unix_socket_dire
   /etc/postgresql/${CPG}/main/postgresql.conf
 sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' /etc/postgresql/${CPG}/main/postgresql.conf
 
-sed -i 's/ssl = true/ssl = false/g' /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i 's/ssl = on/ssl = off/g' /etc/postgresql/${CPG}/main/postgresql.conf
 
 sed -i 's/#logging_collector = off/logging_collector = on/g' /etc/postgresql/${CPG}/main/postgresql.conf
 sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgresql/logs'\'',g' \
