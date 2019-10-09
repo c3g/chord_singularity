@@ -89,19 +89,6 @@
     }
   },
   {
-    "id": "rnaget",
-    "repository": "https://github.com/CanDIG/rnaget_service",
-    "data_service": true,
-    "wsgi": true,
-    "python_module": "candig_rnaget.app",
-    "python_callable": "application",
-    "python_args": [
-      "--database", "{SERVICE_DATA}/rnaget.db",
-      "--logfile", "{SERVICE_LOGS}/rnaget.log",
-      "--tmpdata", "{SERVICE_TEMP}/"
-    ]
-  },
-  {
     "id": "example",
     "repository": "https://github.com/c3g/chord_example_service",
     "data_service": true,
