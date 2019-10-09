@@ -30,6 +30,7 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
 
             "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5433",
             "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
+            "POSTGRES_PORT": "5433",
             "POSTGRES_DATABASE": f"{s['id']}_db",
             "POSTGRES_USER": f"{s['id']}_acct",
             "POSTGRES_PASSWORD": generate_secret_key(),  # Generate a password to be used for the Postgres user
