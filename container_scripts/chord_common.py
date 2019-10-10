@@ -8,7 +8,7 @@ from jsonschema import validate
 from typing import Callable, Dict, List
 
 
-SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
+SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
 
 
