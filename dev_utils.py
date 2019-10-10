@@ -37,6 +37,8 @@ def action_start(args):
 def action_stop(args):
     for i in range(1, args.cluster_size + 1):
         print(f"[CHORD DEV UTILS] Stopping instance {i}...")
+        subprocess.run(("singularity", "exec", f"instance://{get_instance_name(i)}",
+                        "bash", "/chord/container_scripts/stop_script.bash"))
         subprocess.run(("singularity", "instance", "stop", get_instance_name(i)))
 
 
