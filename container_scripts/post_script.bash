@@ -87,13 +87,15 @@ sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgre
 sed -i "s=/var/run/postgresql/${CPG}-main.pg_stat_tmp=/chord/tmp/postgresql/${CPG}-main.pg_stat_tmp=g" \
   /etc/postgresql/${CPG}/main/postgresql.conf
 
-sed -i "s,pg_ctl_options = '',pg_ctl_options = '-l /chord/tmp/postgresql/postgresql-${CPG}-main.log',g" \
-  /etc/postgresql/${CPG}/main/pg_ctl.conf
-
 sed -i 's/all                                     peer/all                                     md5/g' \
   /etc/postgresql/${CPG}/main/pg_hba.conf
 
 chmod o+r /etc/postgresql/${CPG}/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
+
+# Link boot log to a writeable location
+rm -f /var/log/postgresql/postgresql-${CPG}-main.log
+touch /chord/tmp/postgresql/postgresql-${CPG}-main.log
+ln -s /chord/tmp/postgresql/postgresql-${CPG}-main.log /var/log/postgresql/postgresql-${CPG}-main.log
 
 
 ###############################################################################
