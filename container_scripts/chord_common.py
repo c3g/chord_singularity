@@ -13,7 +13,7 @@ SECRET_LENGTH = 64
 
 
 def generate_secret_key() -> str:
-    return "".join([random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH)])
+    return "".join(random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH))
 
 
 def get_config_vars(s: Dict, services_config_path: str) -> Dict:
