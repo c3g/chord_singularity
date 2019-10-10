@@ -10,6 +10,11 @@ from typing import Callable, Dict, List
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
+SECRETS_CONFIG_PATH = "/chord/data/.secrets.json"
+
+
+def json_load_dict_or_empty(path: str) -> Dict:
+    return json.load(open(path, "r")) if os.path.exists(path) else {}
 
 
 def generate_secret_key() -> str:
@@ -17,7 +22,7 @@ def generate_secret_key() -> str:
 
 
 def get_config_vars(s: Dict, services_config_path: str) -> Dict:
-    config = json.load(open(services_config_path, "r")) if os.path.exists(services_config_path) else {}
+    config = json_load_dict_or_empty(services_config_path)
 
     if s["id"] not in config:
         # This should only happen when the image is being built.
@@ -33,9 +38,6 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
             "POSTGRES_PORT": "5433",
             "POSTGRES_DATABASE": f"{s['id']}_db",
             "POSTGRES_USER": f"{s['id']}_acct",
-            "POSTGRES_PASSWORD": generate_secret_key(),  # Generate a password to be used for the Postgres user
-
-            "SERVICE_SECRET_KEY": generate_secret_key(),  # Generate a general-purpose secret key
 
             "SERVICE_ID": s["id"],
             "SERVICE_SOCKET": f"/chord/tmp/{s['id']}.sock",
@@ -44,7 +46,9 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
 
             "SERVICE_DATA": f"/chord/data/{s['id']}",
             "SERVICE_LOGS": f"/chord/tmp/logs/{s['id']}",
-            "SERVICE_TEMP": f"/chord/tmp/data/{s['id']}"
+            "SERVICE_TEMP": f"/chord/tmp/data/{s['id']}",
+
+            "SERVICE_ENVIRONMENT": f"/chord/data/{s['id']}/.environment",
         }
 
         json.dump(config, open(services_config_path, "w"))
@@ -53,8 +57,31 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
     return config[s["id"]]
 
 
-def get_env_str(s, config_vars):
-    return (" ".join(f"{k}='{v.format(**config_vars)}'" for k, v in s["python_environment"].items())
+def get_config_vars_with_secrets(s: Dict, services_config_path: str) -> Dict:
+    """Should only be run from inside an instance."""
+
+    config = json.load(open(services_config_path, "r"))
+    secrets_config = json_load_dict_or_empty(SECRETS_CONFIG_PATH)
+
+    if s["id"] not in secrets_config:
+        # This should only happen the first time a node is launched.
+        secrets_config[s["id"]] = {
+            "POSTGRES_PASSWORD": generate_secret_key(),  # Generate a password to be used for the Postgres user
+            "SERVICE_SECRET_KEY": generate_secret_key()  # Generate a general-purpose secret key
+        }
+
+        json.dump(secrets_config, open(SECRETS_CONFIG_PATH, "w"))
+        subprocess.run(("chmod", "600", SECRETS_CONFIG_PATH))
+
+    return {**config[s["id"]], **secrets_config[s["id"]]}
+
+
+def format_env_pair(k, v, escaped=False):
+    return "{}='{}'".format(k, v.replace("'", r"'\''")) if escaped else f"{k}={v}"
+
+
+def get_env_str(s, config_vars, escaped=True):
+    return (" ".join(format_env_pair(k, v.format(**config_vars), escaped) for k, v in s["python_environment"].items())
             if "python_environment" in s else "")
 
 

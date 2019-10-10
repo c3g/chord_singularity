@@ -2,6 +2,8 @@
 
 CPG="11"
 
+whoami > /chord/tmp/.instance_user
+
 source /chord/tmp/env
 
 mkdir -p /chord/tmp/logs
@@ -25,17 +27,28 @@ mkdir -p /chord/data/postgresql
 
 echo "Starting Postgres..."
 # Initialize DB if nothing's there, then start the cluster
-/usr/lib/postgresql/${CPG}/bin/initdb -D /chord/data/postgresql &> /dev/null
+database_created=False
+if [[ ! "$(ls -A /chord/data/postgresql)" ]]; then
+  /usr/lib/postgresql/${CPG}/bin/initdb -D /chord/data/postgresql &> /dev/null
+  database_created=True
+fi
 pg_ctlcluster ${CPG} main start
 
 echo "Starting NGINX..."
 nohup nginx &> /dev/null &
 
-python3.7 ./container_scripts/container_pre_start.py ./chord_services.json ./chord_services_config.json
+NEW_DATABASE=$database_created python3.7 ./container_scripts/container_pre_start.py ./chord_services.json \
+  ./chord_services_config.json
 
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log
-nohup uwsgi --emperor /chord/vassals --master --log-master --logto /chord/tmp/uwsgi/uwsgi.log &> /dev/null &
+nohup uwsgi \
+ --emperor /chord/vassals \
+ --master \
+ --log-master \
+ --logto /chord/tmp/uwsgi/uwsgi.log \
+ --safe-pidfile /chord/tmp/uwsgi/uwsgi.pid \
+ &> /dev/null &
 
 echo "Starting other services..."
 python3.7 ./container_scripts/container_non_wsgi_start.py ./chord_services.json ./chord_services_config.json

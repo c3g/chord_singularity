@@ -25,6 +25,7 @@
       <w>nodelay</w>
       <w>nohup</w>
       <w>nopush</w>
+      <w>pgpassword</w>
       <w>pgsql</w>
       <w>postgre</w>
       <w>postgresql</w>

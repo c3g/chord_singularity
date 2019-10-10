@@ -87,6 +87,8 @@ sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgre
 sed -i "s=/var/run/postgresql/${CPG}-main.pg_stat_tmp=/chord/tmp/postgresql/${CPG}-main.pg_stat_tmp=g" \
   /etc/postgresql/${CPG}/main/postgresql.conf
 
+sed -i 's=postgres                                peer=postgres peer\nlocal all @/chord/tmp/.instance_user peer=g' \
+  /etc/postgresql/${CPG}/main/pg_hba.conf
 sed -i 's/all                                     peer/all                                     md5/g' \
   /etc/postgresql/${CPG}/main/pg_hba.conf
 

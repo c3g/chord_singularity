@@ -99,6 +99,11 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
         if "python_args" in s:
             uwsgi_conf += f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}\n"
 
+        # Import configuration environment variables into uWSGI environment
+        uwsgi_conf += f"for-readline = {config_vars['SERVICE_ENVIRONMENT']}\n"
+        uwsgi_conf += "  env = %(_)\n"
+        uwsgi_conf += "endfor =\n"
+
         if "python_environment" in s:
             for e, val in s["python_environment"].items():
                 uwsgi_conf += f"env = {e}={val.format(**config_vars)}\n"
