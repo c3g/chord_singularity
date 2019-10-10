@@ -202,7 +202,8 @@ def main():
 
         print("[CHORD] Generating uWSGI configuration files...")
 
-        for s, c in zip(services, generate_uwsgi_confs(services, services_config_path)):
+        for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)),
+                        generate_uwsgi_confs(services, services_config_path)):
             conf_path = f"/chord/vassals/{s['id']}.ini"
 
             if os.path.exists(conf_path):
