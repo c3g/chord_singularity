@@ -83,7 +83,7 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
     uwsgi_confs = []
 
     for s in services:
-        if "wsgi" in s and not s["wsgi"]:
+        if not s.get("wsgi", True):
             continue
 
         config_vars = get_config_vars(s, services_config_path)
