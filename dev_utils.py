@@ -31,6 +31,7 @@ def action_start(args):
         subprocess.run(("singularity", "instance", "start",
                         "--bind", f"{instance_temp}:/chord/tmp",
                         "--bind", f"{instance_data}:/chord/data",
+                        "--bind", "/usr/share/zoneinfo/Etc/UTC:/usr/share/zoneinfo/Etc/UTC",
                         "chord.sif", get_instance_name(i)))
 
 
