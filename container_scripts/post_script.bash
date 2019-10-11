@@ -94,9 +94,8 @@ sed -i 's/all                                     peer/all                      
 
 chmod o+r /etc/postgresql/${CPG}/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
 
-# Link boot log to a writeable location
+# Remove boot log for and link to future writeable location
 rm -f /var/log/postgresql/postgresql-${CPG}-main.log
-touch /chord/tmp/postgresql/postgresql-${CPG}-main.log
 ln -s /chord/tmp/postgresql/postgresql-${CPG}-main.log /var/log/postgresql/postgresql-${CPG}-main.log
 
 

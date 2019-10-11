@@ -20,19 +20,29 @@ cd /chord || exit
 
 mkdir -p /chord/data/redis
 
+
 echo "Starting Redis..."
 nohup redis-server /etc/redis/redis.conf &> /dev/null  # Daemonized, so doesn't need &
 
 mkdir -p /chord/data/postgresql
 
+
 echo "Starting Postgres..."
+
+# Set up boot log in a writable location if it has not been set up already
+if [[ ! -f /chord/tmp/postgresql/postgresql-${CPG}-main.log ]]; then
+  touch /chord/tmp/postgresql/postgresql-${CPG}-main.log
+fi
+
 # Initialize DB if nothing's there, then start the cluster
 database_created=False
 if [[ ! "$(ls -A /chord/data/postgresql)" ]]; then
   /usr/lib/postgresql/${CPG}/bin/initdb -D /chord/data/postgresql &> /dev/null
   database_created=True
 fi
+
 pg_ctlcluster ${CPG} main start
+
 
 echo "Starting NGINX..."
 nohup nginx &> /dev/null &
