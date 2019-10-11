@@ -17,10 +17,7 @@
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drop_box_service.app",
-    "python_callable": "application",
-    "python_environment": {
-      "SERVICE_DATA": "{SERVICE_DATA}"
-    }
+    "python_callable": "application"
   },
   {
     "id": "wes",
@@ -41,8 +38,6 @@
       "CELERY_RESULT_BACKEND":  "redis+socket://{REDIS_SOCKET}",
       "CELERY_BROKER_URL": "redis+socket://{REDIS_SOCKET}",
       "DATABASE":  "{SERVICE_DATA}/wes.db",
-      "SERVICE_BASE_URL": "{SERVICE_BASE_URL}",
-      "SERVICE_TEMP":  "{SERVICE_TEMP}",
       "WOM_TOOL_LOCATION": "/chord/womtool.jar"
     }
   },
