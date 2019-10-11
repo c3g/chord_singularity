@@ -32,7 +32,7 @@ def job(services: List[Dict], services_config_path: str):
         #  - Create a user with the service ID as the username
         #  - Create a database with cs_{service ID} as the database name
         #  - Only let the owner connect to the database
-        # TODO: Create with password, store somewhere secure/locked down
+        # TODO: Store password somewhere secure/locked down
         if NEW_DATABASE == "True":
             subprocess.run(("createuser", "-D", "-R", "-S", "-h", config_vars["POSTGRES_SOCKET_DIR"], "-p",
                             config_vars["POSTGRES_PORT"], config_vars["POSTGRES_USER"]))
