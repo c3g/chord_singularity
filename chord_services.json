@@ -55,8 +55,8 @@
   },
   {
     "id": "metadata",
-    "repository": "https://github.com/c3g/chord_metadata_service",
-    "data_service": false,
+    "repository": "https://github.com/c3g/chord_metadata_service@chord_search",
+    "data_service": true,
     "pre_start_commands": [
       "django-admin migrate"
     ],

@@ -28,7 +28,7 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
         # This should only happen when the image is being built.
 
         config[s["id"]] = {
-            "CHORD_DEBUG": "False",
+            "CHORD_DEBUG": "True",  # TODO: Configure based on production release
             "CHORD_ENV": "/chord/tmp/env",  # TODO: Should this be in tmp?
 
             "REDIS_SOCKET": "/chord/tmp/redis.sock",
