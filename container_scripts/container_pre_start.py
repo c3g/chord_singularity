@@ -15,6 +15,11 @@ def job(services: List[Dict], services_config_path: str):
     for s in services:
         config_vars = get_config_vars_with_secrets(s, services_config_path)
 
+        # Create required directories if needed at startup
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
+        subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
+
         # Write environment to the file system
         with open(config_vars["SERVICE_ENVIRONMENT"], "w") as ef:
             for c, v in config_vars.items():
@@ -22,11 +27,6 @@ def job(services: List[Dict], services_config_path: str):
                 ef.write("\n")
 
         subprocess.run(("chmod", "600", config_vars["SERVICE_ENVIRONMENT"]))
-
-        # Create required directories if needed at startup
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
 
         # Postgres setup
         #  - Create a user with the service ID as the username
