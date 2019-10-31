@@ -6,8 +6,8 @@ import subprocess
 
 
 USER_DIR = os.path.expanduser("~")
-CHORD_DATA_DIRECTORY = os.path.join(USER_DIR, "chord_data")
-CHORD_TEMP_DIRECTORY = "/tmp/chord"
+CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
+CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
 
 
 def get_instance_name(i: int):
