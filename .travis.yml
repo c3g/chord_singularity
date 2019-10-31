@@ -29,3 +29,5 @@ before_install:
 script:
   - cd $TRAVIS_BUILD_DIR
   - sudo python3 ./dev_utils.py build  # The sudo call doesn't use Python 3.7, but it's still used inside the container.
+  - CHORD_DATA_DIRECTORY=/tmp/chord_data CHORD_TEMP_DIRECTORY=/tmp/chord_tmp python3 ./dev_utils --cluster 1 start
+  - CHORD_DATA_DIRECTORY=/tmp/chord_data CHORD_TEMP_DIRECTORY=/tmp/chord_tmp python3 ./dev_utils --cluster 1 stop
