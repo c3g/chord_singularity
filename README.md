@@ -76,6 +76,9 @@ You will be asked for your password by Singularity.
 
 Assumes `/tmp/chord` and `~/chord_data` are writable directories.
 
+**Note:** CHORD temporary and data directories can be specified by editing `dev_utils.py` (not recommended) or setting
+`CHORD_DATA_DIRECTORY` and `CHORD_TEMP_DIRECTORY` when running `dev_utils.py`.
+
 To run a development cluster with `n` nodes, where `n` is some positive integer:
 
 ```bash
