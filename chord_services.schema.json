@@ -10,7 +10,19 @@
   "definitions": {
     "chord_service": {
       "type": "object",
-      "required": ["id", "repository", "data_service", "wsgi"],
+      "required": ["id", "repository", "wsgi"],
+      "oneOf": [{
+        "properties": {
+          "data_service": {"const": true}
+        },
+        "required": ["data_service", "manageable_tables"]
+      }, {
+        "properties": {
+          "data_service": {"const": false},
+          "manageable_tables": {"type": "null"}
+        },
+        "required": ["data_service"]
+      }],
       "properties": {
         "id": {
           "type": "string",
@@ -20,6 +32,9 @@
           "type": "string"
         },
         "data_service": {
+          "type":  "boolean"
+        },
+        "manageable_tables": {
           "type": "boolean"
         },
         "apt_dependencies": {
