@@ -5,15 +5,15 @@ import subprocess
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_config_vars_with_secrets, get_env_str, format_env_pair, main
+from chord_common import get_runtime_config_vars, get_env_str, format_env_pair, main
 
 
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict], services_config_path: str, host: str):
     for s in services:
-        config_vars = get_config_vars_with_secrets(s, services_config_path)
+        config_vars = get_runtime_config_vars(s, services_config_path, host)
 
         # Create required directories if needed at startup
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)

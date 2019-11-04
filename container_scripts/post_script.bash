@@ -153,7 +153,9 @@ python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt
 
 # Run Python container setup script
 cd /chord || exit
-python3.7 ./container_scripts/container_setup.py ./chord_services.json ./chord_services_config.json
+python3.7 ./container_scripts/container_setup.py \
+  ./chord_services.json \
+  ./chord_services_config.json
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache

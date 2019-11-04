@@ -4,15 +4,15 @@ import subprocess
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_config_vars, get_env_str, main
+from chord_common import get_runtime_config_vars, get_env_str, main
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict], services_config_path: str, host: str):
     for s in services:
         if "wsgi" not in s or s["wsgi"]:
             continue
 
-        config_vars = get_config_vars(s, services_config_path)
+        config_vars = get_runtime_config_vars(s, services_config_path, host)
         env_str = get_env_str(s, config_vars)
 
         subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "

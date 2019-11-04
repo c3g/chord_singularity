@@ -15,54 +15,6 @@ What's included in a CHORD Singularity container?
   * `htslib`
 
 
-## CHORD Data to Support
-
-  * Variants
-  * RNAseq data
-  * TODO
-
-
-## CHORD Search Description
-
-The CHORD search endpoint roughly looks like this:
-
-### POST `/search`
-
-Request:
-
-```json
-{
- "dataTypeID": "some_type",
- "conditions": [
-   {
-     "field": "[dataset object].some_object.some_property",
-     "operation": "eq",
-     "negated": false,
-     "searchValue": "some_value"
-   }
- ]
-}
-```
-
-`field` is a dot-notation accessor for the field in question. `[dataset object]` means the root dataset object, and
-`[array item]` refers to any item in an array.
-
-`operation` is one of `eq, lt, le, gt, ge co`.
-
-`negated` is a boolean which can negate the operation.
-
-`searchValue` is the value to be searched.
-
-Response:
-
-```json
-[
- {"id": "dataset_1", "data_type": "some_type"},
- {"id": "dataset_2", "data_type": "some_type"}
-]
-```
-
-
 ## Development
 
 ### Setup
@@ -99,6 +51,14 @@ server {
 
 This configuration assumes that `*.chord.dlougheed.com` (in this example) has
 a DNS record set up to point at 127.0.0.1.
+
+
+### Needed files in the CHORD `tmp` folder
+
+  * /chord/tmp/host - The domain name of the host (no http://, no trailing slash)
+  * /chord/tmp/env - Environment variables for the CHORD node, currently:
+    * `CHORD_URL` - The URL of the node (for federation), with trailing slash
+    * `CHORD_REGISTRY_URL` - The URL of the registry node (for federation), with trailing slash
 
 
 ### Building

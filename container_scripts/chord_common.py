@@ -10,7 +10,7 @@ from typing import Callable, Dict, List
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
-SECRETS_CONFIG_PATH = "/chord/data/.secrets.json"
+RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock this down? It has sensitive stuff...
 
 
 def json_load_dict_or_empty(path: str) -> Dict:
@@ -57,23 +57,27 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
     return config[s["id"]]
 
 
-def get_config_vars_with_secrets(s: Dict, services_config_path: str) -> Dict:
+def get_runtime_config_vars(s: Dict, services_config_path: str, host: str) -> Dict:
     """Should only be run from inside an instance."""
 
     config = json.load(open(services_config_path, "r"))
-    secrets_config = json_load_dict_or_empty(SECRETS_CONFIG_PATH)
+    runtime_config = json_load_dict_or_empty(RUNTIME_CONFIG_PATH)
 
-    if s["id"] not in secrets_config:
+    if s["id"] not in runtime_config:
+        # Generate Secrets
         # This should only happen the first time a node is launched.
-        secrets_config[s["id"]] = {
+        runtime_config[s["id"]] = {
             "POSTGRES_PASSWORD": generate_secret_key(),  # Generate a password to be used for the Postgres user
             "SERVICE_SECRET_KEY": generate_secret_key()  # Generate a general-purpose secret key
         }
 
-        json.dump(secrets_config, open(SECRETS_CONFIG_PATH, "w"))
-        subprocess.run(("chmod", "600", SECRETS_CONFIG_PATH))
+    # This happens every launch, since it could theoretically change.
+    runtime_config[s["id"]]["CHORD_HOST"] = host  # TODO: Rectify with /chord/tmp/env
 
-    return {**config[s["id"]], **secrets_config[s["id"]]}
+    json.dump(runtime_config, open(RUNTIME_CONFIG_PATH, "w"))
+    subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
+
+    return {**config[s["id"]], **runtime_config[s["id"]]}
 
 
 def format_env_pair(k, v, escaped=False):
@@ -85,11 +89,11 @@ def get_env_str(s, config_vars, escaped=True):
             if "python_environment" in s else "")
 
 
-def main(job: Callable[[List[Dict], str], None]):
+def main(job: Callable[[List[Dict], str, str], None]):
     args = sys.argv[1:]
 
-    if len(args) != 2:
-        print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json")
+    if len(args) != 3:
+        print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json host")
         exit(1)
 
     if os.environ.get("SINGULARITY_CONTAINER", "") == "":
@@ -102,4 +106,4 @@ def main(job: Callable[[List[Dict], str], None]):
 
         validate(instance=services, schema=schema)
 
-        job(services, args[1])
+        job(services, args[1], args[2])

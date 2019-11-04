@@ -23,8 +23,13 @@ def action_start(args):
 
         subprocess.run(("mkdir", "-p",  instance_temp))
 
+        instance_host = f"{i}.chord.dlougheed.com"
+
+        with open(os.path.join(instance_temp, "host"), "w") as f:
+            f.write(instance_host)
+
         with open(os.path.join(instance_temp, "env"), "w") as f:
-            f.write(f"export CHORD_URL=http://{i}.chord.dlougheed.com/\n")  # TODO: Should this be a common var?
+            f.write(f"export CHORD_URL=http://{instance_host}/\n")  # TODO: Should this be a common var?
             f.write("export CHORD_REGISTRY_URL=http://1.chord.dlougheed.com/\n")  # TODO: Above
 
         subprocess.run(("mkdir", "-p", instance_data))
