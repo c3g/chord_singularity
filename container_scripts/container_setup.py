@@ -124,7 +124,7 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
 
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        base_url = config_vars['SERVICE_BASE_URL']
+        base_url = config_vars['SERVICE_URL_BASE_PATH']
 
         nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
         nginx_conf += f"    location {base_url} {{ try_files $uri @{s['id']}; }}\n"

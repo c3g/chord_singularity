@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 import os
 import subprocess
 
@@ -8,6 +9,8 @@ import subprocess
 USER_DIR = os.path.expanduser("~")
 CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
 CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
+
+CHORD_INSTANCE_CONFIG_FILE = "instance_config.json"
 
 
 def get_instance_name(i: int):
@@ -25,12 +28,14 @@ def action_start(args):
 
         instance_host = f"{i}.chord.dlougheed.com"
 
-        with open(os.path.join(instance_temp, "host"), "w") as f:
-            f.write(instance_host)
-
-        with open(os.path.join(instance_temp, "env"), "w") as f:
-            f.write(f"export CHORD_URL=http://{instance_host}/\n")  # TODO: Should this be a common var?
-            f.write("export CHORD_REGISTRY_URL=http://1.chord.dlougheed.com/\n")  # TODO: Above
+        # For now, this is in instance_temp because it could change run-to-run. Not sure if it should stay here or be
+        # moved to instance_data.
+        with open(os.path.join(instance_temp, CHORD_INSTANCE_CONFIG_FILE), "w") as f:
+            json.dump({
+                "CHORD_HOST": instance_host,
+                "CHORD_URL": f"http://{instance_host}/",
+                "CHORD_REGISTRY": "http://1.chord.dlougheed.com"
+            }, f)
 
         subprocess.run(("mkdir", "-p", instance_data))
         subprocess.run(("singularity", "instance", "start",

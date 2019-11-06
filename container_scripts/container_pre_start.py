@@ -11,9 +11,9 @@ from chord_common import get_runtime_config_vars, get_env_str, format_env_pair, 
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
-def job(services: List[Dict], services_config_path: str, host: str):
+def job(services: List[Dict], services_config_path: str):
     for s in services:
-        config_vars = get_runtime_config_vars(s, services_config_path, host)
+        config_vars = get_runtime_config_vars(s, services_config_path)
 
         # Create required directories if needed at startup
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
@@ -49,9 +49,8 @@ def job(services: List[Dict], services_config_path: str, host: str):
 
         pre_start_commands = s.get("pre_start_commands", ())
         for command in pre_start_commands:
-            full_command = (
+            full_command = (  # TODO: Deduplicate preamble with container_non_wsgi_start
                 f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
-                f"source {config_vars['CHORD_ENV']} && "
                 f"source {config_vars['SERVICE_ENVIRONMENT']} && "
                 f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']}) && "  # Export sourced variables
                 f"{env_str} {command.format(**config_vars)}'"

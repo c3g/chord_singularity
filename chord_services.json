@@ -48,8 +48,6 @@
     "wsgi": false,
     "python_runnable": "chord_federation",
     "python_environment": {
-      "SOCKET": "{SERVICE_SOCKET}",
-      "BASE_URL": "{SERVICE_BASE_URL}",
       "DATABASE": "{SERVICE_DATA}/federation.db"
     }
   },
