@@ -20,7 +20,7 @@ before_install:
   - cd ${GOPATH}/src/github.com/sylabs
   - git clone https://github.com/sylabs/singularity.git
   - cd singularity
-  - git checkout v3.4.1
+  - git checkout v3.4.2
   - ./mconfig
   - cd ./builddir
   - make
