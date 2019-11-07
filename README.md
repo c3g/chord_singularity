@@ -53,9 +53,9 @@ This configuration assumes that `*.chord.dlougheed.com` (in this example) has
 a DNS record set up to point at 127.0.0.1.
 
 
-### Needed files in the CHORD `tmp` folder
+### Needed files in the CHORD `data` folder
 
-  * `instance_config.json`, containing the following key-value pairs:
+  * `.instance_config.json`, containing the following key-value pairs:
     * `CHORD_HOST` - The domain name of the host (no http://, no trailing slash)
     * `CHORD_URL` - The URL of the node (for federation), with trailing slash
     * `CHORD_REGISTRY_URL` - The URL of the registry node (for federation), with trailing slash

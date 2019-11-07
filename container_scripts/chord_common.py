@@ -10,7 +10,7 @@ from typing import Callable, Dict, List
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
-INSTANCE_CONFIG_PATH = "/chord/tmp/instance_config.json"
+INSTANCE_CONFIG_PATH = "/chord/data/.instance_config.json"
 RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock this down? It has sensitive stuff...
 
 

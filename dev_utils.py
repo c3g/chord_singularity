@@ -10,7 +10,7 @@ USER_DIR = os.path.expanduser("~")
 CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
 CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
 
-CHORD_INSTANCE_CONFIG_FILE = "instance_config.json"
+CHORD_INSTANCE_CONFIG_FILE = ".instance_config.json"
 
 
 def get_instance_name(i: int):
@@ -24,20 +24,18 @@ def action_start(args):
         instance_data = os.path.join(CHORD_DATA_DIRECTORY, str(i))
         instance_temp = os.path.join(CHORD_TEMP_DIRECTORY, str(i))
 
-        subprocess.run(("mkdir", "-p",  instance_temp))
+        subprocess.run(("mkdir", "-p", instance_data))
+        subprocess.run(("mkdir", "-p", instance_temp))
 
         instance_host = f"{i}.chord.dlougheed.com"
 
-        # For now, this is in instance_temp because it could change run-to-run. Not sure if it should stay here or be
-        # moved to instance_data.
-        with open(os.path.join(instance_temp, CHORD_INSTANCE_CONFIG_FILE), "w") as f:
+        with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as f:
             json.dump({
                 "CHORD_HOST": instance_host,
-                "CHORD_URL": f"http://{instance_host}/",
-                "CHORD_REGISTRY": "http://1.chord.dlougheed.com"
+                "CHORD_URL": f"http://{instance_host}/",  # Trailing slash important here
+                "CHORD_REGISTRY_URL": "http://1.chord.dlougheed.com/"  # ... and here
             }, f)
 
-        subprocess.run(("mkdir", "-p", instance_data))
         subprocess.run(("singularity", "instance", "start",
                         "--bind", f"{instance_temp}:/chord/tmp",
                         "--bind", f"{instance_data}:/chord/data",
