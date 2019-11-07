@@ -4,8 +4,6 @@ CPG="11"
 
 whoami > /chord/tmp/.instance_user
 
-source /chord/tmp/env
-
 mkdir -p /chord/tmp/logs
 mkdir -p /chord/tmp/data
 mkdir -p /chord/tmp/postgresql/logs
