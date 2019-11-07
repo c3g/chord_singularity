@@ -20,9 +20,6 @@ socket = {service_socket}
 venv = {service_venv}
 chdir = /chord/services/{service_id}
 mount = /api/{service_id}={service_python_module}:{service_python_callable}
-for-readline = /chord/tmp/env
-    env = %(_)
-endfor
 """
 
 NGINX_CONF_HEADER = """
