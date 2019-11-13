@@ -3,6 +3,7 @@ import random
 import os
 import subprocess
 import sys
+import uuid
 
 from jsonschema import validate
 from typing import Callable, Dict, List
@@ -25,10 +26,12 @@ def generate_secret_key() -> str:
 def get_config_vars(s: Dict, services_config_path: str) -> Dict:
     config = json_load_dict_or_empty(services_config_path)
 
-    if s["id"] not in config:
+    s_artifact = s["type"]["artifact"]
+
+    if s_artifact not in config:
         # This should only happen when the image is being built.
 
-        config[s["id"]] = {
+        config[s_artifact] = {
             "CHORD_DEBUG": "True",  # TODO: Configure based on production release
 
             "REDIS_SOCKET": "/chord/tmp/redis.sock",
@@ -36,25 +39,25 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
             "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5433",
             "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
             "POSTGRES_PORT": "5433",
-            "POSTGRES_DATABASE": f"{s['id']}_db",
-            "POSTGRES_USER": f"{s['id']}_acct",
+            "POSTGRES_DATABASE": f"{s_artifact}_db",
+            "POSTGRES_USER": f"{s_artifact}_acct",
 
-            "SERVICE_ID": s["id"],
-            "SERVICE_SOCKET": f"/chord/tmp/{s['id']}.sock",
-            "SERVICE_VENV": f"/chord/services/{s['id']}/env",
-            "SERVICE_URL_BASE_PATH": f"/api/{s['id']}",
+            "SERVICE_ARTIFACT": s_artifact,
+            "SERVICE_SOCKET": f"/chord/tmp/{s_artifact}.sock",
+            "SERVICE_VENV": f"/chord/services/{s_artifact}/env",
+            "SERVICE_URL_BASE_PATH": f"/api/{s_artifact}",
 
-            "SERVICE_DATA": f"/chord/data/{s['id']}",
-            "SERVICE_LOGS": f"/chord/tmp/logs/{s['id']}",
-            "SERVICE_TEMP": f"/chord/tmp/data/{s['id']}",
+            "SERVICE_DATA": f"/chord/data/{s_artifact}",
+            "SERVICE_LOGS": f"/chord/tmp/logs/{s_artifact}",
+            "SERVICE_TEMP": f"/chord/tmp/data/{s_artifact}",
 
-            "SERVICE_ENVIRONMENT": f"/chord/data/{s['id']}/.environment",
+            "SERVICE_ENVIRONMENT": f"/chord/data/{s_artifact}/.environment",
         }
 
         json.dump(config, open(services_config_path, "w"))
         subprocess.run(("chmod", "644", services_config_path))  # TODO: How to secure properly?
 
-    return config[s["id"]]
+    return config[s_artifact]
 
 
 def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
@@ -64,18 +67,21 @@ def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
     services_config = json.load(open(services_config_path, "r"))
     runtime_config = json_load_dict_or_empty(RUNTIME_CONFIG_PATH)
 
-    if s["id"] not in runtime_config:
+    s_artifact = s["type"]["artifact"]
+
+    if s_artifact not in runtime_config:
         # Generate Secrets
         # This should only happen the first time a node is launched.
-        runtime_config[s["id"]] = {
+        runtime_config[s_artifact] = {
             "POSTGRES_PASSWORD": generate_secret_key(),  # Generate a password to be used for the Postgres user
-            "SERVICE_SECRET_KEY": generate_secret_key()  # Generate a general-purpose secret key
+            "SERVICE_SECRET_KEY": generate_secret_key(),  # Generate a general-purpose secret key
+            "SERVICE_ID": str(uuid.uuid4())  # Generate a unique UUID for the service
         }
 
     json.dump(runtime_config, open(RUNTIME_CONFIG_PATH, "w"))
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
-    return {**instance_config, **services_config[s["id"]], **runtime_config[s["id"]]}
+    return {**instance_config, **services_config[s_artifact], **runtime_config[s_artifact]}
 
 
 def format_env_pair(k, v, escaped=False):

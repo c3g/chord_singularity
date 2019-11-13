@@ -18,8 +18,8 @@ manage-script-name = true
 threads = 4
 socket = {service_socket}
 venv = {service_venv}
-chdir = /chord/services/{service_id}
-mount = /api/{service_id}={service_python_module}:{service_python_callable}
+chdir = /chord/services/{service_artifact}
+mount = /api/{service_artifact}={service_python_module}:{service_python_callable}
 """
 
 NGINX_CONF_HEADER = """
@@ -86,7 +86,7 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
         config_vars = get_config_vars(s, services_config_path)
 
         uwsgi_conf = UWSGI_CONF_TEMPLATE.format(
-            service_id=s["id"],
+            service_artifact=config_vars["SERVICE_ARTIFACT"],
             service_socket=config_vars["SERVICE_SOCKET"],
             service_venv=config_vars["SERVICE_VENV"],
             service_python_module=s["python_module"],
@@ -115,7 +115,8 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
 
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        nginx_conf += f"  upstream chord_{s['id']} {{ server unix:{config_vars['SERVICE_SOCKET']}; }}\n"
+        nginx_conf += f"  upstream chord_{config_vars['SERVICE_ARTIFACT']} " \
+                      f"{{ server unix:{config_vars['SERVICE_SOCKET']}; }}\n"
 
     nginx_conf += NGINX_CONF_SERVER_HEADER
 
@@ -123,19 +124,22 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
         config_vars = get_config_vars(s, services_config_path)
         base_url = config_vars['SERVICE_URL_BASE_PATH']
 
+        s_artifact = config_vars['SERVICE_ARTIFACT']
+
         nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
-        nginx_conf += f"    location {base_url} {{ try_files $uri @{s['id']}; }}\n"
+        nginx_conf += f"    location {base_url} {{ try_files $uri @{s_artifact}; }}\n"
         nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"
 
         if "wsgi" not in s or s["wsgi"]:
-            nginx_conf += f"    location @{s['id']} {{ include uwsgi_params; uwsgi_pass chord_{s['id']}; }}\n"
+            nginx_conf += f"    location @{s_artifact} {{ " \
+                          f"include uwsgi_params; uwsgi_pass chord_{s_artifact}; }}\n"
 
         else:
-            nginx_conf += f"    location @{s['id']} {{ proxy_pass_header Server; " \
+            nginx_conf += f"    location @{s_artifact} {{ proxy_pass_header Server; " \
                           f"proxy_set_header Host $http_host; " \
                           f"proxy_set_header X-Real-IP $remote_addr; " \
                           f"proxy_set_header X-Scheme $scheme; " \
-                          f"proxy_pass http://chord_{s['id']}; }}\n"
+                          f"proxy_pass http://chord_{s_artifact}; }}\n"
 
         nginx_conf += "\n"
 
@@ -187,9 +191,10 @@ def main():
         print("[CHORD] Creating virtual environments...")
 
         for s in services:
+            s_artifact = s["type"]["artifact"]
             subprocess.run(
-                f"/bin/bash -c 'mkdir -p /chord/services/{s['id']};"
-                f"              cd /chord/services/{s['id']}; "
+                f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact};"
+                f"              cd /chord/services/{s_artifact}; "
                 f"              python3.7 -m virtualenv -p python3.7 env; "
                 f"              source env/bin/activate; "
                 f"              pip install --no-cache-dir git+{s['repository']};"
@@ -206,7 +211,7 @@ def main():
 
         for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)),
                         generate_uwsgi_confs(services, services_config_path)):
-            conf_path = f"/chord/vassals/{s['id']}.ini"
+            conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"
 
             if os.path.exists(conf_path):
                 print(f"Error: File already exists: '{conf_path}'")

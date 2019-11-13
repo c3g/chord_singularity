@@ -10,7 +10,7 @@
   "definitions": {
     "chord_service": {
       "type": "object",
-      "required": ["id", "repository", "wsgi"],
+      "required": ["type", "repository", "wsgi"],
       "oneOf": [{
         "properties": {
           "data_service": {"const": true}
@@ -24,9 +24,20 @@
         "required": ["data_service"]
       }],
       "properties": {
-        "id": {
-          "type": "string",
-          "pattern": "^[a-zA-Z\\-_][a-zA-Z0-9\\-_]*$"
+        "type": {
+          "type": "object",
+          "properties": {
+            "organization": {
+              "type":  "string",
+              "pattern": "^[a-zA-Z\\-_][a-zA-Z0-9\\-_](\\.[a-zA-Z\\-_][a-zA-Z0-9\\-_]*)+$"
+            },
+            "artifact": {
+              "type": "string",
+              "pattern": "^[a-zA-Z\\-_][a-zA-Z0-9\\-_]*$"
+            }
+          },
+          "required": ["organization", "artifact"],
+          "additionalProperties": false
         },
         "repository": {
           "type": "string"

@@ -1,18 +1,24 @@
 [
   {
-    "id": "service_registry",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "service-registry"
+    },
     "repository": "https://github.com/c3g/chord_service_registry",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_service_registry.app",
     "python_callable": "application",
     "python_environment": {
-      "CHORD_SERVICES": "/chord/chord_services.json",
-      "DATABASE": "{SERVICE_DATA}/service_registry.db"
+      "BASE_FORMAT": "/api/{{artifact}}",
+      "CHORD_SERVICES": "/chord/chord_services.json"
     }
   },
   {
-    "id": "drop_box",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "drop-box"
+    },
     "repository": "https://github.com/c3g/chord_drop_box_service",
     "data_service": false,
     "wsgi": true,
@@ -20,7 +26,10 @@
     "python_callable": "application"
   },
   {
-    "id": "wes",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "wes"
+    },
     "repository": "https://github.com/c3g/chord_wes",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
@@ -42,7 +51,10 @@
     }
   },
   {
-    "id": "federation",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "federation"
+    },
     "repository": "https://github.com/c3g/chord_federation",
     "data_service": false,
     "wsgi": false,
@@ -52,7 +64,10 @@
     }
   },
   {
-    "id": "metadata",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "metadata"
+    },
     "repository": "https://github.com/c3g/chord_metadata_service@chord_search",
     "data_service": true,
     "manageable_tables": false,
@@ -67,7 +82,10 @@
     }
   },
   {
-    "id": "example",
+    "type":  {
+      "organization": "ca.c3g.chord",
+      "artifact": "example"
+    },
     "repository": "https://github.com/c3g/chord_example_service",
     "data_service": true,
     "manageable_tables": true,
@@ -79,7 +97,10 @@
     }
   },
   {
-    "id": "variant",
+    "type": {
+      "organization": "ca.c3g.chord",
+      "artifact": "variant"
+    },
     "repository": "https://github.com/c3g/chord_variant_service",
     "data_service": true,
     "manageable_tables": true,

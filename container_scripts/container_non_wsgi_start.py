@@ -19,7 +19,8 @@ def job(services: List[Dict], services_config_path: str):
         subprocess.run(f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
                        f"source {config_vars['SERVICE_ENVIRONMENT']} && "
                        f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']}) && "  # Export sourced variables
-                       f"{env_str} nohup {s['python_runnable']} &> {config_vars['SERVICE_LOGS']}/{s['id']}.log &'",
+                       f"{env_str} nohup {s['python_runnable']} &> "
+                       f"{config_vars['SERVICE_LOGS']}/{s['type']['artifact']}.log &'",
                        shell=True, check=True)
 
 
