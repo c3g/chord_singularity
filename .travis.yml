@@ -9,7 +9,7 @@ branches:
     - master
 
 env:
-  - GO111MODULE=on VERSION=1.12.10 OS=linux ARCH=amd64 GOPATH=${HOME}/go /usr/local/go/bin:${PATH}:${GOPATH}/bin
+  - GO111MODULE=on VERSION=1.13.3 OS=linux ARCH=amd64 GOPATH=${HOME}/go /usr/local/go/bin:${PATH}:${GOPATH}/bin
 
 before_install:
   - wget -O /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz https://dl.google.com/go/go${VERSION}.${OS}-${ARCH}.tar.gz
@@ -20,7 +20,7 @@ before_install:
   - cd ${GOPATH}/src/github.com/sylabs
   - git clone https://github.com/sylabs/singularity.git
   - cd singularity
-  - git checkout v3.4.2
+  - git checkout v3.5.0
   - ./mconfig
   - cd ./builddir
   - make
