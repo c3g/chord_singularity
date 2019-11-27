@@ -36,9 +36,9 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
 
             "REDIS_SOCKET": "/chord/tmp/redis.sock",
 
-            "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5433",
+            "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5432",
             "POSTGRES_SOCKET_DIR": "/chord/tmp/postgresql",
-            "POSTGRES_PORT": "5433",
+            "POSTGRES_PORT": "5432",
             "POSTGRES_DATABASE": f"{s_artifact}_db",
             "POSTGRES_USER": f"{s_artifact}_acct",
 
