@@ -16,4 +16,7 @@ redis-cli -s /chord/tmp/redis.sock shutdown &> /dev/null
 # Stop Postgres cluster
 pg_ctlcluster ${CPG} main stop &> /dev/null
 
-# TODO: KILL COMMANDS ON SERVICES (TOIL RUNNER ETC.)
+# Stop commands
+python3.7 ./container_scripts/container_post_stop.py \
+  ./chord_services.json \
+  ./chord_services_config.json

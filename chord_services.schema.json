@@ -63,6 +63,10 @@
           "type": "array",
           "items": {"type":  "string"}
         },
+        "post_stop_commands": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
         "wsgi": {
           "type": "boolean"
         },
