@@ -1,19 +1,19 @@
 dist: bionic
-language: python
 
 python:
   - "3.7"
+
+go:
+  - "1.13"
 
 branches:
   only:
     - master
 
 env:
-  - GO111MODULE=on VERSION=1.13.3 OS=linux ARCH=amd64 GOPATH=${HOME}/go PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
+  - GO111MODULE=on GOPATH=${HOME}/go PATH=${PATH}:${GOPATH}/bin
 
 before_install:
-  - wget -O /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz https://dl.google.com/go/go${VERSION}.${OS}-${ARCH}.tar.gz
-  - sudo tar -C /usr/local -xzf /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz
   - which go
   - sudo apt-get update
   - sudo apt-get install -y build-essential libssl-dev uuid-dev libseccomp-dev pkg-config squashfs-tools cryptsetup
