@@ -34,7 +34,7 @@
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
-      "curl -Lo /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar"
+      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar"
     ],
     "pre_start_commands": [
       "nohup celery -A chord_wes.app worker --pidfile {SERVICE_TEMP}/celery.pid &> {SERVICE_LOGS}/celery.log &"

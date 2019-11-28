@@ -9,27 +9,29 @@ export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/man/man1
 mkdir -p /usr/share/man/man7
 
+echo "[CHORD] Installing base dependencies from apt"
+
 # Update APT
-apt update
+apt-get update > /dev/null
 
 # Fix locale issues (Postgres seemed sensitive to this -- 2019-09-25)
-apt install -y locales
+apt-get install -y locales > /dev/null
 sed -i 's/# en_US.UTF-8/en_US.UTF-8/g' /etc/locale.gen
-locale-gen
+locale-gen > /dev/null
 
 export LANG="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
 
 # Install shared build dependencies
-apt full-upgrade -y
-apt install -y nginx build-essential autoconf git curl
+apt-get full-upgrade -y > /dev/null
+apt-get install -y -q nginx build-essential autoconf git curl libcurl4-openssl-dev > /dev/null
 
 # Install Python 3.7
-apt install -y python3 python3-pip python3-virtualenv
+apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
 
 # Install Node.JS
-curl -sL https://deb.nodesource.com/setup_${CNODE} | bash -
-apt install -y nodejs
+curl -Ls https://deb.nodesource.com/setup_${CNODE} | bash - > /dev/null
+apt-get install -y nodejs > /dev/null
 
 ###############################################################################
 # Databases                                                                   #
@@ -37,12 +39,18 @@ apt install -y nodejs
 
 # Install Redis
 
+echo "[CHORD] Installing Redis"
+
 cd /chord || exit
-curl -o redis-stable.tar.gz http://download.redis.io/redis-stable.tar.gz
+echo "[CHORD]    Downloading"
+curl -Lso redis-stable.tar.gz http://download.redis.io/redis-stable.tar.gz > /dev/null
+echo "[CHORD]    Building"
 tar -xzf redis-stable.tar.gz
 cd redis-stable || exit
-make
-make install
+make > /dev/null
+echo "[CHORD]    Installing"
+make install > /dev/null
+echo "[CHORD]    Cleaning up"
 cd /chord || exit
 rm redis-stable.tar.gz
 rm -r redis-stable
@@ -68,7 +76,9 @@ EOC
 # Install Postgres
 # TODO: Use sd if we have cargo or if it's available in Debian in the future (thanks Romain)
 
-apt install -y postgresql postgresql-contrib
+echo "[CHORD] Installing Postgres"
+
+apt-get install -y postgresql postgresql-contrib > /dev/null
 sed -i "s=/var/lib/postgresql/${CPG}/main=/chord/data/postgresql=g" /etc/postgresql/${CPG}/main/postgresql.conf
 sed -i "s=/var/run/postgresql/${CPG}-main.pid=/chord/tmp/postgresql/${CPG}-main.pid=g" \
   /etc/postgresql/${CPG}/main/postgresql.conf
@@ -103,36 +113,44 @@ ln -s /chord/tmp/postgresql/postgresql-${CPG}-main.log /var/log/postgresql/postg
 # Biological Tools                                                            #
 ###############################################################################
 
+echo "[CHORD] Installing HTSLib"
+
 # Install HTSLib (may as well provide it, it'll likely be commonly used)
 # TODO: Do we want to move this into pre_install for WES/variant/something, or no?
-apt install -y zlib1g-dev libbz2-dev liblzma-dev
+apt-get install -y zlib1g-dev libbz2-dev liblzma-dev > /dev/null
 cd /chord || exit
-curl -Lo htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
+echo "[CHORD]    Downloading"
+curl -Lso htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 > /dev/null
 tar -xjf htslib.tar.bz2
 cd htslib-1.9 || exit
+echo "[CHORD]    Building"
 autoheader
 autoconf
-./configure
-make
-make install
+./configure > /dev/null
+make > /dev/null
+echo "[CHORD]    Installing"
+make install > /dev/null
+echo "[CHORD]    Cleaning up"
 cd /chord || exit
 rm htslib.tar.bz2
 rm -r htslib-1.9
 
 # Install bcftools
 # TODO: Do we want to move this into pre_install for WES/variant/something, or no?
-apt install -y bcftools
+echo "[CHORD] Installing bcftools"
+apt-get install -y bcftools > /dev/null
 
 ###############################################################################
 
 export HOME="/chord"
 
 # Install CHORD Web
+echo "[CHORD] Installing chord_web"
 cd /chord || exit
-git clone --depth 1 https://bitbucket.org/genap/chord_web.git web
+git clone --quiet --depth 1 https://bitbucket.org/genap/chord_web.git web
 cd /chord/web || exit
-NODE_ENV=development npm install
-NODE_ENV=production npm run build
+NODE_ENV=development npm install > /dev/null
+NODE_ENV=production npm run build > /dev/null
 rm -r node_modules  # Don't need sources anymore after the bundle is built
 
 # Create CHORD folder structure
@@ -149,9 +167,11 @@ ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
 ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
 
 # Install common Python dependencies
-python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt
+echo "[CHORD] Installing common Python dependencies"
+python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt > /dev/null
 
 # Run Python container setup script
+echo "[CHORD] Setting up container"
 cd /chord || exit
 python3.7 ./container_scripts/container_setup.py \
   ./chord_services.json \
@@ -159,6 +179,6 @@ python3.7 ./container_scripts/container_setup.py \
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache
-apt purge -y build-essential autoconf git curl python3-virtualenv
-apt autoremove -y
-apt clean
+apt-get purge -y build-essential autoconf git curl python3-virtualenv > /dev/null
+apt-get autoremove -y > /dev/null
+apt-get clean > /dev/null

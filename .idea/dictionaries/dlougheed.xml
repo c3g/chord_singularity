@@ -28,6 +28,8 @@
       <w>nopush</w>
       <w>pgpassword</w>
       <w>pgsql</w>
+      <w>pidfile</w>
+      <w>pkill</w>
       <w>postgre</w>
       <w>postgresql</w>
       <w>psql</w>

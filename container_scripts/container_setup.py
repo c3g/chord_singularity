@@ -169,26 +169,27 @@ def main():
 
         # STEP 1: Install deduplicated apt dependencies.
 
-        print("[CHORD] Installing apt dependencies...")
+        print("[CHORD Container Setup] Installing apt dependencies...")
 
         apt_dependencies = set()
         for s in services:
             apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", ()))
 
-        subprocess.run(("apt", "install", "-y") + tuple(apt_dependencies), check=True)
+        subprocess.run(("apt-get", "install", "-y") + tuple(apt_dependencies), stdout=subprocess.DEVNULL, check=True)
 
         # STEP 2: Run pre-install commands
 
-        print("[CHORD] Running service pre-install commands...")
+        print("[CHORD Container Setup] Running service pre-install commands...")
 
         for s in services:
             commands = s.get("pre_install_commands", ())
             for c in commands:
-                subprocess.run(c, shell=True, check=True)
+                print("[CHORD Container Setup]    {}".format(c))
+                subprocess.run(c, shell=True, check=True, stdout=subprocess.DEVNULL)
 
         # STEP 3: Create virtual environments and install packages
 
-        print("[CHORD] Creating virtual environments...")
+        print("[CHORD Container Setup] Creating virtual environments...")
 
         for s in services:
             s_artifact = s["type"]["artifact"]
@@ -200,14 +201,15 @@ def main():
                 f"              pip install --no-cache-dir git+{s['repository']};"
                 f"              deactivate'",
                 shell=True,
-                check=True
+                check=True,
+                stdout=subprocess.DEVNULL
             )
 
         os.chdir("/chord")
 
         # STEP 4: Generate uWSGI configuration files
 
-        print("[CHORD] Generating uWSGI configuration files...")
+        print("[CHORD Container Setup] Generating uWSGI configuration files...")
 
         for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)),
                         generate_uwsgi_confs(services, services_config_path)):
@@ -222,7 +224,7 @@ def main():
 
         # STEP 5: Generate NGINX configuration file
 
-        print("[CHORD] Generating NGINX configuration file...")
+        print("[CHORD Container Setup] Generating NGINX configuration file...")
 
         with open("/etc/nginx/nginx.conf", "w") as nf:
             nf.write(generate_nginx_conf(services, services_config_path))
