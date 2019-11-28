@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 CPG="11"
 
 # Kill the proxy first
