@@ -9,11 +9,11 @@ branches:
     - master
 
 env:
-  - GO111MODULE=on VERSION=1.13.3 OS=linux ARCH=amd64 GOPATH=${HOME}/go PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
+  - GO111MODULE=on VERSION=1.13.4 OS=linux ARCH=amd64 GOPATH=${HOME}/go PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
 
 before_install:
   - wget -O /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz https://dl.google.com/go/go${VERSION}.${OS}-${ARCH}.tar.gz
-  - sudo rm -rf /usr/local/go
+  - sudo rm -rf /home/travis/.gimme/versions/go1.11.1.linux.amd64
   - sudo tar -C /usr/local -xzf /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz
   - go version
   - sudo apt-get update
