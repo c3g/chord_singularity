@@ -34,9 +34,13 @@
             "artifact": {
               "type": "string",
               "pattern": "^[a-zA-Z\\-_][a-zA-Z0-9\\-_]*$"
+            },
+            "language": {
+              "type": "string",
+              "enum": ["python", "javascript"]
             }
           },
-          "required": ["organization", "artifact"],
+          "required": ["organization", "artifact", "language"],
           "additionalProperties": false
         },
         "repository": {
@@ -70,7 +74,7 @@
         "wsgi": {
           "type": "boolean"
         },
-        "python_runnable": {
+        "service_runnable": {
           "type": "string",
           "pattern": "^[a-zA-Z0-9\\-_.]+$"
         },
@@ -88,7 +92,7 @@
             "type": "string"
           }
         },
-        "python_environment": {
+        "run_environment": {
           "type": "object",
           "patternProperties": {
             "^[A-Z_]+$": {

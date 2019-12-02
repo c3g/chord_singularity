@@ -9,7 +9,7 @@ from jsonschema import validate
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_config_vars
+from chord_common import get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
 UWSGI_CONF_TEMPLATE = """[uwsgi]
@@ -101,8 +101,8 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
         uwsgi_conf += "  env = %(_)\n"
         uwsgi_conf += "endfor =\n"
 
-        if "python_environment" in s:
-            for e, val in s["python_environment"].items():
+        if "run_environment" in s:
+            for e, val in s["run_environment"].items():
                 uwsgi_conf += f"env = {e}={val.format(**config_vars)}\n"
 
         uwsgi_confs.append(uwsgi_conf)
@@ -128,7 +128,7 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
 
         nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
         nginx_conf += f"    location {base_url} {{ try_files $uri @{s_artifact}; }}\n"
-        nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"
+        # nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"  TODO: Figure this out
 
         if "wsgi" not in s or s["wsgi"]:
             nginx_conf += f"    location @{s_artifact} {{ " \
@@ -193,17 +193,32 @@ def main():
 
         for s in services:
             s_artifact = s["type"]["artifact"]
-            subprocess.run(
-                f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact};"
-                f"              cd /chord/services/{s_artifact}; "
-                f"              python3.7 -m virtualenv -p python3.7 env; "
-                f"              source env/bin/activate; "
-                f"              pip install --no-cache-dir git+{s['repository']};"
-                f"              deactivate'",
-                shell=True,
-                check=True,
-                stdout=subprocess.DEVNULL
-            )
+
+            subprocess.run(f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact}'", shell=True, check=True)
+
+            if s["type"]["language"] == TYPE_PYTHON:
+                subprocess.run(
+                    f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
+                    f"              python3.7 -m virtualenv -p python3.7 env; "
+                    f"              source env/bin/activate; "
+                    f"              pip install --no-cache-dir git+{s['repository']};"
+                    f"              deactivate'",
+                    shell=True,
+                    check=True,
+                    stdout=subprocess.DEVNULL
+                )
+
+            elif s["type"]["language"] == TYPE_JAVASCRIPT:
+                subprocess.run(
+                    f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
+                    f"              npm install -g {s['repository']}'",
+                    shell=True,
+                    check=True,
+                    stdout=subprocess.DEVNULL
+                )
+
+            else:
+                raise NotImplementedError(f"Unknown language: {s['type']['language']}")
 
         os.chdir("/chord")
 
@@ -216,7 +231,7 @@ def main():
             conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"
 
             if os.path.exists(conf_path):
-                print(f"Error: File already exists: '{conf_path}'")
+                print(f"Error: File already exists: '{conf_path}'", file=sys.stderr)
                 exit(1)
 
             with open(conf_path, "w") as uf:

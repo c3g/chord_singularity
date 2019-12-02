@@ -9,6 +9,10 @@ from jsonschema import validate
 from typing import Callable, Dict, List
 
 
+TYPE_PYTHON = "python"
+TYPE_JAVASCRIPT = "javascript"
+
+
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
 INSTANCE_CONFIG_PATH = "/chord/data/.instance_config.json"
@@ -89,8 +93,8 @@ def format_env_pair(k, v, escaped=False):
 
 
 def get_env_str(s, config_vars, escaped=True):
-    return (" ".join(format_env_pair(k, v.format(**config_vars), escaped) for k, v in s["python_environment"].items())
-            if "python_environment" in s else "")
+    return (" ".join(format_env_pair(k, v.format(**config_vars), escaped) for k, v in s["run_environment"].items())
+            if "run_environment" in s else "")
 
 
 def main(job: Callable[[List[Dict], str], None]):
