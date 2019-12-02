@@ -24,7 +24,7 @@ export LC_CTYPE="en_US.UTF-8"
 
 # Install shared build dependencies
 apt-get full-upgrade -y > /dev/null
-apt-get install -y -q nginx build-essential autoconf git curl libcurl4-openssl-dev > /dev/null
+apt-get install -y -q nginx build-essential autoconf git curl libcurl4-openssl-dev libssl-dev > /dev/null
 
 # Install Python 3.7
 apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
