@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import subprocess
+import sys
+
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
@@ -13,9 +15,13 @@ def job(services: List[Dict], services_config_path: str):
             continue
 
         config_vars = get_runtime_config_vars(s, services_config_path)
-        subprocess.run(f"/bin/bash -c 'pkill -9 -F "
-                       f"{config_vars['SERVICE_TEMP']}/{config_vars['SERVICE_ARTIFACT']}.pid'",
-                       shell=True, check=True)
+
+        try:
+            subprocess.run(f"/bin/bash -c 'pkill -9 -F "
+                           f"{config_vars['SERVICE_TEMP']}/{config_vars['SERVICE_ARTIFACT']}.pid'",
+                           shell=True, check=True)
+        except subprocess.CalledProcessError:
+            print(f"Error stopping service {config_vars['SERVICE_ARTIFACT']}", file=sys.stderr)
 
 
 if __name__ == "__main__":
