@@ -70,6 +70,9 @@ pidfile /chord/tmp/redis.pid
 daemonize yes
 
 dbfilename redis.rdb
+appendonly yes
+appendfilename redis.aof
+
 dir /chord/data/redis
 EOC
 
