@@ -2,6 +2,9 @@
 
 CPG="11"
 
+# Remove any stray socket files
+rm -f /chord/tmp/*.sock
+
 whoami > /chord/tmp/.instance_user
 
 mkdir -p /chord/tmp/logs

@@ -23,3 +23,6 @@ pg_ctlcluster ${CPG} main stop &> /dev/null
 python3.7 /chord/container_scripts/container_post_stop.py \
   /chord/chord_services.json \
   /chord/chord_services_config.json
+
+# Remove any stray socket files
+rm -f /chord/tmp/*.sock
