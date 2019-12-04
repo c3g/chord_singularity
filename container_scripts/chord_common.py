@@ -6,7 +6,7 @@ import sys
 import uuid
 
 from jsonschema import validate
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Tuple
 
 
 TYPE_PYTHON = "python"
@@ -86,6 +86,18 @@ def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
     return {**instance_config, **services_config[s_artifact], **runtime_config[s_artifact]}
+
+
+def get_service_command_preamble(service: Dict, config_vars: Dict) -> Tuple[str, ...]:
+    preamble = (
+        f"source {config_vars['SERVICE_ENVIRONMENT']}",
+        f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']})",
+    )
+
+    if service["type"]["language"] == TYPE_PYTHON:
+        preamble = (f"source {config_vars['SERVICE_VENV']}/bin/activate",) + preamble
+
+    return preamble
 
 
 def bash_escape_single_quotes(v):

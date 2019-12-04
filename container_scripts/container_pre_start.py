@@ -7,7 +7,14 @@ import sys
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_runtime_config_vars, get_env_str, format_env_pair, main
+from chord_common import (
+    get_service_command_preamble,
+    bash_escape_single_quotes,
+    get_runtime_config_vars,
+    get_env_str,
+    format_env_pair,
+    main
+)
 
 
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
@@ -47,16 +54,11 @@ def job(services: List[Dict], services_config_path: str):
                             f"ALTER USER {config_vars['POSTGRES_USER']} ENCRYPTED PASSWORD "
                             f"'{config_vars['POSTGRES_PASSWORD']}'"))
 
-        env_str = get_env_str(s, config_vars)
+        for command in s.get("pre_start_commands", ()):
+            commands = (*get_service_command_preamble(s, config_vars),
+                        f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}'")
 
-        pre_start_commands = s.get("pre_start_commands", ())
-        for command in pre_start_commands:
-            full_command = (  # TODO: Deduplicate preamble with container_non_wsgi_start
-                f"/bin/bash -c 'source {config_vars['SERVICE_VENV']}/bin/activate && "
-                f"source {config_vars['SERVICE_ENVIRONMENT']} && "
-                f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']}) && "  # Export sourced variables
-                f"{env_str} {command.format(**config_vars)}'"
-            )
+            full_command = f"/bin/bash -c '{' && '.join(commands)}'"
 
             try:
                 subprocess.run(full_command, shell=True, check=True)
