@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+wait_for_kill () {
+  while kill -0 "$1"; do
+    sleep 0.5
+  done
+}
+
 CPG="11"
 
 # Kill the proxy first
@@ -9,6 +15,8 @@ killall nginx &> /dev/null
 # data storage systems (fs, Redis, Postgres.)
 
 kill -2 "$(cat /chord/tmp/uwsgi/uwsgi.pid)" &> /dev/null
+wait_for_kill "$(cat /chord/tmp/uwsgi/uwsgi.pid)"
+
 python3.7 /chord/container_scripts/container_non_wsgi_stop.py \
   /chord/chord_services.json \
   /chord/chord_services_config.json
@@ -23,6 +31,7 @@ pg_ctlcluster ${CPG} main stop &> /dev/null
 python3.7 /chord/container_scripts/container_post_stop.py \
   /chord/chord_services.json \
   /chord/chord_services_config.json
+sleep 2  # Wait for kills
 
 # Remove any stray socket files
 rm -f /chord/tmp/*.sock
