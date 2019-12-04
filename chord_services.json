@@ -40,10 +40,10 @@
       "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar"
     ],
     "pre_start_commands": [
-      "nohup celery -A chord_wes.app worker --pidfile {SERVICE_TEMP}/celery.pid &> {SERVICE_LOGS}/celery.log &"
+      "nohup celery -A chord_wes.app worker &> {SERVICE_LOGS}/celery.log &"
     ],
     "post_stop_commands": [
-      "pkill -9 -F {SERVICE_TEMP}/celery.pid"
+      "pkill -9 -f 'chord_wes.app worker'"
     ],
     "wsgi": true,
     "python_module": "chord_wes.app",
