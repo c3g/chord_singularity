@@ -88,8 +88,12 @@ def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
     return {**instance_config, **services_config[s_artifact], **runtime_config[s_artifact]}
 
 
+def bash_escape_single_quotes(v):
+    return v.replace("'", r"'\''")
+
+
 def format_env_pair(k, v, escaped=False):
-    return "{}='{}'".format(k, v.replace("'", r"'\''")) if escaped else f"{k}={v}"
+    return "{}='{}'".format(k, bash_escape_single_quotes(v)) if escaped else f"{k}={v}"
 
 
 def get_env_str(s, config_vars, escaped=True):
