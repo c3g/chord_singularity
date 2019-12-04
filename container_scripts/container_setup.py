@@ -44,9 +44,6 @@ http {
 
   sendfile off;
   keepalive_timeout 120;
-
-  proxy_http_version 1.1;
-  proxy_set_header Connection "";
   
   server_names_hash_bucket_size 128;
 
@@ -135,11 +132,19 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
                           f"include uwsgi_params; uwsgi_pass chord_{s_artifact}; }}\n"
 
         else:
-            nginx_conf += f"    location @{s_artifact} {{ proxy_pass_header Server; " \
-                          f"proxy_set_header Host $http_host; " \
-                          f"proxy_set_header X-Real-IP $remote_addr; " \
-                          f"proxy_set_header X-Scheme $scheme; " \
-                          f"proxy_pass http://chord_{s_artifact}; }}\n"
+            nginx_conf += (
+                f"    location @{s_artifact} {{ "
+                f"proxy_http_version                 1.1; "
+                f"proxy_pass_header                  Server; "
+                f"proxy_set_header Upgrade           $http_upgrade; "
+                f"proxy_set_header Connection        \"upgrade\"; "
+                f"proxy_set_header Host              $http_host; "
+                f"proxy_set_header X-Real-IP         $remote_addr; "
+                f"proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for; "
+                f"proxy_set_header X-Forwarded-Proto $scheme;"
+                f"proxy_pass                         http://chord_{s_artifact}; "
+                f"}}\n"
+            )
 
         nginx_conf += "\n"
 

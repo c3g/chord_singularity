@@ -45,6 +45,7 @@
       <w>uwsgi</w>
       <w>venv</w>
       <w>vhost</w>
+      <w>websockets</w>
       <w>womtool</w>
       <w>zoneinfo</w>
     </words>
