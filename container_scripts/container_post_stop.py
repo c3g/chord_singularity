@@ -27,8 +27,8 @@ def job(services: List[Dict], services_config_path: str):
 
             try:
                 subprocess.run(full_command, shell=True, check=True)
-            except subprocess.CalledProcessError:
-                print(f"Error running command: \n\t{full_command}", file=sys.stderr)
+            except subprocess.CalledProcessError as e:
+                print(e, file=sys.stderr)
 
 
 if __name__ == "__main__":
