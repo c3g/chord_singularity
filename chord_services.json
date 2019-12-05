@@ -43,7 +43,7 @@
       "nohup celery -A chord_wes.app worker &> {SERVICE_LOGS}/celery.log &"
     ],
     "post_stop_commands": [
-      "pkill -9 -f 'chord_wes.app worker'"
+      "pkill -9 -f 'chord_wes.app worker$'"
     ],
     "wsgi": true,
     "python_module": "chord_wes.app",
