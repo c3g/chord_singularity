@@ -56,7 +56,7 @@ def job(services: List[Dict], services_config_path: str):
 
         for command in s.get("pre_start_commands", ()):
             commands = (*get_service_command_preamble(s, config_vars),
-                        f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}'")
+                        f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}")
 
             full_command = f"/bin/bash -c '{' && '.join(commands)}'"
 
