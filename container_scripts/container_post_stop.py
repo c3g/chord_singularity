@@ -6,7 +6,13 @@ import sys
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_service_command_preamble, bash_escape_single_quotes, get_runtime_config_vars, get_env_str
+from chord_common import (
+    get_service_command_preamble,
+    bash_escape_single_quotes,
+    get_runtime_config_vars,
+    get_env_str,
+    main,
+)
 
 
 def job(services: List[Dict], services_config_path: str):
@@ -23,3 +29,7 @@ def job(services: List[Dict], services_config_path: str):
                 subprocess.run(full_command, shell=True, check=True)
             except subprocess.CalledProcessError:
                 print(f"Error running command: \n\t{full_command}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main(job)
