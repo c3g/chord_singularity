@@ -44,7 +44,17 @@ server {
     server_name ~^(\d+)\.chord\.dlougheed\.com$;
 
     location / {
-        proxy_pass http://unix:/tmp/chord/$1/nginx.sock;
+        # Tweak these as needed for the security concerns of the instance.
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' '*' always;
+        add_header 'Access-Control-Allow-Headers' '*' always;
+
+        proxy_pass                       http://unix:/tmp/chord/$1/nginx.sock;
+        proxy_http_version               1.1;
+        proxy_set_header Host            $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Upgrade         $http_upgrade;
+        proxy_set_header Connection      "upgrade";
     }
 }
 ```
