@@ -65,6 +65,9 @@ a DNS record set up to point at 127.0.0.1.
 
 ### Needed files in the CHORD `data` folder
 
+**This file is automatically created by the `dev_utils.py` script, but should
+be set up in another way for production deployment.**
+
   * `.instance_config.json`, containing the following key-value pairs:
     * `CHORD_HOST` - The domain name of the host (no http://, no trailing slash)
     * `CHORD_URL` - The URL of the node (for federation), with trailing slash
