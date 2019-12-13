@@ -150,7 +150,7 @@ export HOME="/chord"
 # Install CHORD Web
 echo "[CHORD] Installing chord_web"
 cd /chord || exit
-git clone --quiet --depth 1 https://bitbucket.org/genap/chord_web.git web
+git clone --quiet --depth 1 https://github.com/c3g/chord_web.git web
 cd /chord/web || exit
 NODE_ENV=development npm install > /dev/null
 NODE_ENV=production npm run build > /dev/null
