@@ -15,11 +15,13 @@ from chord_common import get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
 UWSGI_CONF_TEMPLATE = """[uwsgi]
 vhost = true
 manage-script-name = true
-threads = 4
+enable-threads = true
+threads = 4  # enables enable-threads by default, but we explicitly set it to true anyway
 socket = {service_socket}
 venv = {service_venv}
 chdir = /chord/services/{service_artifact}
 mount = /api/{service_artifact}={service_python_module}:{service_python_callable}
+vacuum = true
 """
 
 NGINX_CONF_HEADER = """
