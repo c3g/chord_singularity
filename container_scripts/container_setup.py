@@ -45,7 +45,7 @@ http {
   scgi_temp_path /chord/tmp/nginx/scgi_tmp;
 
   sendfile off;
-  keepalive_timeout 120;
+  keepalive_timeout 600;
   
   server_names_hash_bucket_size 128;
 
@@ -130,21 +130,35 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
         # nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"  TODO: Figure this out
 
         if "wsgi" not in s or s["wsgi"]:
-            nginx_conf += f"    location @{s_artifact} {{ " \
-                          f"include uwsgi_params; uwsgi_pass chord_{s_artifact}; }}\n"
+            nginx_conf += (
+                f"    location @{s_artifact} {{ "
+                f"include            uwsgi_params; "
+                f"uwsgi_pass         chord_{s_artifact}; "
+                f"uwsgi_param        Host              $http_host; "
+                f"uwsgi_param        X-Real-IP         $remote_addr; "
+                f"uwsgi_param        X-Forwarded-For   $proxy_add_x_forwarded_for; "
+                f"uwsgi_param        X-Forwarded-Proto $http_x_forwarded_proto; "
+                f"uwsgi_read_timeout 600; "
+                f"uwsgi_send_timeout 600; "
+                f"send_timeout       600; "
+                f"}}\n"
+            )
 
         else:
             nginx_conf += (
                 f"    location @{s_artifact} {{ "
-                f"proxy_http_version                 1.1; "
-                f"proxy_pass_header                  Server; "
-                f"proxy_set_header Upgrade           $http_upgrade; "
-                f"proxy_set_header Connection        \"upgrade\"; "
-                f"proxy_set_header Host              $http_host; "
-                f"proxy_set_header X-Real-IP         $remote_addr; "
-                f"proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for; "
-                f"proxy_set_header X-Forwarded-Proto $scheme;"
-                f"proxy_pass                         http://chord_{s_artifact}; "
+                f"proxy_http_version 1.1; "
+                f"proxy_pass_header  Server; "
+                f"proxy_set_header   Upgrade           $http_upgrade; "
+                f"proxy_set_header   Connection        \"upgrade\"; "
+                f"proxy_set_header   Host              $http_host; "
+                f"proxy_set_header   X-Real-IP         $remote_addr; "
+                f"proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for; "
+                f"proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto; "
+                f"proxy_pass         http://chord_{s_artifact}; "
+                f"proxy_read_timeout 600; "
+                f"proxy_send_timeout 600; "
+                f"send_timeout       600; "
                 f"}}\n"
             )
 
