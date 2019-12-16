@@ -76,6 +76,8 @@ be set up in another way for production deployment.**
 
 ### Building
 
+**Building only works on Linux-based operating systems.**
+
 To build the image:
 
 ```bash
