@@ -26,6 +26,7 @@
       <w>nodelay</w>
       <w>nohup</w>
       <w>nopush</w>
+      <w>oidc</w>
       <w>pgpassword</w>
       <w>pgsql</w>
       <w>pidfile</w>
