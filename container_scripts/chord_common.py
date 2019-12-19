@@ -58,7 +58,9 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
             "SERVICE_ENVIRONMENT": f"/chord/data/{s_artifact}/.environment",
         }
 
-        json.dump(config, open(services_config_path, "w"))
+        with open(services_config_path, "w") as scf:
+            json.dump(config, scf)
+
         subprocess.run(("chmod", "644", services_config_path))  # TODO: How to secure properly?
 
     return config[s_artifact]
@@ -82,7 +84,9 @@ def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
             "SERVICE_ID": str(uuid.uuid4())  # Generate a unique UUID for the service
         }
 
-    json.dump(runtime_config, open(RUNTIME_CONFIG_PATH, "w"))
+    with open(RUNTIME_CONFIG_PATH, "w") as rcf:
+        json.dump(runtime_config, rcf)
+
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
     return {**instance_config, **services_config[s_artifact], **runtime_config[s_artifact]}
