@@ -4,20 +4,35 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 
 
 USER_DIR = os.path.expanduser("~")
 CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
 CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
 
+CHORD_AUTH_CONFIG_FILE = ".auth_config.json"
 CHORD_INSTANCE_CONFIG_FILE = ".instance_config.json"
+
+with open("instance_auth.json", "r") as f:
+    instance_auth = json.load(f)
 
 
 def get_instance_name(i: int):
     return f"chord{i}"
 
 
+def get_instance_host(i: int):
+    return f"{i}.chord.dlougheed.com"
+
+
 def action_start(args):
+    for i in range(1, args.cluster_size + 1):
+        instance_host = get_instance_host(i)
+        if instance_host not in instance_auth:
+            print(f"[CHORD DEV UTILS] Cannot find auth configuration for instance {instance_host}", file=sys.stderr)
+            exit(1)
+
     for i in range(1, args.cluster_size + 1):
         print(f"[CHORD DEV UTILS] Starting instance {i}...")
 
@@ -27,14 +42,17 @@ def action_start(args):
         subprocess.run(("mkdir", "-p", instance_data))
         subprocess.run(("mkdir", "-p", instance_temp))
 
-        instance_host = f"{i}.chord.dlougheed.com"
+        instance_host = get_instance_host(i)
 
-        with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as f:
+        with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as fc:
             json.dump({
                 "CHORD_HOST": instance_host,
                 "CHORD_URL": f"http://{instance_host}/",  # Trailing slash important here
                 "CHORD_REGISTRY_URL": "http://1.chord.dlougheed.com/"  # ... and here
-            }, f)
+            }, fc)
+
+        with open(os.path.join(instance_data, CHORD_AUTH_CONFIG_FILE), "w") as fa:
+            json.dump(instance_auth[instance_host], fa)
 
         subprocess.run(("singularity", "instance", "start",
                         "--bind", f"{instance_temp}:/chord/tmp",

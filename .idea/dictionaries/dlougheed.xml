@@ -5,6 +5,7 @@
       <w>aseq</w>
       <w>autoremove</w>
       <w>candig</w>
+      <w>cjson</w>
       <w>computationalgenomics</w>
       <w>confs</w>
       <w>createdb</w>
@@ -17,6 +18,7 @@
       <w>genomics</w>
       <w>htslib</w>
       <w>jsonschema</w>
+      <w>jwks</w>
       <w>libbz</w>
       <w>liblzma</w>
       <w>libncurses</w>
@@ -27,6 +29,8 @@
       <w>nohup</w>
       <w>nopush</w>
       <w>oidc</w>
+      <w>openidc</w>
+      <w>openresty</w>
       <w>pgpassword</w>
       <w>pgsql</w>
       <w>pidfile</w>
@@ -36,6 +40,7 @@
       <w>psql</w>
       <w>pyargv</w>
       <w>pyrsistent</w>
+      <w>resty</w>
       <w>rnaget</w>
       <w>samtools</w>
       <w>scgi</w>

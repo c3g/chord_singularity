@@ -66,5 +66,6 @@ python3.7 ./container_scripts/container_non_wsgi_start.py \
   ./chord_services_config.json
 
 
-echo "Starting NGINX..."
+echo "Starting OpenResty NGINX..."
+export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
 nohup nginx &> /dev/null &

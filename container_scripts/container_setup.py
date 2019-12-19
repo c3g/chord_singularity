@@ -9,7 +9,7 @@ from jsonschema import validate
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
+from chord_common import AUTH_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
 UWSGI_CONF_TEMPLATE = """[uwsgi]
@@ -24,6 +24,8 @@ mount = /api/{service_artifact}={service_python_module}:{service_python_callable
 vacuum = true
 """
 
+NGINX_CONF_LOCATION = "/usr/local/openresty/nginx/conf/nginx.conf"
+
 NGINX_CONF_HEADER = """
 daemon off;
 
@@ -35,7 +37,7 @@ events {
 }
 
 http {
-  include /etc/nginx/mime.types;
+  # include /etc/nginx/mime.types;
   default_type application/octet-stream;
   
   client_body_temp_path /chord/tmp/nginx/client_tmp;
@@ -50,6 +52,13 @@ http {
   server_names_hash_bucket_size 128;
 
   index index.html index.htm;
+
+  # lua-resty-openidc global configuration
+  resolver 8.8.8.8;  # resolve OIDC URLs with Google DNS
+  lua_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+  lua_ssl_verify_depth 5;
+  lua_shared_dict discovery 1m;
+  lua_shared_dict jwks 1m;
 
 """
 
@@ -72,6 +81,90 @@ NGINX_CONF_SERVER_HEADER = """
 NGINX_CONF_FOOTER = """
   }
 }
+"""
+
+# TODO: redirect_uri
+# TODO: PROD: SSL VERIFY
+NGINX_ACCESS_BY_LUA_TEMPLATE = """
+access_by_lua_block {{
+  local auth_file = assert(io.open("{auth_config}"))
+  local auth_params = require("cjson").decode(auth_file:read("*all"))
+  auth_file:close()
+  local opts = {{
+    redirect_uri = "/",
+    discovery = auth_params["OIDC_DISCOVERY_URI"],
+    client_id = auth_params["CLIENT_ID"],
+    client_secret = auth_params["CLIENT_SECRET"],
+    accept_unsupported_alg = false,
+  }}
+  local res, err = require("resty.openidc").authenticate(opts{auth_options})
+  if err then
+    ngx.status = 500
+    ngx.say(err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if res == nil then
+    -- If authenticate hasn't rejected us above but it's "open", i.e.
+    -- non-authenticated users can see the page, clear the X-User header.
+    ngx.req.set_header("X-User", nil)
+  else
+    ngx.req.set_header("X-User", res.id_token.sub)
+  end
+}}
+"""
+
+NGINX_OPEN_AUTH_FORMAT = {"auth_config": AUTH_CONFIG_PATH, "auth_options": ', nil, "pass"'}
+NGINX_CLOSED_AUTH_FORMAT = {"auth_config": AUTH_CONFIG_PATH, "auth_options": ""}
+
+NGINX_SERVICE_UPSTREAM_TEMPLATE = """
+upstream chord_{s_artifact} {{
+  server unix:{s_socket};
+}}
+"""
+
+NGINX_SERVICE_BASE_TEMPLATE = """
+location = {base_url} {{
+  rewrite ^ {base_url}/;
+}}
+location {base_url} {{
+  {open_access_check}
+  try_files $uri @{s_artifact};
+}}
+location {base_url}/private {{
+  {closed_access_check}
+  try_files $uri @{s_artifact};
+}}
+"""
+
+NGINX_SERVICE_WSGI_TEMPLATE = """
+location @{s_artifact} {{
+  include            uwsgi_params;
+  uwsgi_param        Host              $http_host;
+  uwsgi_param        X-Real-IP         $remote_addr;
+  uwsgi_param        X-Forwarded-For   $proxy_add_x_forwarded_for;
+  uwsgi_param        X-Forwarded-Proto $http_x_forwarded_proto;
+  uwsgi_pass         chord_{s_artifact};
+  uwsgi_read_timeout 600;
+  uwsgi_send_timeout 600;
+  send_timeout       600;
+}}
+"""
+
+NGINX_SERVICE_NON_WSGI_TEMPLATE = """
+location @{s_artifact} {{
+  proxy_http_version 1.1;
+  proxy_pass_header  Server;
+  proxy_set_header   Upgrade           $http_upgrade;
+  proxy_set_header   Connection        "upgrade";
+  proxy_set_header   Host              $http_host;
+  proxy_set_header   X-Real-IP         $remote_addr;
+  proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+  proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+  proxy_pass         http://chord_{s_artifact};
+  proxy_read_timeout 600;
+  proxy_send_timeout 600;
+  send_timeout       600;
+}}
 """
 
 
@@ -114,55 +207,22 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
 
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        nginx_conf += f"  upstream chord_{config_vars['SERVICE_ARTIFACT']} " \
-                      f"{{ server unix:{config_vars['SERVICE_SOCKET']}; }}\n"
+        nginx_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
+                                                             s_socket=config_vars["SERVICE_SOCKET"])
 
     nginx_conf += NGINX_CONF_SERVER_HEADER
 
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        base_url = config_vars['SERVICE_URL_BASE_PATH']
+        s_artifact = config_vars["SERVICE_ARTIFACT"]
 
-        s_artifact = config_vars['SERVICE_ARTIFACT']
-
-        nginx_conf += f"    location = {base_url} {{ rewrite ^ {base_url}/; }}\n"
-        nginx_conf += f"    location {base_url} {{ try_files $uri @{s_artifact}; }}\n"
-        # nginx_conf += f"    location {base_url}/private {{ deny all; }}\n"  TODO: Figure this out
-
-        if "wsgi" not in s or s["wsgi"]:
-            nginx_conf += (
-                f"    location @{s_artifact} {{ "
-                f"include            uwsgi_params; "
-                f"uwsgi_pass         chord_{s_artifact}; "
-                f"uwsgi_param        Host              $http_host; "
-                f"uwsgi_param        X-Real-IP         $remote_addr; "
-                f"uwsgi_param        X-Forwarded-For   $proxy_add_x_forwarded_for; "
-                f"uwsgi_param        X-Forwarded-Proto $http_x_forwarded_proto; "
-                f"uwsgi_read_timeout 600; "
-                f"uwsgi_send_timeout 600; "
-                f"send_timeout       600; "
-                f"}}\n"
-            )
-
-        else:
-            nginx_conf += (
-                f"    location @{s_artifact} {{ "
-                f"proxy_http_version 1.1; "
-                f"proxy_pass_header  Server; "
-                f"proxy_set_header   Upgrade           $http_upgrade; "
-                f"proxy_set_header   Connection        \"upgrade\"; "
-                f"proxy_set_header   Host              $http_host; "
-                f"proxy_set_header   X-Real-IP         $remote_addr; "
-                f"proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for; "
-                f"proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto; "
-                f"proxy_pass         http://chord_{s_artifact}; "
-                f"proxy_read_timeout 600; "
-                f"proxy_send_timeout 600; "
-                f"send_timeout       600; "
-                f"}}\n"
-            )
-
-        nginx_conf += "\n"
+        nginx_conf += (NGINX_SERVICE_BASE_TEMPLATE + (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
+                                                      else NGINX_SERVICE_NON_WSGI_TEMPLATE)).format(
+            base_url=config_vars["SERVICE_URL_BASE_PATH"],
+            s_artifact=s_artifact,
+            open_access_check=NGINX_ACCESS_BY_LUA_TEMPLATE.format(**NGINX_OPEN_AUTH_FORMAT),
+            closed_access_check=NGINX_ACCESS_BY_LUA_TEMPLATE.format(**NGINX_CLOSED_AUTH_FORMAT),
+        )
 
     nginx_conf += NGINX_CONF_FOOTER
 
@@ -262,7 +322,7 @@ def main():
 
         print("[CHORD Container Setup] Generating NGINX configuration file...")
 
-        with open("/etc/nginx/nginx.conf", "w") as nf:
+        with open(NGINX_CONF_LOCATION, "w") as nf:
             nf.write(generate_nginx_conf(services, services_config_path))
 
 

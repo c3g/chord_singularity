@@ -14,6 +14,8 @@ What's included in a CHORD Singularity container?
   * `zlib1g-dev`, `libbz2-dev`, and `liblzma-dev`
   * `htslib`
 
+**Note:** Google DNS servers are used to resolve OIDC IdP domain names.
+
 
 ## Development
 

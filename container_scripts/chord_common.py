@@ -15,7 +15,8 @@ TYPE_JAVASCRIPT = "javascript"
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
-INSTANCE_CONFIG_PATH = "/chord/data/.instance_config.json"
+AUTH_CONFIG_PATH = "/chord/data/.auth_config.json"  # TODO: How to lock this down? It has sensitive stuff...
+INSTANCE_CONFIG_PATH = "/chord/data/.instance_config.json"  # TODO: Rename
 RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock this down? It has sensitive stuff...
 
 

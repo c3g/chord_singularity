@@ -1,21 +1,21 @@
 {
   "1.chord.dlougheed.com": {
-    "OIDC_DISCOVERY_URI": "http://localhost:8080/auth/realms/master/.well-known/openid-configuration",
+    "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
     "CLIENT_ID": "chord1",
     "CLIENT_SECRET": "TODO"
   },
   "2.chord.dlougheed.com": {
-    "OIDC_DISCOVERY_URI": "http://localhost:8080/auth/realms/master/.well-known/openid-configuration",
+    "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
     "CLIENT_ID": "chord2",
     "CLIENT_SECRET": "TODO"
   },
   "3.chord.dlougheed.com": {
-    "OIDC_DISCOVERY_URI": "http://localhost:8080/auth/realms/master/.well-known/openid-configuration",
+    "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
     "CLIENT_ID": "chord3",
     "CLIENT_SECRET": "TODO"
   },
   "4.chord.dlougheed.com": {
-    "OIDC_DISCOVERY_URI": "http://localhost:8080/auth/realms/master/.well-known/openid-configuration",
+    "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
     "CLIENT_ID": "chord4",
     "CLIENT_SECRET": "TODO"
   }

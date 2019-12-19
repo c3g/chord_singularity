@@ -3,6 +3,8 @@
 CNODE="10.x"
 CPG="11"
 
+OPENRESTY_VERSION="1.15.8.2"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Make sure man folders are present (for Java and Postgres)
@@ -24,7 +26,16 @@ export LC_CTYPE="en_US.UTF-8"
 
 # Install shared build dependencies
 apt-get full-upgrade -y > /dev/null
-apt-get install -y -q nginx build-essential autoconf git curl libcurl4-openssl-dev libssl-dev > /dev/null
+apt-get install -y -q \
+ build-essential \
+ autoconf \
+ git \
+ curl \
+ libcurl4-openssl-dev \
+ libpcre3-dev \
+ libssl-dev \
+ zlib1g-dev \
+ > /dev/null
 
 # Install Python 3.7
 apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
@@ -32,6 +43,41 @@ apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
 # Install Node.JS
 curl -Ls https://deb.nodesource.com/setup_${CNODE} | bash - > /dev/null
 apt-get install -y nodejs > /dev/null
+
+###############################################################################
+# OIDC NGINX Setup                                                            #
+###############################################################################
+
+echo "[CHORD] Installing OpenResty"
+
+cd /chord || exit
+echo "[CHORD]    Downloading"
+curl -Lso openresty.tar.gz "https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz" > /dev/null
+echo "[CHORD]    Building"
+tar -xzf openresty.tar.gz
+cd "openresty-${OPENRESTY_VERSION}" || exit
+./configure --with-pcre-jit --with-ipv6 -j2 > /dev/null
+make -j2 > /dev/null
+echo "[CHORD]    Installing"
+make install > /dev/null
+echo "[CHORD]    Cleaning up"
+cd /chord || exit
+rm openresty.tar.gz
+rm -r "openresty-${OPENRESTY_VERSION}"
+echo "[CHORD]    Setting up"
+# This export will only last until the end of setup
+export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
+# Set up NGINX logging
+mkdir -p /chord/tmp/nginx
+rm /usr/local/openresty/logs/*.log
+touch /chord/tmp/nginx/access.log
+touch /chord/tmp/nginx/error.log
+ln -s /chord/tmp/nginx/access.log /usr/local/openresty/nginx/logs/access.log
+ln -s /chord/tmp/nginx/error.log /usr/local/openresty/nginx/logs/error.log
+
+echo "[CHORD] Installing OpenResty modules"
+opm install zmartzone/lua-resty-openidc
+
 
 ###############################################################################
 # Databases                                                                   #
@@ -54,6 +100,7 @@ echo "[CHORD]    Cleaning up"
 cd /chord || exit
 rm redis-stable.tar.gz
 rm -r redis-stable
+echo "[CHORD]    Setting up"
 mkdir -p /etc/redis
 # TODO: SECURITY: Make sure redis isn't exposed publically in any way
 cat > /etc/redis/redis.conf <<- EOC
@@ -158,16 +205,8 @@ rm -r node_modules  # Don't need sources anymore after the bundle is built
 
 # Create CHORD folder structure
 mkdir -p /chord/data
-mkdir -p /chord/tmp/nginx
 mkdir /chord/services
 mkdir /chord/vassals
-
-# Set up NGINX logging
-rm /var/log/nginx/*.log
-touch /chord/tmp/nginx/access.log
-touch /chord/tmp/nginx/error.log
-ln -s /chord/tmp/nginx/access.log /var/log/nginx/access.log
-ln -s /chord/tmp/nginx/error.log /var/log/nginx/error.log
 
 # Install common Python dependencies
 echo "[CHORD] Installing common Python dependencies"
