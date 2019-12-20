@@ -4,7 +4,7 @@
 
 What's included in a CHORD Singularity container?
 
-  * NodeJS 10
+  * NodeJS 12
   * Python 3.7
   * Java 11
   * A Redis instance running at `/chord/tmp/redis.sock`
