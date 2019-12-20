@@ -70,6 +70,10 @@ a DNS record set up to point at 127.0.0.1.
 **These files are automatically created by the `dev_utils.py` script, but
 should be set up in another way for production deployment.**
 
+Values for `.auth_config.json` are read from the
+[`instance_auth.json`](instance_auth.json) file at instance start time when
+using `dev_utils.py`.
+
   * `.instance_config.json`, containing the following key-value pairs:
     * `CHORD_HOST` - The domain name of the host (no http://, no trailing slash)
     * `CHORD_URL` - The URL of the node (for federation), with trailing slash
