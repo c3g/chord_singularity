@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CNODE="10.x"
+CNODE="12.x"
 CPG="11"
 
 OPENRESTY_VERSION="1.15.8.2"
