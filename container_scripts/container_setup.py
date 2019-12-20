@@ -114,6 +114,10 @@ NGINX_CONF_SERVER_HEADER = """
           ngx.req.set_header("X-User", res.id_token.sub)
         end
       }}
+
+    location /api/callback {{
+      rewrite ^/api/callback.*$ /;
+    }}
 """
 
 NGINX_CONF_FOOTER = """
