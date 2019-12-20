@@ -69,7 +69,6 @@ echo "[CHORD]    Setting up"
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
 # Set up NGINX logging
 mkdir -p /chord/tmp/nginx
-rm /usr/local/openresty/logs/*.log
 touch /chord/tmp/nginx/access.log
 touch /chord/tmp/nginx/error.log
 ln -s /chord/tmp/nginx/access.log /usr/local/openresty/nginx/logs/access.log

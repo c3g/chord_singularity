@@ -62,7 +62,7 @@ http {
 
 """
 
-# TODO: redirect_uri
+# TODO: rewrite redirect
 # TODO: PROD: SSL VERIFY
 NGINX_CONF_SERVER_HEADER = """
   server {{
