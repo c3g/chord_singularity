@@ -62,59 +62,64 @@ http {
 
 """
 
+# TODO: redirect_uri
+# TODO: PROD: SSL VERIFY
 NGINX_CONF_SERVER_HEADER = """
-  server {
+  server {{
     listen unix:/chord/tmp/nginx.sock;
     root /chord/web/public;
     index index.html index.htm index.nginx-debian.html;
     server_name _;
-    
-    location / {
-      try_files $uri /index.html;
-    }
 
-    location /dist/ {
+    location / {{
+      try_files $uri /index.html;
+    }}
+
+    location /dist/ {{
       alias /chord/web/dist/;
-    }
+    }}
+
+    location /api/ {{
+      access_by_lua_block {{
+        local auth_file = assert(io.open("{auth_config}"))
+        local auth_params = require("cjson").decode(auth_file:read("*all"))
+        auth_file:close()
+        local opts = {{
+          redirect_uri = "/api/callback",
+          discovery = auth_params["OIDC_DISCOVERY_URI"],
+          client_id = auth_params["CLIENT_ID"],
+          client_secret = auth_params["CLIENT_SECRET"],
+          accept_unsupported_alg = false,
+        }}
+        local res, err = require("resty.openidc").authenticate(
+          opts,
+          nil,
+          (function ()
+             if ngx.var.uri and ngx.var.uri == "/api/authenticate"
+               then return nil
+               else return "pass"
+             end
+           end)()
+        )
+        if err then
+          ngx.status = 500
+          ngx.say(err)
+          ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+        end
+        if res == nil then
+          -- If authenticate hasn't rejected us above but it's "open", i.e.
+          -- non-authenticated users can see the page, clear the X-User header.
+          ngx.req.set_header("X-User", nil)
+        else
+          ngx.req.set_header("X-User", res.id_token.sub)
+        end
+      }}
 """
 
 NGINX_CONF_FOOTER = """
   }
 }
 """
-
-# TODO: redirect_uri
-# TODO: PROD: SSL VERIFY
-NGINX_ACCESS_BY_LUA_TEMPLATE = """
-access_by_lua_block {{
-  local auth_file = assert(io.open("{auth_config}"))
-  local auth_params = require("cjson").decode(auth_file:read("*all"))
-  auth_file:close()
-  local opts = {{
-    redirect_uri = "/",
-    discovery = auth_params["OIDC_DISCOVERY_URI"],
-    client_id = auth_params["CLIENT_ID"],
-    client_secret = auth_params["CLIENT_SECRET"],
-    accept_unsupported_alg = false,
-  }}
-  local res, err = require("resty.openidc").authenticate(opts{auth_options})
-  if err then
-    ngx.status = 500
-    ngx.say(err)
-    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-  end
-  if res == nil then
-    -- If authenticate hasn't rejected us above but it's "open", i.e.
-    -- non-authenticated users can see the page, clear the X-User header.
-    ngx.req.set_header("X-User", nil)
-  else
-    ngx.req.set_header("X-User", res.id_token.sub)
-  end
-}}
-"""
-
-NGINX_OPEN_AUTH_FORMAT = {"auth_config": AUTH_CONFIG_PATH, "auth_options": ', nil, "pass"'}
-NGINX_CLOSED_AUTH_FORMAT = {"auth_config": AUTH_CONFIG_PATH, "auth_options": ""}
 
 NGINX_SERVICE_UPSTREAM_TEMPLATE = """
 upstream chord_{s_artifact} {{
@@ -127,11 +132,6 @@ location = {base_url} {{
   rewrite ^ {base_url}/;
 }}
 location {base_url} {{
-  {open_access_check}
-  try_files $uri @{s_artifact};
-}}
-location {base_url}/private {{
-  {closed_access_check}
   try_files $uri @{s_artifact};
 }}
 """
@@ -210,19 +210,21 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
         nginx_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
                                                              s_socket=config_vars["SERVICE_SOCKET"])
 
-    nginx_conf += NGINX_CONF_SERVER_HEADER
+    nginx_conf += NGINX_CONF_SERVER_HEADER.format(auth_config=AUTH_CONFIG_PATH)
 
+    # Service location wrappers
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        s_artifact = config_vars["SERVICE_ARTIFACT"]
+        nginx_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
+                                                         s_artifact=config_vars["SERVICE_ARTIFACT"])
 
-        nginx_conf += (NGINX_SERVICE_BASE_TEMPLATE + (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
-                                                      else NGINX_SERVICE_NON_WSGI_TEMPLATE)).format(
-            base_url=config_vars["SERVICE_URL_BASE_PATH"],
-            s_artifact=s_artifact,
-            open_access_check=NGINX_ACCESS_BY_LUA_TEMPLATE.format(**NGINX_OPEN_AUTH_FORMAT),
-            closed_access_check=NGINX_ACCESS_BY_LUA_TEMPLATE.format(**NGINX_CLOSED_AUTH_FORMAT),
-        )
+    nginx_conf += "\n    }\n"
+
+    # Named locations
+    for s in services:
+        config_vars = get_config_vars(s, services_config_path)
+        nginx_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
+                       else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
 
     nginx_conf += NGINX_CONF_FOOTER
 
