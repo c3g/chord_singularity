@@ -52,6 +52,9 @@ server {
         add_header 'Access-Control-Allow-Headers' '*' always;
 
         proxy_pass                       http://unix:/tmp/chord/$1/nginx.sock;
+        proxy_buffer_size                128k;
+        proxy_buffers                    4 256k;
+        proxy_busy_buffers_size          256k;
         proxy_http_version               1.1;
         proxy_set_header Host            $host;
         proxy_set_header X-Forwarded-For $remote_addr;
