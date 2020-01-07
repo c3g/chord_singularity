@@ -9,14 +9,15 @@ from jsonschema import validate
 from typing import Dict, List
 
 # noinspection PyUnresolvedReferences
-from chord_common import AUTH_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
+from chord_common import AUTH_CONFIG_PATH, INSTANCE_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
 UWSGI_CONF_TEMPLATE = """[uwsgi]
 vhost = true
 manage-script-name = true
 enable-threads = true
-threads = 4  # enables enable-threads by default, but we explicitly set it to true anyway (above)
+# threads = 4  # enables enable-threads by default, but we explicitly set it to true anyway (above)
+lazy-apps = true  # use pre-forking instead, to prevent threading headaches
 buffer-size = 32768  # allow reading of larger headers, for e.g. auth
 socket = {service_socket}
 venv = {service_venv}
@@ -68,6 +69,102 @@ http {
 NGINX_CONF_SERVER_HEADER = """
   server {{
     listen unix:/chord/tmp/nginx.sock;
+    server_name _;
+
+    # Enable to show debugging information in the error log:
+    # error_log /usr/local/openresty/nginx/logs/error.log debug;
+
+    location = /favicon.ico {{
+      return 404;
+      log_not_found off;
+      access_log off;
+    }}
+
+    location / {{
+      set $session_cookie_lifetime 1800;
+      set $session_cookie_renew 1800;
+
+      access_by_lua_block {{
+        local cjson = require("cjson")
+
+        local auth_file = assert(io.open("{auth_config}"))
+        local auth_params = cjson.decode(auth_file:read("*all"))
+        auth_file:close()
+
+        local config_file = assert(io.open("{instance_config}"))
+        local config_params = cjson.decode(config_file:read("*all"))
+        config_file:close()
+
+        local opts = {{
+          redirect_uri = "/api/auth-callback",  -- config_params["CHORD_URL"] .. "api/auth-callback",
+          discovery = auth_params["OIDC_DISCOVERY_URI"],
+          client_id = auth_params["CLIENT_ID"],
+          client_secret = auth_params["CLIENT_SECRET"],
+          accept_none_alg = false,
+          accept_unsupported_alg = false,
+        }}
+
+        local res, err = require("resty.openidc").authenticate(
+          opts,
+          nil,
+          (function ()
+             if ngx.var.uri and (ngx.var.uri == "/api/authenticate" or
+                                 string.find(ngx.var.uri, "^/api/[%a][%w-_]/private"))
+               then return nil     -- require authentication at the auth endpoint or in the private namespace
+               else return "pass"  -- otherwise pass
+             end
+           end)()
+        )
+
+        if err then
+          ngx.status = 500
+          ngx.say(err)
+          ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+        end
+
+        if res == nil then
+          -- If authenticate hasn't rejected us above but it's "open", i.e.
+          -- non-authenticated users can see the page, clear the X-User header.
+          ngx.req.set_header("X-User", nil)
+        else
+          ngx.req.set_header("X-User", res.id_token.sub)
+        end
+
+        if ngx.var.uri == "/api/user" then
+          if res == nil then
+            ngx.status = 403
+            ngx.header["Content-Type"] = "text/plain"
+            ngx.header["Cache-Control"] = "no-store"
+            ngx.say("Forbidden")
+            ngx.exit(ngx.HTTP_FORBIDDEN)
+          else
+            ngx.status = 200
+            ngx.header["Content-Type"] = "application/json"
+            ngx.header["Cache-Control"] = "no-store"
+            ngx.say(cjson.encode(res.user))
+            ngx.exit(ngx.HTTP_OK)
+          end
+        end
+      }}
+
+      # TODO: Deduplicate with below?
+      proxy_http_version 1.1;
+      proxy_pass_header  Server;
+      proxy_set_header   Upgrade           $http_upgrade;
+      proxy_set_header   Connection        "upgrade";
+      proxy_set_header   Host              $http_host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+      proxy_pass         http://unix:/chord/tmp/nginx_internal.sock;
+      proxy_read_timeout 660;
+      proxy_send_timeout 660;
+      send_timeout       660;
+    }}
+  }}
+
+  server {{
+    listen unix:/chord/tmp/nginx_internal.sock;
     root /chord/web/public;
     index index.html index.htm index.nginx-debian.html;
     server_name _;
@@ -80,45 +177,6 @@ NGINX_CONF_SERVER_HEADER = """
       alias /chord/web/dist/;
     }}
 
-    location /api/ {{
-      access_by_lua_block {{
-        local auth_file = assert(io.open("{auth_config}"))
-        local auth_params = require("cjson").decode(auth_file:read("*all"))
-        auth_file:close()
-        local opts = {{
-          redirect_uri = "/api/callback",
-          discovery = auth_params["OIDC_DISCOVERY_URI"],
-          client_id = auth_params["CLIENT_ID"],
-          client_secret = auth_params["CLIENT_SECRET"],
-          accept_unsupported_alg = false,
-        }}
-        local res, err = require("resty.openidc").authenticate(
-          opts,
-          nil,
-          (function ()
-             if ngx.var.uri and ngx.var.uri == "/api/authenticate"
-               then return nil
-               else return "pass"
-             end
-           end)()
-        )
-        if err then
-          ngx.status = 500
-          ngx.say(err)
-          ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
-        if res == nil then
-          -- If authenticate hasn't rejected us above but it's "open", i.e.
-          -- non-authenticated users can see the page, clear the X-User header.
-          ngx.req.set_header("X-User", nil)
-        else
-          ngx.req.set_header("X-User", res.id_token.sub)
-        end
-      }}
-
-    location /api/callback {{
-      rewrite ^/api/callback.*$ /;
-    }}
 """
 
 NGINX_CONF_FOOTER = """
@@ -144,10 +202,8 @@ location {base_url} {{
 NGINX_SERVICE_WSGI_TEMPLATE = """
 location @{s_artifact} {{
   include            uwsgi_params;
-  uwsgi_param        Host              $http_host;
-  uwsgi_param        X-Real-IP         $remote_addr;
-  uwsgi_param        X-Forwarded-For   $proxy_add_x_forwarded_for;
-  uwsgi_param        X-Forwarded-Proto $http_x_forwarded_proto;
+  uwsgi_param        Host            $http_host;
+  uwsgi_param        X-Forwarded-For $proxy_add_x_forwarded_for;
   uwsgi_pass         chord_{s_artifact};
   uwsgi_read_timeout 600;
   uwsgi_send_timeout 600;
@@ -161,10 +217,10 @@ location @{s_artifact} {{
   proxy_pass_header  Server;
   proxy_set_header   Upgrade           $http_upgrade;
   proxy_set_header   Connection        "upgrade";
-  proxy_set_header   Host              $http_host;
-  proxy_set_header   X-Real-IP         $remote_addr;
+  proxy_pass_header  Host;
+  proxy_pass_header  X-Real-IP;
   proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-  proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+  proxy_pass_header  X-Forwarded-Proto;
   proxy_pass         http://chord_{s_artifact};
   proxy_read_timeout 600;
   proxy_send_timeout 600;
@@ -215,15 +271,13 @@ def generate_nginx_conf(services: List[Dict], services_config_path: str):
         nginx_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
                                                              s_socket=config_vars["SERVICE_SOCKET"])
 
-    nginx_conf += NGINX_CONF_SERVER_HEADER.format(auth_config=AUTH_CONFIG_PATH)
+    nginx_conf += NGINX_CONF_SERVER_HEADER.format(auth_config=AUTH_CONFIG_PATH, instance_config=INSTANCE_CONFIG_PATH)
 
     # Service location wrappers
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
         nginx_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
                                                          s_artifact=config_vars["SERVICE_ARTIFACT"])
-
-    nginx_conf += "\n    }\n"
 
     # Named locations
     for s in services:
