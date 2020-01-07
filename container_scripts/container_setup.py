@@ -80,8 +80,8 @@ NGINX_CONF_SERVER_HEADER = """
     }}
 
     location / {{
-      set $session_cookie_lifetime 1800;
-      set $session_cookie_renew 1800;
+      set $session_cookie_lifetime 1800s;
+      set $session_cookie_renew 1800s;
 
       access_by_lua_block {{
         local cjson = require("cjson")
@@ -156,9 +156,9 @@ NGINX_CONF_SERVER_HEADER = """
       proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
       proxy_pass         http://unix:/chord/tmp/nginx_internal.sock;
-      proxy_read_timeout 660;
-      proxy_send_timeout 660;
-      send_timeout       660;
+      proxy_read_timeout 660s;
+      proxy_send_timeout 660s;
+      send_timeout       660s;
     }}
   }}
 
@@ -204,9 +204,9 @@ location @{s_artifact} {{
   uwsgi_param        Host            $http_host;
   uwsgi_param        X-Forwarded-For $proxy_add_x_forwarded_for;
   uwsgi_pass         chord_{s_artifact};
-  uwsgi_read_timeout 600;
-  uwsgi_send_timeout 600;
-  send_timeout       600;
+  uwsgi_read_timeout 600s;
+  uwsgi_send_timeout 600s;
+  send_timeout       600s;
 }}
 """
 
@@ -221,9 +221,9 @@ location @{s_artifact} {{
   proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
   proxy_pass_header  X-Forwarded-Proto;
   proxy_pass         http://chord_{s_artifact};
-  proxy_read_timeout 600;
-  proxy_send_timeout 600;
-  send_timeout       600;
+  proxy_read_timeout 600s;
+  proxy_send_timeout 600s;
+  send_timeout       600s;
 }}
 """
 
