@@ -122,13 +122,21 @@ NGINX_CONF_SERVER_HEADER = """
           ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
 
-        if res == nil then
-          -- If authenticate hasn't rejected us above but it's "open", i.e.
-          -- non-authenticated users can see the page, clear the X-User header.
-          ngx.req.set_header("X-User", nil)
-        else
-          ngx.req.set_header("X-User", res.id_token.sub)
+        -- If authenticate hasn't rejected us above but it's "open", i.e.
+        -- non-authenticated users can see the page, clear X-User and
+        -- X-User-Role by setting the value to nil.
+        local user_id = nil
+        local user_role = nil
+        if res ~= nil then
+          user_id = res.id_token.sub
+          if user_id == auth_params["OWNER_SUB"]
+            then user_role = "owner"
+            else user_role = "user"
+          end
         end
+
+        ngx.req.set_header("X-User", user_id)
+        ngx.req.set_header("X-User-Role", user_role)
 
         if ngx.var.uri == "/api/auth/user" then
           if res == nil then
@@ -141,6 +149,7 @@ NGINX_CONF_SERVER_HEADER = """
             ngx.status = 200
             ngx.header["Content-Type"] = "application/json"
             ngx.header["Cache-Control"] = "no-store"
+            res.user["chord_user_role"] = user_role
             ngx.say(cjson.encode(res.user))
             ngx.exit(ngx.HTTP_OK)
           end
