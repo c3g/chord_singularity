@@ -11,8 +11,8 @@
     "python_module": "chord_service_registry.app",
     "python_callable": "application",
     "run_environment": {
-      "BASE_FORMAT": "/api/{{artifact}}",
-      "CHORD_SERVICES": "/chord/chord_services.json"
+      "CHORD_SERVICES": "/chord/chord_services.json",
+      "URL_PATH_FORMAT": "/api/{{artifact}}"
     }
   },
   {
@@ -67,7 +67,8 @@
     "wsgi": false,
     "service_runnable": "chord_federation",
     "run_environment": {
-      "DATABASE": "{SERVICE_DATA}/federation.db"
+      "DATABASE": "{SERVICE_DATA}/federation.db",
+      "SOCKET_INTERNAL": "/chord/tmp/nginx_internal.sock"
     }
   },
   {
