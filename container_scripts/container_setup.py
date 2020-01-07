@@ -97,6 +97,7 @@ NGINX_CONF_SERVER_HEADER = """
         local opts = {{
           redirect_uri = "/api/auth/callback",  -- config_params["CHORD_URL"] .. "api/auth/callback",
           logout_path = "/api/auth/sign-out",
+          redirect_after_logout_uri = "/",
           discovery = auth_params["OIDC_DISCOVERY_URI"],
           client_id = auth_params["CLIENT_ID"],
           client_secret = auth_params["CLIENT_SECRET"],
