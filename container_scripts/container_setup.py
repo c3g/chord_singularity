@@ -95,7 +95,8 @@ NGINX_CONF_SERVER_HEADER = """
         config_file:close()
 
         local opts = {{
-          redirect_uri = "/api/auth-callback",  -- config_params["CHORD_URL"] .. "api/auth-callback",
+          redirect_uri = "/api/auth/callback",  -- config_params["CHORD_URL"] .. "api/auth/callback",
+          logout_path = "/api/auth/sign-out",
           discovery = auth_params["OIDC_DISCOVERY_URI"],
           client_id = auth_params["CLIENT_ID"],
           client_secret = auth_params["CLIENT_SECRET"],
@@ -107,7 +108,7 @@ NGINX_CONF_SERVER_HEADER = """
           opts,
           nil,
           (function ()
-             if ngx.var.uri and (ngx.var.uri == "/api/authenticate" or
+             if ngx.var.uri and (ngx.var.uri == "/api/auth/sign-in" or
                                  string.find(ngx.var.uri, "^/api/[%a][%w-_]/private"))
                then return nil     -- require authentication at the auth endpoint or in the private namespace
                else return "pass"  -- otherwise pass
@@ -129,7 +130,7 @@ NGINX_CONF_SERVER_HEADER = """
           ngx.req.set_header("X-User", res.id_token.sub)
         end
 
-        if ngx.var.uri == "/api/user" then
+        if ngx.var.uri == "/api/auth/user" then
           if res == nil then
             ngx.status = 403
             ngx.header["Content-Type"] = "text/plain"
