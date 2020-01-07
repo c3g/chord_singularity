@@ -16,7 +16,6 @@ UWSGI_CONF_TEMPLATE = """[uwsgi]
 vhost = true
 manage-script-name = true
 enable-threads = true
-# threads = 4  # enables enable-threads by default, but we explicitly set it to true anyway (above)
 lazy-apps = true  # use pre-forking instead, to prevent threading headaches
 buffer-size = 32768  # allow reading of larger headers, for e.g. auth
 socket = {service_socket}
