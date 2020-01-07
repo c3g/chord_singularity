@@ -56,6 +56,7 @@ curl -Lso openresty.tar.gz "https://openresty.org/download/openresty-${OPENRESTY
 echo "[CHORD]    Building"
 tar -xzf openresty.tar.gz
 cd "openresty-${OPENRESTY_VERSION}" || exit
+# To compile NGINX with debug info, use --with-debug
 ./configure --with-pcre-jit --with-ipv6 -j2 > /dev/null
 make -j2 > /dev/null
 echo "[CHORD]    Installing"
@@ -75,7 +76,7 @@ ln -s /chord/tmp/nginx/access.log /usr/local/openresty/nginx/logs/access.log
 ln -s /chord/tmp/nginx/error.log /usr/local/openresty/nginx/logs/error.log
 
 echo "[CHORD] Installing OpenResty modules"
-opm install zmartzone/lua-resty-openidc
+opm install zmartzone/lua-resty-openidc > /dev/null
 
 
 ###############################################################################
