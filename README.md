@@ -86,6 +86,7 @@ using `dev_utils.py`.
       `.../.well_known/openid-configuration`) for the OIDC IdP
     * `CLIENT_ID`: The client ID for the node in the OIDC IdP
     * `CLIENT_SECRET`: The client secret for the node in the OIDC IdP
+    * `OWNER_SUB`: The subject ID (from the OIDC IdP) of the node's owner
 
 
 ### Building
