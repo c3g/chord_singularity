@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-CNODE="12.x"
-CPG="11"
+# Script to install components of CHORD into a Singularity container.
 
 OPENRESTY_VERSION="1.15.8.2"
+NODE_VERSION="12.x"
+POSTGRES_VERSION="11"
+HTSLIB_VERSION="1.9"  # TODO: When pysam allows it, upgrade to 1.10.x
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -41,14 +43,14 @@ apt-get install -y -q \
 apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
 
 # Install Node.JS
-curl -Ls https://deb.nodesource.com/setup_${CNODE} | bash - > /dev/null
+curl -Ls "https://deb.nodesource.com/setup_${NODE_VERSION}" | bash - > /dev/null
 apt-get install -y nodejs > /dev/null
 
 ###############################################################################
 # OIDC NGINX Setup                                                            #
 ###############################################################################
 
-echo "[CHORD] Installing OpenResty"
+echo "[CHORD] Installing OpenResty v${OPENRESTY_VERSION}"
 
 cd /chord || exit
 echo "[CHORD]    Downloading"
@@ -126,53 +128,56 @@ EOC
 # Install Postgres
 # TODO: Use sd if we have cargo or if it's available in Debian in the future (thanks Romain)
 
-echo "[CHORD] Installing Postgres"
+echo "[CHORD] Installing Postgres v${POSTGRES_VERSION}"
+
+POSTGRES_CONF="/etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf"
+POSTGRES_HBA_CONF="/etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf"
 
 apt-get install -y postgresql postgresql-contrib > /dev/null
-sed -i "s=/var/lib/postgresql/${CPG}/main=/chord/data/postgresql=g" /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i "s=/var/run/postgresql/${CPG}-main.pid=/chord/tmp/postgresql/${CPG}-main.pid=g" \
-  /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\'''\''/g' \
-  /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i -r 's/port = [0-9]{4}/port = 5432/g' /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i "s=/var/lib/postgresql/${POSTGRES_VERSION}/main=/chord/data/postgresql=g" $POSTGRES_CONF
+sed -i "s=/var/run/postgresql/${POSTGRES_VERSION}-main.pid=/chord/tmp/postgresql/${POSTGRES_VERSION}-main.pid=g" \
+  $POSTGRES_CONF
+sed -i 's/#listen_addresses = '\''localhost'\''/listen_addresses = '\'''\''/g' $POSTGRES_CONF
+sed -i -r 's/port = [0-9]{4}/port = 5432/g' $POSTGRES_CONF
 sed -i 's,unix_socket_directories = '\''/var/run/postgresql'\'',unix_socket_directories = '\''/chord/tmp/postgresql'\'',g' \
-  /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' /etc/postgresql/${CPG}/main/postgresql.conf
+  $POSTGRES_CONF
+sed -i 's/#unix_socket_permissions = 0777/unix_socket_permissions = 0770/g' $POSTGRES_CONF
 
-sed -i 's/ssl = on/ssl = off/g' /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i 's/ssl = on/ssl = off/g' $POSTGRES_CONF
 
-sed -i 's/#logging_collector = off/logging_collector = on/g' /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgresql/logs'\'',g' \
-  /etc/postgresql/${CPG}/main/postgresql.conf
-sed -i "s=/var/run/postgresql/${CPG}-main.pg_stat_tmp=/chord/tmp/postgresql/${CPG}-main.pg_stat_tmp=g" \
-  /etc/postgresql/${CPG}/main/postgresql.conf
+sed -i 's/#logging_collector = off/logging_collector = on/g' $POSTGRES_CONF
+sed -i 's,#log_directory = '\''pg_log'\'',log_directory = '\''/chord/tmp/postgresql/logs'\'',g' $POSTGRES_CONF
+sed -i "s=/var/run/postgresql/${POSTGRES_VERSION}-main.pg_stat_tmp=/chord/tmp/postgresql/${POSTGRES_VERSION}-main.pg_stat_tmp=g" \
+  $POSTGRES_CONF
 
 sed -i 's=postgres                                peer=postgres peer\nlocal all @/chord/tmp/.instance_user peer=g' \
-  /etc/postgresql/${CPG}/main/pg_hba.conf
+  $POSTGRES_HBA_CONF
 sed -i 's/all                                     peer/all                                     md5/g' \
-  /etc/postgresql/${CPG}/main/pg_hba.conf
+  $POSTGRES_HBA_CONF
 
-chmod o+r /etc/postgresql/${CPG}/main/pg_hba.conf  # TODO: Bad permissions, but this is default so it should be OK.
+chmod o+r $POSTGRES_HBA_CONF  # TODO: Bad permissions, but this is default so it should be OK.
 
 # Remove boot log for and link to future writeable location
-rm -f /var/log/postgresql/postgresql-${CPG}-main.log
-ln -s /chord/tmp/postgresql/postgresql-${CPG}-main.log /var/log/postgresql/postgresql-${CPG}-main.log
+rm -f "/var/log/postgresql/postgresql-${POSTGRES_VERSION}-main.log"
+ln -s "/chord/tmp/postgresql/postgresql-${POSTGRES_VERSION}-main.log" \
+  "/var/log/postgresql/postgresql-${POSTGRES_VERSION}-main.log"
 
 
 ###############################################################################
 # Biological Tools                                                            #
 ###############################################################################
 
-echo "[CHORD] Installing HTSLib"
+echo "[CHORD] Installing HTSLib v${HTSLIB_VERSION}"
 
 # Install HTSLib (may as well provide it, it'll likely be commonly used)
 # TODO: Do we want to move this into pre_install for WES/variant/something, or no?
 apt-get install -y zlib1g-dev libbz2-dev liblzma-dev > /dev/null
 cd /chord || exit
 echo "[CHORD]    Downloading"
-curl -Lso htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 > /dev/null
+curl -Lso htslib.tar.bz2 \
+  "https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/htslib-${HTSLIB_VERSION}.tar.bz2" > /dev/null
 tar -xjf htslib.tar.bz2
-cd htslib-1.9 || exit
+cd "htslib-${HTSLIB_VERSION}" || exit
 echo "[CHORD]    Building"
 autoheader
 autoconf
@@ -183,10 +188,11 @@ make install > /dev/null
 echo "[CHORD]    Cleaning up"
 cd /chord || exit
 rm htslib.tar.bz2
-rm -r htslib-1.9
+rm -r "htslib-${HTSLIB_VERSION}"
 
 # Install bcftools
 # TODO: Do we want to move this into pre_install for WES/variant/something, or no?
+# TODO: Use compiled version?
 echo "[CHORD] Installing bcftools"
 apt-get install -y bcftools > /dev/null
 
