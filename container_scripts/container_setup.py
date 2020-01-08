@@ -80,8 +80,8 @@ NGINX_CONF_SERVER_HEADER = """
     }}
 
     location / {{
-      set $session_cookie_lifetime 1800s;
-      set $session_cookie_renew 1800s;
+      set $session_cookie_lifetime 180s;
+      set $session_cookie_renew 180s;
 
       access_by_lua_block {{
         local cjson = require("cjson")
