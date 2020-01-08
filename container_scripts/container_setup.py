@@ -73,6 +73,14 @@ http {{
     # Enable to show debugging information in the error log:
     # error_log /usr/local/openresty/nginx/logs/error.log debug;
 
+    # lua-resty-session configuration
+    # - use Redis for sessions to allow scaling of NGINX
+    set $session_cookie_lifetime 180s;
+    set $session_cookie_renew    180s;
+    set $session_storage         redis;
+    set $session_redis_prefix    oidc;
+    set $session_redis_socket    unix:///chord/tmp/redis.sock;
+
     location = /favicon.ico {{
       return 404;
       log_not_found off;
@@ -80,9 +88,6 @@ http {{
     }}
 
     location / {{
-      set $session_cookie_lifetime 180s;
-      set $session_cookie_renew 180s;
-
       set $chord_auth_config "{auth_config}";
       set $chord_instance_config "{instance_config}";
       access_by_lua_file /chord/container_scripts/proxy_auth.lua;
