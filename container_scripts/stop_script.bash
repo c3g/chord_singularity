@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Script to stop various processes for the CHORD system in order.
+
 wait_for_kill () {
   while kill -0 "$1" 2> /dev/null; do
     sleep 0.5

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Script to start various processes for the CHORD system in order.
+
 CPG="11"
 
 # Remove any stray socket files
