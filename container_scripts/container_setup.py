@@ -86,6 +86,14 @@ NGINX_CONF_SERVER_HEADER = """
       access_by_lua_block {{
         local cjson = require("cjson")
 
+        local uncached_response = function (status, mime, message, error)
+          ngx.status = status
+          ngx.header["Content-Type"] = mime
+          ngx.header["Cache-Control"] = "no-store"
+          ngx.say(message)
+          ngx.exit(error)
+        end
+
         local auth_file = assert(io.open("{auth_config}"))
         local auth_params = cjson.decode(auth_file:read("*all"))
         auth_file:close()
@@ -105,12 +113,13 @@ NGINX_CONF_SERVER_HEADER = """
           accept_unsupported_alg = false,
         }}
 
+        local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
+
         local res, err = require("resty.openidc").authenticate(
           opts,
           nil,
           (function ()
-             if ngx.var.uri and (ngx.var.uri == "/api/auth/sign-in" or
-                                 string.find(ngx.var.uri, "^/api/[%a][%w-_]/private"))
+             if ngx.var.uri and (ngx.var.uri == "/api/auth/sign-in" or is_private_uri)
                then return nil     -- require authentication at the auth endpoint or in the private namespace
                else return "pass"  -- otherwise pass
              end
@@ -118,9 +127,7 @@ NGINX_CONF_SERVER_HEADER = """
         )
 
         if err then
-          ngx.status = 500
-          ngx.say(err)
-          ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+          uncached_response(500, "text/plain", err, ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
 
         -- If authenticate hasn't rejected us above but it's "open", i.e.
@@ -136,23 +143,20 @@ NGINX_CONF_SERVER_HEADER = """
           end
         end
 
+        if is_private_uri and user_role ~= "owner" then
+          -- TODO: Check ownership / grants?
+          uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
+        end
+
         ngx.req.set_header("X-User", user_id)
         ngx.req.set_header("X-User-Role", user_role)
 
         if ngx.var.uri == "/api/auth/user" then
           if res == nil then
-            ngx.status = 403
-            ngx.header["Content-Type"] = "text/plain"
-            ngx.header["Cache-Control"] = "no-store"
-            ngx.say("Forbidden")
-            ngx.exit(ngx.HTTP_FORBIDDEN)
+            uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
           else
-            ngx.status = 200
-            ngx.header["Content-Type"] = "application/json"
-            ngx.header["Cache-Control"] = "no-store"
             res.user["chord_user_role"] = user_role
-            ngx.say(cjson.encode(res.user))
-            ngx.exit(ngx.HTTP_OK)
+            uncached_response(200, "application/json", cjson.encode(res.user), ngx.HTTP_OK)
           end
         end
       }}
