@@ -29,6 +29,7 @@
       <w>nohup</w>
       <w>nopush</w>
       <w>oidc</w>
+      <w>oidconnect</w>
       <w>openidc</w>
       <w>openresty</w>
       <w>pgpassword</w>

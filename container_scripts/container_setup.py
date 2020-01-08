@@ -26,18 +26,21 @@ vacuum = true
 """
 
 NGINX_CONF_LOCATION = "/usr/local/openresty/nginx/conf/nginx.conf"
+NGINX_UPSTREAMS_CONF_LOCATION = "/usr/local/openresty/nginx/conf/chord_upstreams.conf"
+NGINX_SERVICES_CONF_LOCATION = "/usr/local/openresty/nginx/conf/chord_services.conf"
 
-NGINX_CONF_HEADER = """
+# TODO: PROD: SSL VERIFY AUTH
+NGINX_CONF_TEMPLATE = """
 daemon off;
 
 worker_processes 1;
 pid /chord/tmp/nginx.pid;
 
-events {
+events {{
   worker_connections 1024;
-}
+}}
 
-http {
+http {{
   # include /etc/nginx/mime.types;
   default_type application/octet-stream;
   
@@ -61,11 +64,8 @@ http {
   lua_shared_dict discovery 1m;
   lua_shared_dict jwks 1m;
 
-"""
+  include {upstreams_conf};
 
-# TODO: rewrite redirect
-# TODO: PROD: SSL VERIFY
-NGINX_CONF_SERVER_HEADER = """
   server {{
     listen unix:/chord/tmp/nginx.sock;
     server_name _;
@@ -83,83 +83,9 @@ NGINX_CONF_SERVER_HEADER = """
       set $session_cookie_lifetime 180s;
       set $session_cookie_renew 180s;
 
-      access_by_lua_block {{
-        local cjson = require("cjson")
-
-        local uncached_response = function (status, mime, message, error)
-          ngx.status = status
-          ngx.header["Content-Type"] = mime
-          ngx.header["Cache-Control"] = "no-store"
-          ngx.say(message)
-          ngx.exit(error)
-        end
-
-        local auth_file = assert(io.open("{auth_config}"))
-        local auth_params = cjson.decode(auth_file:read("*all"))
-        auth_file:close()
-
-        local config_file = assert(io.open("{instance_config}"))
-        local config_params = cjson.decode(config_file:read("*all"))
-        config_file:close()
-
-        local opts = {{
-          redirect_uri = "/api/auth/callback",  -- config_params["CHORD_URL"] .. "api/auth/callback",
-          logout_path = "/api/auth/sign-out",
-          redirect_after_logout_uri = "/",
-          discovery = auth_params["OIDC_DISCOVERY_URI"],
-          client_id = auth_params["CLIENT_ID"],
-          client_secret = auth_params["CLIENT_SECRET"],
-          accept_none_alg = false,
-          accept_unsupported_alg = false,
-        }}
-
-        local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
-
-        local res, err = require("resty.openidc").authenticate(
-          opts,
-          nil,
-          (function ()
-             if ngx.var.uri and (ngx.var.uri == "/api/auth/sign-in" or is_private_uri)
-               then return nil     -- require authentication at the auth endpoint or in the private namespace
-               else return "pass"  -- otherwise pass
-             end
-           end)()
-        )
-
-        if err then
-          uncached_response(500, "text/plain", err, ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
-
-        -- If authenticate hasn't rejected us above but it's "open", i.e.
-        -- non-authenticated users can see the page, clear X-User and
-        -- X-User-Role by setting the value to nil.
-        local user_id = nil
-        local user_role = nil
-        if res ~= nil then
-          user_id = res.id_token.sub
-          if user_id == auth_params["OWNER_SUB"]
-            then user_role = "owner"
-            else user_role = "user"
-          end
-        end
-
-        if is_private_uri and user_role ~= "owner" then
-          -- TODO: Check ownership / grants?
-          uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
-        end
-
-        ngx.req.set_header("X-User", user_id)
-        ngx.req.set_header("X-User-Role", user_role)
-
-        if ngx.var.uri == "/api/auth/user" then
-          if res == nil then
-            uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
-          else
-            res.user["chord_user_role"] = user_role
-            uncached_response(200, "application/json", cjson.encode(res.user), ngx.HTTP_OK)
-          end
-        end
-      }}
+      set $chord_auth_config "{auth_config}";
+      set $chord_instance_config "{instance_config}";
+      access_by_lua_file /chord/container_scripts/proxy_auth.lua;
 
       # TODO: Deduplicate with below?
       proxy_http_version 1.1;
@@ -191,11 +117,9 @@ NGINX_CONF_SERVER_HEADER = """
       alias /chord/web/dist/;
     }}
 
-"""
-
-NGINX_CONF_FOOTER = """
-  }
-}
+    include {services_conf};
+  }}
+}}
 """
 
 NGINX_SERVICE_UPSTREAM_TEMPLATE = """
@@ -277,31 +201,31 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
     return uwsgi_confs
 
 
-def generate_nginx_conf(services: List[Dict], services_config_path: str):
-    nginx_conf = NGINX_CONF_HEADER
+def generate_nginx_confs(services: List[Dict], services_config_path: str):
+    nginx_conf = NGINX_CONF_TEMPLATE.format(upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
+                                            services_conf=NGINX_SERVICES_CONF_LOCATION,
+                                            auth_config=AUTH_CONFIG_PATH,
+                                            instance_config=INSTANCE_CONFIG_PATH)
+
+    nginx_upstreams_conf = ""
+    nginx_services_conf = ""
 
     for s in services:
         config_vars = get_config_vars(s, services_config_path)
-        nginx_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
-                                                             s_socket=config_vars["SERVICE_SOCKET"])
 
-    nginx_conf += NGINX_CONF_SERVER_HEADER.format(auth_config=AUTH_CONFIG_PATH, instance_config=INSTANCE_CONFIG_PATH)
+        # Upstream
+        nginx_upstreams_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
+                                                                       s_socket=config_vars["SERVICE_SOCKET"])
 
-    # Service location wrappers
-    for s in services:
-        config_vars = get_config_vars(s, services_config_path)
-        nginx_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
-                                                         s_artifact=config_vars["SERVICE_ARTIFACT"])
+        # Service location wrapper
+        nginx_services_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
+                                                                  s_artifact=config_vars["SERVICE_ARTIFACT"])
 
-    # Named locations
-    for s in services:
-        config_vars = get_config_vars(s, services_config_path)
-        nginx_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
-                       else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
+        # Named location
+        nginx_services_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
+                                else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
 
-    nginx_conf += NGINX_CONF_FOOTER
-
-    return nginx_conf
+    return nginx_conf, nginx_upstreams_conf, nginx_services_conf
 
 
 def main():
@@ -397,8 +321,16 @@ def main():
 
         print("[CHORD Container Setup] Generating NGINX configuration file...")
 
+        nginx_conf, nginx_upstreams_conf, nginx_services_conf = generate_nginx_confs(services, services_config_path)
+
         with open(NGINX_CONF_LOCATION, "w") as nf:
-            nf.write(generate_nginx_conf(services, services_config_path))
+            nf.write(nginx_conf)
+
+        with open(NGINX_UPSTREAMS_CONF_LOCATION, "w") as nf:
+            nf.write(nginx_upstreams_conf)
+
+        with open(NGINX_SERVICES_CONF_LOCATION, "w") as nf:
+            nf.write(nginx_services_conf)
 
 
 if __name__ == "__main__":
