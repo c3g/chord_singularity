@@ -1,5 +1,10 @@
 env
 instance_auth.json
 *.sif
+
+# IDE stuff
 .idea/workspace.xml
+*.swp
+*.swo
+
 __pycache__
