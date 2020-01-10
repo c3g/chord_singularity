@@ -8,8 +8,9 @@ What's included in a CHORD Singularity container?
   * Python 3.7
   * Java 11
   * A Redis instance running at `/chord/tmp/redis.sock`
-  * A PostgreSQL 11 instance running at `/chord/tmp/postgresql/.s.PGSQL.5433`, with a username stored in the
-    environment variable `POSTGRES_USER` and a service-specific database stored in the environment variable
+  * A PostgreSQL 11 instance running at `/chord/tmp/postgresql/.s.PGSQL.5433`,
+    with a username stored in the environment variable `POSTGRES_USER` and a
+    service-specific database stored in the environment variable
     `POSTGRES_DATABASE`
   * `zlib1g-dev`, `libbz2-dev`, and `liblzma-dev`
   * `htslib`
@@ -22,7 +23,9 @@ What's included in a CHORD Singularity container?
 ### Setup
 
 To install Singularity, follow the
-[Singularity installation guide](https://sylabs.io/guides/3.4/user-guide/installation.html).
+[Singularity installation guide](https://sylabs.io/guides/3.5/user-guide/installation.html).
+
+CHORD requires **Singularity 3.5** (or later compatible versions.)
 
 To create the virtual environment:
 
@@ -78,15 +81,34 @@ Values for `.auth_config.json` are read from the
 using `dev_utils.py`.
 
   * `.instance_config.json`, containing the following key-value pairs:
-    * `CHORD_HOST` - The domain name of the host (no http://, no trailing slash)
+    * `CHORD_HOST` - The domain name of the host (no `http://`, no trailing
+      slash)
     * `CHORD_URL` - The URL of the node (for federation), with trailing slash
-    * `CHORD_REGISTRY_URL` - The URL of the registry node (for federation), with trailing slash
+    * `CHORD_REGISTRY_URL` - The URL of the registry node (for federation),
+      with trailing slash
   * `.auth_config.json`:
     * `OIDC_DISCOVERY_URI`: The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP
     * `CLIENT_ID`: The client ID for the node in the OIDC IdP
     * `CLIENT_SECRET`: The client secret for the node in the OIDC IdP
-    * `OWNER_SUB`: The subject ID (from the OIDC IdP) of the node's owner
+    * `OWNER_IDS`: The subject IDs (from the OIDC IdP) of the node's owner(s)
+
+
+### Setting Up Authentication
+
+CHORD uses OpenID Connect (OIDC) to authenticate users. With the development
+cluster, instances' OIDC configurations can be specified in
+`instance_auth.json`.
+
+The easiest way to get a development OIDC Identity Provider (IdP) is to install
+[Keycloak](https://www.keycloak.org/docs/latest/getting_started/index.html) and
+run the standalone server provided.
+
+After installing Keycloak, clients supporting the authorization code OIDC
+workflow can be set up, and configuration copied over to `instance_auth.json`.
+
+See above for descriptions of what configuration values are available for each
+node in `instance_auth.json`.
 
 
 ### Building
