@@ -64,6 +64,11 @@ http {{
   lua_shared_dict discovery 1m;
   lua_shared_dict jwks 1m;
 
+  # Explicitly prevent underscores in headers from being passed, even though
+  # off is the default. This prevents auth header forging.
+  # e.g. https://docs.djangoproject.com/en/3.0/howto/auth-remote-user/
+  underscores_in_headers off;
+
   include {upstreams_conf};
 
   server {{
