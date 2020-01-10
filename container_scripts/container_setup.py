@@ -71,6 +71,8 @@ http {{
 
   include {upstreams_conf};
 
+  limit_req_zone $binary_remote_addr zone=external:10m rate=10r/s;
+
   server {{
     listen unix:/chord/tmp/nginx.sock;
     server_name _;
@@ -93,6 +95,16 @@ http {{
     }}
 
     location / {{
+      # Set up two-stage rate limiting:
+      #   Store:  10 MB worth of IP addresses (~160 000)
+      #   Rate:   10 requests per second.
+      #   Bursts: Allow for bursts of 20 with no delay and an additional 30
+      #          (total 50) queued requests before throwing up 503.
+      #   This limit is for requests from outside the DMZ; internal microservices
+      #   currently get unlimited access.
+      # See: https://www.nginx.com/blog/rate-limiting-nginx/
+      limit_req zone=external burst=50 delay=20;
+
       set $chord_auth_config "{auth_config}";
       set $chord_instance_config "{instance_config}";
       access_by_lua_file /chord/container_scripts/proxy_auth.lua;
