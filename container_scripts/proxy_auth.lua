@@ -53,13 +53,14 @@ end
 -- If authenticate hasn't rejected us above but it's "open", i.e.
 -- non-authenticated users can see the page, clear X-User and
 -- X-User-Role by setting the value to nil.
+-- TODO: Save this in session for performance - use an auth hook?
 local user_id
 local user_role
 if res ~= nil then
   user_id = res.id_token.sub
-  if user_id == auth_params["OWNER_SUB"]
-    then user_role = "owner"
-    else user_role = "user"
+  user_role = "user"
+  for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
+    if owner_id == user_id then user_role = "owner" end  -- The user is an owner
   end
 end
 
@@ -71,6 +72,7 @@ end
 -- Clear and possibly set internal headers to inform services of user identity
 -- and their basic role/permissions set (either the node's owner or a user of
 -- another type.)
+-- TODO: Pull this from session for performance
 ngx.req.set_header("X-User", user_id)
 ngx.req.set_header("X-User-Role", user_role)
 
