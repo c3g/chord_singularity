@@ -257,8 +257,8 @@ def main():
         print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json")
         exit(1)
 
-    if os.environ.get("SINGULARITY_ENVIRONMENT", "") == "":
-        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity container.")
+    if os.environ.get("SINGULARITY_ENVIRONMENT", "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
+        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
         exit(1)
 
     with open("/chord/chord_services.schema.json") as cf, open(args[0], "r") as sf:
