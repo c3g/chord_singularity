@@ -37,8 +37,6 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
         # This should only happen when the image is being built.
 
         config[s_artifact] = {
-            "CHORD_DEBUG": "True",  # TODO: Configure based on production release
-
             "REDIS_SOCKET": "/chord/tmp/redis.sock",
 
             "POSTGRES_SOCKET": "/chord/tmp/postgresql/.s.PGSQL.5432",

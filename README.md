@@ -81,10 +81,16 @@ Values for `.auth_config.json` are read from the
 using `dev_utils.py`.
 
   * `.instance_config.json`, containing the following key-value pairs:
-    * `CHORD_HOST` - The domain name of the host (no `http://`, no trailing
+    * `CHORD_DEBUG`: Whether the container is started in debug mode.
+      **Important security note:** debug mode is **insecure** and cannot be
+      used in production **AT ALL**.
+    * `CHORD_PERMISSIONS`: Whether the container, and services within, use the
+      default CHORD permissions system. Turning this off WITHOUT an alternative
+      in place is **insecure** and **cannot** be used in production **AT ALL**.
+    * `CHORD_HOST`: The domain name of the host (no `http://`, no trailing
       slash)
-    * `CHORD_URL` - The URL of the node (for federation), with trailing slash
-    * `CHORD_REGISTRY_URL` - The URL of the registry node (for federation),
+    * `CHORD_URL`: The URL of the node (for federation), with trailing slash
+    * `CHORD_REGISTRY_URL`: The URL of the registry node (for federation),
       with trailing slash
   * `.auth_config.json`:
     * `OIDC_DISCOVERY_URI`: The discovery URI (typically

@@ -45,10 +45,14 @@ def action_start(args):
         instance_host = get_instance_host(i)
 
         with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as fc:
+            # TODO: Environment: CHORD_DEBUG, CHORD_PERMISSIONS
             json.dump({
+                "CHORD_DEBUG": True,  # Whether the container is started in DEBUG mode
+                "CHORD_PERMISSIONS": False,  # Whether the container uses the default permissions system
+
                 "CHORD_HOST": instance_host,
                 "CHORD_URL": f"http://{instance_host}/",  # Trailing slash important here
-                "CHORD_REGISTRY_URL": "http://1.chord.dlougheed.com/"  # ... and here
+                "CHORD_REGISTRY_URL": "http://1.chord.dlougheed.com/",  # ... and here
             }, fc)
 
         with open(os.path.join(instance_data, CHORD_AUTH_CONFIG_FILE), "w") as fa:
