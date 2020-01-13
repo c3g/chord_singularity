@@ -19,7 +19,7 @@ killall nginx &> /dev/null
 kill -2 "$(cat /chord/tmp/uwsgi/uwsgi.pid)" &> /dev/null
 wait_for_kill "$(cat /chord/tmp/uwsgi/uwsgi.pid)"
 
-python3.7 /chord/container_scripts/container_non_wsgi_stop.py \
+chord_container_non_wsgi_stop \
   /chord/chord_services.json \
   /chord/chord_services_config.json
 
@@ -30,7 +30,7 @@ redis-cli -s /chord/tmp/redis.sock shutdown &> /dev/null
 pg_ctlcluster ${CPG} main stop &> /dev/null
 
 # Stop commands
-python3.7 /chord/container_scripts/container_post_stop.py \
+chord_container_post_stop \
   /chord/chord_services.json \
   /chord/chord_services_config.json
 sleep 2  # Wait for kills

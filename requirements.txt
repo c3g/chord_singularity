@@ -1,9 +1,0 @@
-attrs==19.3.0
-importlib-metadata==1.4.0
-jsonschema==3.2.0
-more-itertools==8.1.0
-Pygments==2.5.2
-pyrsistent==0.15.7
-six==1.13.0
-uWSGI==2.0.18
-zipp==0.6.0

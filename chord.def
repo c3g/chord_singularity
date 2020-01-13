@@ -9,9 +9,9 @@ From: debian:buster-slim
     chord_services.json /chord/chord_services.json
     chord_services.schema.json /chord/chord_services.schema.json
     container_scripts /chord/container_scripts
+    chord_container_tools /chord/chord_container_tools
     LICENSE /chord/LICENSE
     README.md /chord/README.md
-    requirements.txt /chord/requirements.txt
 
 %post
     exec bash /chord/container_scripts/post_script.bash

@@ -214,14 +214,14 @@ mkdir -p /chord/data
 mkdir /chord/services
 mkdir /chord/vassals
 
-# Install common Python dependencies
-echo "[CHORD] Installing common Python dependencies"
-python3.7 -m pip install --no-cache-dir -r /chord/requirements.txt > /dev/null
+# Install chord_container_tools
+echo "[CHORD] Installing chord_container_tools Python package"
+python3.7 -m pip install --no-cache-dir /chord/chord_container_tools > /dev/null
 
 # Run Python container setup script
 echo "[CHORD] Setting up container"
 cd /chord || exit
-python3.7 ./container_scripts/container_setup.py \
+chord_container_setup \
   ./chord_services.json \
   ./chord_services_config.json
 

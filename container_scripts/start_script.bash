@@ -48,7 +48,7 @@ pg_ctlcluster ${CPG} main start
 
 
 echo "Running pre-start operations..."
-NEW_DATABASE=$database_created python3.7 ./container_scripts/container_pre_start.py \
+NEW_DATABASE=$database_created chord_container_pre_start \
   ./chord_services.json \
   ./chord_services_config.json
 
@@ -63,7 +63,7 @@ nohup uwsgi \
  &> /dev/null &
 
 echo "Starting other services..."
-python3.7 ./container_scripts/container_non_wsgi_start.py \
+chord_container_non_wsgi_start \
   ./chord_services.json \
   ./chord_services_config.json
 

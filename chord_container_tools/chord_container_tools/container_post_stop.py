@@ -5,8 +5,7 @@ import sys
 
 from typing import Dict, List
 
-# noinspection PyUnresolvedReferences
-from chord_common import (
+from .chord_common import (
     get_service_command_preamble,
     bash_escape_single_quotes,
     get_runtime_config_vars,
@@ -31,5 +30,9 @@ def job(services: List[Dict], services_config_path: str):
                 print(e, file=sys.stderr)
 
 
-if __name__ == "__main__":
+def entry():
     main(job)
+
+
+if __name__ == "__main__":
+    entry()

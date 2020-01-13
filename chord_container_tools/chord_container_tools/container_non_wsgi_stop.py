@@ -6,8 +6,7 @@ import sys
 
 from typing import Dict, List
 
-# noinspection PyUnresolvedReferences
-from chord_common import get_runtime_config_vars, get_env_str, main
+from .chord_common import get_runtime_config_vars, get_env_str, main
 
 SLEEP_TIME = 0.5
 MAX_WAIT_ITERATIONS = 10 / SLEEP_TIME
@@ -37,5 +36,9 @@ def job(services: List[Dict], services_config_path: str):
             print(f"Error stopping service {config_vars['SERVICE_ARTIFACT']}", file=sys.stderr)
 
 
-if __name__ == "__main__":
+def entry():
     main(job)
+
+
+if __name__ == "__main__":
+    entry()

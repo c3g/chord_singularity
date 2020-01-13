@@ -5,15 +5,11 @@ import sys
 
 from typing import Dict, List
 
-# noinspection PyUnresolvedReferences
-from chord_common import (
+from .chord_common import (
     get_service_command_preamble,
     get_runtime_config_vars,
     get_env_str,
     main,
-
-    TYPE_PYTHON,
-    TYPE_JAVASCRIPT,
 )
 
 
@@ -39,5 +35,9 @@ def job(services: List[Dict], services_config_path: str):
             print(f"Error starting service {config_vars['SERVICE_ARTIFACT']}", file=sys.stderr)
 
 
-if __name__ == "__main__":
+def entry():
     main(job)
+
+
+if __name__ == "__main__":
+    entry()

@@ -104,7 +104,7 @@
       "artifact": "metadata",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_metadata_service",
+    "repository": "https://github.com/c3g/chord_metadata_service@permissions",
     "data_service": true,
     "manageable_tables": false,
     "pre_start_commands": [

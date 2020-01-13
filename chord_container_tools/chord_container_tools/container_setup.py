@@ -8,8 +8,7 @@ import sys
 from jsonschema import validate
 from typing import Dict, List
 
-# noinspection PyUnresolvedReferences
-from chord_common import AUTH_CONFIG_PATH, INSTANCE_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
+from .chord_common import AUTH_CONFIG_PATH, INSTANCE_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
 UWSGI_CONF_TEMPLATE = """[uwsgi]
