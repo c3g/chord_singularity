@@ -35,7 +35,7 @@ local opts = {
 
 local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
 
-local res, err = require("resty.openidc").authenticate(
+local res, err, _, session = require("resty.openidc").authenticate(
   opts,
   nil,
   (function ()
@@ -53,14 +53,23 @@ end
 -- If authenticate hasn't rejected us above but it's "open", i.e.
 -- non-authenticated users can see the page, clear X-User and
 -- X-User-Role by setting the value to nil.
--- TODO: Save this in session for performance - use an auth hook?
 local user_id
 local user_role
-if res ~= nil then
-  user_id = res.id_token.sub
-  user_role = "user"
-  for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
-    if owner_id == user_id then user_role = "owner" end  -- The user is an owner
+if res ~= nil then  -- Authentication worked
+  if session.data.user_id ~= nil then
+    -- Load user_id and user_role from session if available
+    user_id = session.data.user_id
+    user_role = session.data.user_role
+  else
+    -- Save user_id and user_role into session for future use
+    user_id = res.id_token.sub
+    user_role = "user"
+    for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
+      if owner_id == user_id then user_role = "owner" end  -- The user is an owner
+    end
+    session.data.user_id = user_id
+    session.data.user_role = user_role
+    session:save()
   end
 end
 
