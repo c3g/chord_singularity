@@ -97,12 +97,12 @@ http {{
       # Set up two-stage rate limiting:
       #   Store:  10 MB worth of IP addresses (~160 000)
       #   Rate:   10 requests per second.
-      #   Bursts: Allow for bursts of 20 with no delay and an additional 30
-      #          (total 50) queued requests before throwing up 503.
+      #   Bursts: Allow for bursts of 15 with no delay and an additional 25
+      #          (total 40) queued requests before throwing up 503.
       #   This limit is for requests from outside the DMZ; internal microservices
       #   currently get unlimited access.
       # See: https://www.nginx.com/blog/rate-limiting-nginx/
-      limit_req zone=external burst=50 delay=20;
+      limit_req zone=external burst=40 delay=15;
 
       set $chord_auth_config "{auth_config}";
       set $chord_instance_config "{instance_config}";
