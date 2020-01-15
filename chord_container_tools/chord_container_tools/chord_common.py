@@ -9,9 +9,32 @@ from jsonschema import validate
 from typing import Callable, Dict, List, Tuple
 
 
+__all__ = [
+    "TYPE_PYTHON",
+    "TYPE_JAVASCRIPT",
+    "CHORD_SERVICES_SCHEMA_PATH",
+    "SECRET_CHARACTERS",
+    "SECRET_LENGTH",
+    "AUTH_CONFIG_PATH",
+    "INSTANCE_CONFIG_PATH",
+    "RUNTIME_CONFIG_PATH",
+
+    "json_load_dict_or_empty",
+    "generate_secret_key",
+    "get_config_vars",
+    "get_runtime_config_vars",
+    "get_service_command_preamble",
+    "bash_escape_single_quotes",
+    "format_env_pair",
+    "get_env_str",
+    "main",
+]
+
+
 TYPE_PYTHON = "python"
 TYPE_JAVASCRIPT = "javascript"
 
+CHORD_SERVICES_SCHEMA_PATH = "/chord/chord_services.schema.json"
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
@@ -127,7 +150,7 @@ def main(job: Callable[[List[Dict], str], None]):
         print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity container.")
         exit(1)
 
-    with open("/chord/chord_services.schema.json") as cf, open(args[0], "r") as sf:
+    with open(CHORD_SERVICES_SCHEMA_PATH) as cf, open(args[0], "r") as sf:
         schema = json.load(cf)
         services = json.load(sf)
 

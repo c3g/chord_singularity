@@ -8,7 +8,14 @@ import sys
 from jsonschema import validate
 from typing import Dict, List
 
-from .chord_common import AUTH_CONFIG_PATH, INSTANCE_CONFIG_PATH, get_config_vars, TYPE_PYTHON, TYPE_JAVASCRIPT
+from .chord_common import (
+    CHORD_SERVICES_SCHEMA_PATH,
+    AUTH_CONFIG_PATH,
+    INSTANCE_CONFIG_PATH,
+    get_config_vars,
+    TYPE_PYTHON,
+    TYPE_JAVASCRIPT
+)
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
 UWSGI_CONF_TEMPLATE = """[uwsgi]
@@ -17,11 +24,17 @@ manage-script-name = true
 enable-threads = true
 lazy-apps = true  # use pre-forking instead, to prevent threading headaches
 buffer-size = 32768  # allow reading of larger headers, for e.g. auth
-socket = {service_socket}
-venv = {service_venv}
-chdir = /chord/services/{service_artifact}
-mount = /api/{service_artifact}={service_python_module}:{service_python_callable}
+socket = {SERVICE_SOCKET}
+venv = {SERVICE_VENV}
+chdir = /chord/services/{SERVICE_ARTIFACT}
+mount = /api/{SERVICE_ARTIFACT}={service_python_module}:{service_python_callable}
 vacuum = true
+{service_python_args}
+# Import configuration environment variables into uWSGI environment
+for-readline = {SERVICE_ENVIRONMENT}
+  env = %(_)
+endfor =
+{service_run_environment}
 """
 
 NGINX_CONF_LOCATION = "/usr/local/openresty/nginx/conf/nginx.conf"
@@ -196,28 +209,15 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
             continue
 
         config_vars = get_config_vars(s, services_config_path)
-
-        uwsgi_conf = UWSGI_CONF_TEMPLATE.format(
-            service_artifact=config_vars["SERVICE_ARTIFACT"],
-            service_socket=config_vars["SERVICE_SOCKET"],
-            service_venv=config_vars["SERVICE_VENV"],
+        uwsgi_confs.append(UWSGI_CONF_TEMPLATE.format(
+            **config_vars,
             service_python_module=s["python_module"],
-            service_python_callable=s["python_callable"]
-        )
-
-        if "python_args" in s:
-            uwsgi_conf += f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}\n"
-
-        # Import configuration environment variables into uWSGI environment
-        uwsgi_conf += f"for-readline = {config_vars['SERVICE_ENVIRONMENT']}\n"
-        uwsgi_conf += "  env = %(_)\n"
-        uwsgi_conf += "endfor =\n"
-
-        if "run_environment" in s:
-            for e, val in s["run_environment"].items():
-                uwsgi_conf += f"env = {e}={val.format(**config_vars)}\n"
-
-        uwsgi_confs.append(uwsgi_conf)
+            service_python_callable=s["python_callable"],
+            service_python_args=(f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}"
+                                 if "python_args" in s else ""),
+            service_run_environment="\n".join(f"env = {e}={val.format(**config_vars)}"
+                                              for e, val in s.get("run_environment", {}).items())
+        ))
 
     return uwsgi_confs
 
@@ -260,7 +260,7 @@ def main():
         print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
         exit(1)
 
-    with open("/chord/chord_services.schema.json") as cf, open(args[0], "r") as sf:
+    with open(CHORD_SERVICES_SCHEMA_PATH) as cf, open(args[0], "r") as sf:
         schema = json.load(cf)
         services = json.load(sf)
 

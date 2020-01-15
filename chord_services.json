@@ -37,7 +37,7 @@
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
-      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/45.1/womtool-45.1.jar"
+      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/48/womtool-48.jar"
     ],
     "pre_start_commands": [
       "nohup celery -A chord_wes.app worker &> {SERVICE_LOGS}/celery.log &"
@@ -104,7 +104,7 @@
       "artifact": "metadata",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_metadata_service@queries",
+    "repository": "https://github.com/c3g/chord_metadata_service",
     "data_service": true,
     "manageable_tables": false,
     "pre_start_commands": [
