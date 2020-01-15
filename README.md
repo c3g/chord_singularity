@@ -99,6 +99,9 @@ using `dev_utils.py`.
     * `CLIENT_SECRET`: The client secret for the node in the OIDC IdP
     * `OWNER_IDS`: The subject IDs (from the OIDC IdP) of the node's owner(s)
 
+**If in production:** Everything should be ran with SSL enabled; both
+`OIDC_DISCOVERY_URI` and the site itself should be configured to use `https`.
+
 
 ### Setting Up Authentication
 
