@@ -147,3 +147,24 @@ To run a development cluster with `n` nodes, where `n` is some positive integer:
 ```
 
 Other available actions for `./dev_utils.py` are `stop` and `restart`.
+
+
+#### Important Log Locations
+
+**NGINX:** `/chord/tmp/nginx/*.log`
+
+**uWSGI:** `/chord/tmp/uwsgi/uwsgi.log`
+
+**Non-WSGI Services:** `/chord/tmp/logs/${SERVICE_ARTIFACT}/*`
+
+**PostgreSQL:** `/chord/tmp/postgresql/postgresql-${PG_VERSION}-main.log`
+
+
+### Bind Locations
+
+`CHORD_DATA_DIRECTORY`: `/chord/data`
+* Stores persistent data including databases and data files
+
+`CHORD_TEMP_DIRECTORY`: `/chord/tmp`
+* Stores boot-lifecycle (i.e. shouldn't be removed while CHORD is running, but
+  may be removed when shut down) files including UNIX sockets and log files
