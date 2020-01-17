@@ -22,12 +22,12 @@ def run_command(service, config_vars):
     ))
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict]):
     for s in services:
         if "wsgi" not in s or s["wsgi"]:
             continue
 
-        config_vars = get_runtime_config_vars(s, services_config_path)
+        config_vars = get_runtime_config_vars(s)
 
         try:
             subprocess.run(f"/bin/bash -c '{run_command(s, config_vars)}'", shell=True, check=True)

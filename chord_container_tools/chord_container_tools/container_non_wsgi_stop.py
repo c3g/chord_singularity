@@ -6,18 +6,18 @@ import sys
 
 from typing import Dict, List
 
-from .chord_common import get_runtime_config_vars, get_env_str, main
+from .chord_common import get_runtime_config_vars, main
 
 SLEEP_TIME = 0.5
 MAX_WAIT_ITERATIONS = 10 / SLEEP_TIME
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict]):
     for s in services:
         if "wsgi" not in s or s["wsgi"]:
             continue
 
-        config_vars = get_runtime_config_vars(s, services_config_path)
+        config_vars = get_runtime_config_vars(s)
 
         try:
             pid_file = f"{config_vars['SERVICE_TEMP']}/{config_vars['SERVICE_ARTIFACT']}.pid"

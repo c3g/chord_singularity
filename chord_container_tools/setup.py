@@ -17,7 +17,7 @@ setuptools.setup(
     packages=["chord_container_tools"],
     entry_points={
         "console_scripts": [
-            "chord_container_setup = chord_container_tools.container_setup:main",
+            "chord_container_setup = chord_container_tools.container_setup:entry",
             "chord_container_pre_start = chord_container_tools.container_pre_start:entry",
             "chord_container_post_stop = chord_container_tools.container_post_stop:entry",
             "chord_container_non_wsgi_start = chord_container_tools.container_non_wsgi_start:entry",

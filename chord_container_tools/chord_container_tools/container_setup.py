@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 
-import json
 import os
 import subprocess
 import sys
 
-from jsonschema import validate
 from typing import Dict, List
 
 from .chord_common import (
-    CHORD_SERVICES_SCHEMA_PATH,
     AUTH_CONFIG_PATH,
     INSTANCE_CONFIG_PATH,
-    get_config_vars,
     TYPE_PYTHON,
-    TYPE_JAVASCRIPT
+    TYPE_JAVASCRIPT,
+    get_config_vars,
+    main,
 )
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
@@ -201,14 +199,14 @@ location @{s_artifact} {{
 """
 
 
-def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
+def generate_uwsgi_confs(services: List[Dict]):
     uwsgi_confs = []
 
     for s in services:
         if not s.get("wsgi", True):
             continue
 
-        config_vars = get_config_vars(s, services_config_path)
+        config_vars = get_config_vars(s)
         uwsgi_confs.append(UWSGI_CONF_TEMPLATE.format(
             **config_vars,
             service_python_module=s["python_module"],
@@ -222,7 +220,7 @@ def generate_uwsgi_confs(services: List[Dict], services_config_path: str):
     return uwsgi_confs
 
 
-def generate_nginx_confs(services: List[Dict], services_config_path: str):
+def generate_nginx_confs(services: List[Dict]):
     nginx_conf = NGINX_CONF_TEMPLATE.format(upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
                                             services_conf=NGINX_SERVICES_CONF_LOCATION,
                                             auth_config=AUTH_CONFIG_PATH,
@@ -232,7 +230,7 @@ def generate_nginx_confs(services: List[Dict], services_config_path: str):
     nginx_services_conf = ""
 
     for s in services:
-        config_vars = get_config_vars(s, services_config_path)
+        config_vars = get_config_vars(s)
 
         # Upstream
         nginx_upstreams_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
@@ -249,110 +247,96 @@ def generate_nginx_confs(services: List[Dict], services_config_path: str):
     return nginx_conf, nginx_upstreams_conf, nginx_services_conf
 
 
-def main():
-    args = sys.argv[1:]
+def job(services: List[Dict]):
+    # STEP 1: Install deduplicated apt dependencies.
 
-    if len(args) != 2:
-        print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json")
-        exit(1)
+    print("[CHORD Container Setup] Installing apt dependencies...")
 
-    if os.environ.get("SINGULARITY_ENVIRONMENT", "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
-        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
-        exit(1)
+    apt_dependencies = set()
+    for s in services:
+        apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", ()))
 
-    with open(CHORD_SERVICES_SCHEMA_PATH) as cf, open(args[0], "r") as sf:
-        schema = json.load(cf)
-        services = json.load(sf)
+    subprocess.run(("apt-get", "install", "-y", *apt_dependencies), stdout=subprocess.DEVNULL, check=True)
 
-        validate(instance=services, schema=schema)
+    # STEP 2: Run pre-install commands
 
-        services_config_path = args[1]
+    print("[CHORD Container Setup] Running service pre-install commands...")
 
-        # STEP 1: Install deduplicated apt dependencies.
+    for s in services:
+        for c in s.get("pre_install_commands", ()):
+            print("[CHORD Container Setup]    {}".format(c))
+            subprocess.run(c, shell=True, check=True, stdout=subprocess.DEVNULL)
 
-        print("[CHORD Container Setup] Installing apt dependencies...")
+    # STEP 3: Create virtual environments and install packages
 
-        apt_dependencies = set()
-        for s in services:
-            apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", ()))
+    print("[CHORD Container Setup] Creating virtual environments...")
 
-        subprocess.run(("apt-get", "install", "-y") + tuple(apt_dependencies), stdout=subprocess.DEVNULL, check=True)
+    for s in services:
+        s_language = s["type"]["language"]
+        s_artifact = s["type"]["artifact"]
+        s_repo = s['repository']
 
-        # STEP 2: Run pre-install commands
+        subprocess.run(f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact}'", shell=True, check=True)
 
-        print("[CHORD Container Setup] Running service pre-install commands...")
+        if s_language == TYPE_PYTHON:
+            subprocess.run(
+                f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
+                f"              python3.7 -m virtualenv -p python3.7 env; "
+                f"              source env/bin/activate; "
+                f"              pip install --no-cache-dir git+{s_repo};"
+                f"              deactivate'",
+                shell=True,
+                check=True,
+                stdout=subprocess.DEVNULL
+            )
 
-        for s in services:
-            commands = s.get("pre_install_commands", ())
-            for c in commands:
-                print("[CHORD Container Setup]    {}".format(c))
-                subprocess.run(c, shell=True, check=True, stdout=subprocess.DEVNULL)
+        elif s_language == TYPE_JAVASCRIPT:
+            subprocess.run(
+                f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
+                f"              npm install -g {s_repo}'",
+                shell=True,
+                check=True,
+                stdout=subprocess.DEVNULL
+            )
 
-        # STEP 3: Create virtual environments and install packages
+        else:
+            raise NotImplementedError(f"Unknown language: {s_language}")
 
-        print("[CHORD Container Setup] Creating virtual environments...")
+    os.chdir("/chord")
 
-        for s in services:
-            s_artifact = s["type"]["artifact"]
+    # STEP 4: Generate uWSGI configuration files
 
-            subprocess.run(f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact}'", shell=True, check=True)
+    print("[CHORD Container Setup] Generating uWSGI configuration files...")
 
-            if s["type"]["language"] == TYPE_PYTHON:
-                subprocess.run(
-                    f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
-                    f"              python3.7 -m virtualenv -p python3.7 env; "
-                    f"              source env/bin/activate; "
-                    f"              pip install --no-cache-dir git+{s['repository']};"
-                    f"              deactivate'",
-                    shell=True,
-                    check=True,
-                    stdout=subprocess.DEVNULL
-                )
+    for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)), generate_uwsgi_confs(services)):
+        conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"
 
-            elif s["type"]["language"] == TYPE_JAVASCRIPT:
-                subprocess.run(
-                    f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
-                    f"              npm install -g {s['repository']}'",
-                    shell=True,
-                    check=True,
-                    stdout=subprocess.DEVNULL
-                )
+        if os.path.exists(conf_path):
+            print(f"Error: File already exists: '{conf_path}'", file=sys.stderr)
+            exit(1)
 
-            else:
-                raise NotImplementedError(f"Unknown language: {s['type']['language']}")
+        with open(conf_path, "w") as uf:
+            uf.write(c)
 
-        os.chdir("/chord")
+    # STEP 5: Generate NGINX configuration file
 
-        # STEP 4: Generate uWSGI configuration files
+    print("[CHORD Container Setup] Generating NGINX configuration file...")
 
-        print("[CHORD Container Setup] Generating uWSGI configuration files...")
+    nginx_conf, nginx_upstreams_conf, nginx_services_conf = generate_nginx_confs(services)
 
-        for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)),
-                        generate_uwsgi_confs(services, services_config_path)):
-            conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"
+    with open(NGINX_CONF_LOCATION, "w") as nf:
+        nf.write(nginx_conf)
 
-            if os.path.exists(conf_path):
-                print(f"Error: File already exists: '{conf_path}'", file=sys.stderr)
-                exit(1)
+    with open(NGINX_UPSTREAMS_CONF_LOCATION, "w") as nf:
+        nf.write(nginx_upstreams_conf)
 
-            with open(conf_path, "w") as uf:
-                uf.write(c)
+    with open(NGINX_SERVICES_CONF_LOCATION, "w") as nf:
+        nf.write(nginx_services_conf)
 
-        # STEP 5: Generate NGINX configuration file
 
-        print("[CHORD Container Setup] Generating NGINX configuration file...")
-
-        nginx_conf, nginx_upstreams_conf, nginx_services_conf = generate_nginx_confs(services, services_config_path)
-
-        with open(NGINX_CONF_LOCATION, "w") as nf:
-            nf.write(nginx_conf)
-
-        with open(NGINX_UPSTREAMS_CONF_LOCATION, "w") as nf:
-            nf.write(nginx_upstreams_conf)
-
-        with open(NGINX_SERVICES_CONF_LOCATION, "w") as nf:
-            nf.write(nginx_services_conf)
+def entry():
+    main(job, build=True)
 
 
 if __name__ == "__main__":
-    main()
+    entry()

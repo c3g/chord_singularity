@@ -12,7 +12,9 @@ from typing import Callable, Dict, List, Tuple
 __all__ = [
     "TYPE_PYTHON",
     "TYPE_JAVASCRIPT",
+
     "CHORD_SERVICES_SCHEMA_PATH",
+
     "SECRET_CHARACTERS",
     "SECRET_LENGTH",
     "AUTH_CONFIG_PATH",
@@ -20,6 +22,7 @@ __all__ = [
     "RUNTIME_CONFIG_PATH",
 
     "json_load_dict_or_empty",
+    "load_services",
     "generate_secret_key",
     "get_config_vars",
     "get_runtime_config_vars",
@@ -34,7 +37,9 @@ __all__ = [
 TYPE_PYTHON = "python"
 TYPE_JAVASCRIPT = "javascript"
 
+CHORD_SERVICES_PATH = "/chord/chord_services.json"
 CHORD_SERVICES_SCHEMA_PATH = "/chord/chord_services.schema.json"
+CHORD_SERVICES_CONFIG_PATH = "/chord/chord_services_config.json"
 
 SECRET_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
 SECRET_LENGTH = 64
@@ -44,15 +49,23 @@ RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock th
 
 
 def json_load_dict_or_empty(path: str) -> Dict:
-    return json.load(open(path, "r")) if os.path.exists(path) else {}
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def load_services() -> List[Dict]:
+    with open(CHORD_SERVICES_PATH, "r") as f:
+        return [s for s in json.load(f) if not s.get("disabled", False)]
 
 
 def generate_secret_key() -> str:
     return "".join(random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH))
 
 
-def get_config_vars(s: Dict, services_config_path: str) -> Dict:
-    config = json_load_dict_or_empty(services_config_path)
+def get_config_vars(s: Dict) -> Dict:
+    config = json_load_dict_or_empty(CHORD_SERVICES_CONFIG_PATH)
 
     s_artifact = s["type"]["artifact"]
 
@@ -80,19 +93,20 @@ def get_config_vars(s: Dict, services_config_path: str) -> Dict:
             "SERVICE_ENVIRONMENT": f"/chord/data/{s_artifact}/.environment",
         }
 
-        with open(services_config_path, "w") as scf:
+        with open(CHORD_SERVICES_CONFIG_PATH, "w") as scf:
             json.dump(config, scf)
 
-        subprocess.run(("chmod", "644", services_config_path))  # TODO: How to secure properly?
+        subprocess.run(("chmod", "644", CHORD_SERVICES_CONFIG_PATH))  # TODO: How to secure properly?
 
     return config[s_artifact]
 
 
-def get_runtime_config_vars(s: Dict, services_config_path: str) -> Dict:
+def get_runtime_config_vars(s: Dict) -> Dict:
     """Should only be run from inside an instance."""
 
     instance_config = json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
-    services_config = json.load(open(services_config_path, "r"))
+    with open(CHORD_SERVICES_CONFIG_PATH, "r") as f:
+        services_config = json.load(f)
     runtime_config = json_load_dict_or_empty(RUNTIME_CONFIG_PATH)
 
     s_artifact = s["type"]["artifact"]
@@ -139,21 +153,21 @@ def get_env_str(s, config_vars, escaped=True):
             if "run_environment" in s else "")
 
 
-def main(job: Callable[[List[Dict], str], None]):
-    args = sys.argv[1:]
-
-    if len(args) != 2:
-        print(f"Usage: {sys.argv[0]} chord_services.json chord_services_config.json")
+def main(job: Callable[[List[Dict]], None], build=False):
+    if len(sys.argv) != 1:
+        print(f"Usage: {sys.argv[0]}")
         exit(1)
 
-    if os.environ.get("SINGULARITY_CONTAINER", "") == "":
-        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity container.")
+    singularity_env = "SINGULARITY_ENVIRONMENT" if build else "SINGULARITY_CONTAINER"
+
+    if os.environ.get(singularity_env, "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
+        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
         exit(1)
 
-    with open(CHORD_SERVICES_SCHEMA_PATH) as cf, open(args[0], "r") as sf:
+    with open(CHORD_SERVICES_SCHEMA_PATH) as cf:
         schema = json.load(cf)
-        services = json.load(sf)
+        services = load_services()
 
         validate(instance=services, schema=schema)
 
-        job(services, args[1])
+        job(services)

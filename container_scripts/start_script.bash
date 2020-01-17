@@ -63,10 +63,7 @@ nohup uwsgi \
  &> /dev/null &
 
 echo "Starting other services..."
-chord_container_non_wsgi_start \
-  ./chord_services.json \
-  ./chord_services_config.json
-
+chord_container_non_wsgi_start
 
 echo "Starting OpenResty NGINX..."
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH

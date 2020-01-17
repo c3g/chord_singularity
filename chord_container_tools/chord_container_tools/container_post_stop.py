@@ -14,9 +14,9 @@ from .chord_common import (
 )
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict]):
     for s in services:
-        config_vars = get_runtime_config_vars(s, services_config_path)
+        config_vars = get_runtime_config_vars(s)
 
         for command in s.get("post_stop_commands", ()):
             commands = (*get_service_command_preamble(s, config_vars),

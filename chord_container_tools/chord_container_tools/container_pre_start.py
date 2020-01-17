@@ -12,7 +12,7 @@ from .chord_common import (
     get_runtime_config_vars,
     get_env_str,
     format_env_pair,
-    main
+    main,
 )
 
 
