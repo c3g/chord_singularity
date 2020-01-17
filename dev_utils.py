@@ -39,8 +39,7 @@ def action_start(args):
         instance_data = os.path.join(CHORD_DATA_DIRECTORY, str(i))
         instance_temp = os.path.join(CHORD_TEMP_DIRECTORY, str(i))
 
-        subprocess.run(("mkdir", "-p", instance_data))
-        subprocess.run(("mkdir", "-p", instance_temp))
+        subprocess.run(("mkdir", "-p", instance_data, instance_temp))
 
         instance_host = get_instance_host(i)
 
