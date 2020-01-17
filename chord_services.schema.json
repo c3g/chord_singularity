@@ -24,6 +24,9 @@
         "required": ["data_service"]
       }],
       "properties": {
+        "disabled": {
+          "type": "boolean"
+        },
         "type": {
           "type": "object",
           "properties": {

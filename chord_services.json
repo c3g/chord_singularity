@@ -135,6 +135,7 @@
     }
   },
   {
+    "disabled": true,
     "type": {
       "organization": "ca.c3g.chord",
       "artifact": "drs",
