@@ -116,13 +116,13 @@ run the standalone server provided.
 After installing Keycloak, clients supporting the authorization code OIDC
 workflow can be set up, and configuration copied over to `instance_auth.json`.
 
-To accomplish this, a basic Keycloak setup would include:
+Setting up a fresh Keycloak installation to accomplish this entails:
 
-  * Create a new client (chord1 is the default for the first node)
-  * Specify a root URL (e.g. http://1.chord.dlougheed.com/)
-  * Set this client's access type as "confidential"
+  * Creating a new client (`chord1` is the default for the first node)
+  * Specifying a root URL (e.g. `http://1.chord.dlougheed.com/`)
+  * Setting this client's access type as "confidential"
     (this will let you access the "Credentials" tab and the
-    secret needed in instance_auth.json)
+    secret needed for `instance_auth.json`)
 
 See above for descriptions of what configuration values are available for each
 node in `instance_auth.json`.
