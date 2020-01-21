@@ -19,9 +19,9 @@ from .chord_common import (
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
-def job(services: List[Dict], services_config_path: str):
+def job(services: List[Dict]):
     for s in services:
-        config_vars = get_runtime_config_vars(s, services_config_path)
+        config_vars = get_runtime_config_vars(s)
 
         # Create required directories if needed at startup
         subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
