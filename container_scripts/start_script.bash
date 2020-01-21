@@ -49,9 +49,7 @@ pg_ctlcluster ${CPG} main start
 
 
 echo "Running pre-start operations..."
-NEW_DATABASE=$database_created chord_container_pre_start \
-  ./chord_services.json \
-  ./chord_services_config.json
+NEW_DATABASE=$database_created chord_container_pre_start
 
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log
