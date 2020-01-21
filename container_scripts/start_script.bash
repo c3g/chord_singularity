@@ -12,6 +12,7 @@ whoami > /chord/tmp/.instance_user
 mkdir -p /chord/tmp/logs
 mkdir -p /chord/tmp/data
 mkdir -p /chord/tmp/postgresql/logs
+mkdir -p /chord/tmp/redis
 mkdir -p /chord/tmp/uwsgi
 mkdir -p /chord/tmp/nginx/client_tmp
 mkdir -p /chord/tmp/nginx/proxy_tmp
@@ -25,7 +26,7 @@ mkdir -p /chord/data/redis
 
 
 echo "Starting Redis..."
-nohup redis-server /etc/redis/redis.conf &> /dev/null  # Daemonized, so doesn't need &
+nohup redis-server /etc/redis/redis.conf &> /chord/tmp/redis/redis.log  # Daemonized, so doesn't need &
 
 mkdir -p /chord/data/postgresql
 
