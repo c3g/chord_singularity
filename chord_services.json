@@ -96,7 +96,10 @@
     "repository": "https://github.com/c3g/chord_event_relay",
     "data_service": false,
     "wsgi": false,
-    "service_runnable": "chord-event-relay"
+    "service_runnable": "chord-event-relay",
+    "run_environment": {
+      "SOCKET_IO_PATH": "/private/socket.io"
+    }
   },
   {
     "type": {
