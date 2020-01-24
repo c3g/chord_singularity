@@ -5,7 +5,7 @@
       "artifact": "service-registry",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_service_registry",
+    "repository": "https://github.com/c3g/chord_service_registry@v0.1.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_service_registry.app",
@@ -78,7 +78,7 @@
       "artifact": "notification",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_notification_service",
+    "repository": "https://github.com/c3g/chord_notification_service@v0.1.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_notification_service.app",
