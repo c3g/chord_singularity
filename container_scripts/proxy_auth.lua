@@ -3,14 +3,14 @@
 
 local cjson = require("cjson")
 
-local uncached_response = function (status, mime, message, error)
+local uncached_response = function (status, mime, message)
   -- Helper method to return uncached responses directly from the proxy without
   -- needing an underlying service.
   ngx.status = status
   ngx.header["Content-Type"] = mime
   ngx.header["Cache-Control"] = "no-store"
   ngx.say(message)
-  ngx.exit(error)
+  ngx.exit(status)
 end
 
 local auth_mode = function (private_uri)
@@ -25,9 +25,9 @@ local auth_file = assert(io.open(ngx.var.chord_auth_config))
 local auth_params = cjson.decode(auth_file:read("*all"))
 auth_file:close()
 
- local config_file = assert(io.open(ngx.var.chord_instance_config))
- local config_params = cjson.decode(config_file:read("*all"))
- config_file:close()
+local config_file = assert(io.open(ngx.var.chord_instance_config))
+local config_params = cjson.decode(config_file:read("*all"))
+config_file:close()
 
 -- If in production, validate the SSL certificate if HTTPS is being used
 local opts_ssl_verify = "no"
@@ -67,7 +67,7 @@ while auth_attempts > 0 do
     auth_attempts = auth_attempts - 1
     if session.data.user_id ~= nil then session:destroy() end  -- Destroy the current session if it just expired
     if err and auth_attempts == 0 then
-      uncached_response(500, "text/plain", err, ngx.HTTP_INTERNAL_SERVER_ERROR)
+      uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
     end
   else break end  -- Authentication was successful
 end
@@ -97,7 +97,7 @@ end
 
 if is_private_uri and user_role ~= "owner" then
   -- TODO: Check ownership / grants?
-  uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
+  uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
 end
 
 -- Clear and possibly set internal headers to inform services of user identity
@@ -112,9 +112,9 @@ ngx.req.set_header("X-User-Role", user_role)
 --   otherwise returns a 403 Forbidden error.
 if ngx.var.uri == "/api/auth/user" then
   if res == nil then
-    uncached_response(403, "text/plain", "Forbidden", ngx.HTTP_FORBIDDEN)
+    uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
   else
     res.user["chord_user_role"] = user_role
-    uncached_response(200, "application/json", cjson.encode(res.user), ngx.HTTP_OK)
+    uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(res.user))
   end
 end
