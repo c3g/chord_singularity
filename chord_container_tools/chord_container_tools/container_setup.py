@@ -98,10 +98,18 @@ http {{
     set $session_redis_prefix    oidc;
     set $session_redis_socket    unix:///chord/tmp/redis.sock;
 
+    # CHORD constants (configuration file locations)
+    set $chord_auth_config "{auth_config}";
+    set $chord_instance_config "{instance_config}";
+
     location = /favicon.ico {{
       return 404;
       log_not_found off;
       access_log off;
+    }}
+
+    location = /api/node-info {{
+      content_by_lua_file /chord/container_scripts/node_info.lua;
     }}
 
     location / {{
@@ -115,8 +123,6 @@ http {{
       # See: https://www.nginx.com/blog/rate-limiting-nginx/
       limit_req zone=external burst=40 delay=15;
 
-      set $chord_auth_config "{auth_config}";
-      set $chord_instance_config "{instance_config}";
       access_by_lua_file /chord/container_scripts/proxy_auth.lua;
 
       # TODO: Deduplicate with below?
