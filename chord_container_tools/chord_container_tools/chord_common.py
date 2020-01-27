@@ -64,7 +64,7 @@ def generate_secret_key() -> str:
     return "".join(random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH))
 
 
-def get_config_vars(s: Dict) -> Dict:
+def get_config_vars(s: Dict) -> Dict[str, str]:
     config = json_load_dict_or_empty(CHORD_SERVICES_CONFIG_PATH)
 
     s_artifact = s["type"]["artifact"]
@@ -101,9 +101,10 @@ def get_config_vars(s: Dict) -> Dict:
     return config[s_artifact]
 
 
-def get_runtime_config_vars(s: Dict) -> Dict:
+def get_runtime_config_vars(s: Dict) -> Dict[str, str]:
     """Should only be run from inside an instance."""
 
+    auth_config = json_load_dict_or_empty(AUTH_CONFIG_PATH)
     instance_config = json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     with open(CHORD_SERVICES_CONFIG_PATH, "r") as f:
         services_config = json.load(f)
@@ -125,10 +126,15 @@ def get_runtime_config_vars(s: Dict) -> Dict:
 
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
-    return {**instance_config, **services_config[s_artifact], **runtime_config[s_artifact]}
+    return {
+        "OIDC_DISCOVERY_URI": auth_config["OIDC_DISCOVERY_URI"],
+        **instance_config,
+        **services_config[s_artifact],
+        **runtime_config[s_artifact]
+    }
 
 
-def get_service_command_preamble(service: Dict, config_vars: Dict) -> Tuple[str, ...]:
+def get_service_command_preamble(service: Dict, config_vars: Dict[str, str]) -> Tuple[str, ...]:
     preamble = (
         f"source {config_vars['SERVICE_ENVIRONMENT']}",
         f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']})",
