@@ -14,10 +14,10 @@ From: debian:buster-slim
     README.md /chord/README.md
 
 %post
-    exec bash /chord/container_scripts/post_script.bash
+    exec /bin/bash /chord/container_scripts/post_script.bash
 
 %startscript
-    exec bash /chord/container_scripts/start_script.bash
+    exec /bin/bash /chord/container_scripts/start_script.bash
 
 %labels
     Author David Lougheed

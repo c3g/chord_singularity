@@ -176,3 +176,16 @@ Other available actions for `./dev_utils.py` are `stop` and `restart`.
 `CHORD_TEMP_DIRECTORY`: `/chord/tmp`
 * Stores boot-lifecycle (i.e. shouldn't be removed while CHORD is running, but
   may be removed when shut down) files including UNIX sockets and log files
+
+
+### Running a Node in Docker
+
+`.auth_config.json` and `.instance_config.json` will need to be created by hand
+in the `CHORD_DATA_DIRECTORY` location.
+
+```bash
+docker run -d \
+  --mount type=bind,src=/home/dlougheed/chord_data/1,target=/chord/data \
+  --mount type=bind,src=/tmp/chord/1,target=/chord/tmp \
+  [container_id]
+```

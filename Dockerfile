@@ -15,6 +15,6 @@ ADD chord_container_tools /chord/chord_container_tools
 ADD LICENSE /chord/LICENSE
 ADD README.md /chord/README.md
 
-RUN bash /chord/container_scripts/post_script.bash
+RUN /bin/bash /chord/container_scripts/post_script.bash
 
 CMD ["/bin/bash", "/chord/container_scripts/start_script.bash"]
