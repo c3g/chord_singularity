@@ -180,6 +180,9 @@ Other available actions for `./dev_utils.py` are `stop` and `restart`.
 
 ### Running a Node in Docker
 
+**Note:** Docker support is experimental and possibly insecure. Use Singularity
+when possible. Proper Docker support is planned for a later release.
+
 `.auth_config.json` and `.instance_config.json` will need to be created by hand
 in the `CHORD_DATA_DIRECTORY` location.
 
