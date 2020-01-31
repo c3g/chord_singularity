@@ -25,7 +25,7 @@ What's included in a CHORD Singularity container?
 #### 1. Singularity
 
 To install Singularity, follow the
-[Singularity installation guide](https://sylabs.io/guides/3.5/user-guide/installation.html).
+[Singularity installation guide](https://sylabs.io/guides/3.5/user-guide/quick_start.html).
 
 CHORD requires **Singularity 3.5** (or later compatible versions.)
 
