@@ -9,7 +9,7 @@ branches:
     - master
 
 env:
-  - GO111MODULE=on VERSION=1.13.5 OS=linux ARCH=amd64 GOROOT=/usr/local/go GOPATH=${HOME}/go PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
+  - GO111MODULE=on VERSION=1.13 OS=linux ARCH=amd64 GOROOT=/usr/local/go GOPATH=${HOME}/go PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
 
 before_install:
   - wget -O /tmp/go${VERSION}.${OS}-${ARCH}.tar.gz https://dl.google.com/go/go${VERSION}.${OS}-${ARCH}.tar.gz
