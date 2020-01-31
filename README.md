@@ -18,27 +18,34 @@ What's included in a CHORD Singularity container?
 **Note:** Google DNS servers are used to resolve OIDC IdP domain names.
 
 
-## Development
+## Setting Up the Build/Development Environment
 
 ### Setup
+
+#### 1. Singularity
 
 To install Singularity, follow the
 [Singularity installation guide](https://sylabs.io/guides/3.5/user-guide/installation.html).
 
 CHORD requires **Singularity 3.5** (or later compatible versions.)
 
-To create the virtual environment:
+#### 2. (Optional) Virtual Environment
+
+Although the `dev_utils.py` script doesn't need any external dependencies, it
+may be useful to create a virtual environment with a specific version of Python
+3.6 (or higher) when developing:
 
 ```bash
 virtualenv -p python3 ./env
 source env/bin/activate
-pip install -r requirements.txt
 ```
+
+#### 3. Reverse Proxy
 
 NGINX can be set up as a reverse proxy outside of the containers to create a
 development CHORD cluster.
 
-#### Example Dev. NGINX Configuration
+##### Example Development NGINX Configuration
 
 Configuration for a development CHORD cluster, to use with `dev_utils.py`:
 
@@ -73,10 +80,10 @@ a DNS record set up to point at 127.0.0.1.
 
 ### Needed files in the CHORD `data` folder
 
-**These files are automatically created by the `dev_utils.py` script, but
-should be set up in another way for production deployment.**
+**These files are automatically created when using the `dev_utils.py` script,
+but should be set up in another way for production deployment.**
 
-Values for `.auth_config.json` are read from the
+Values for each node's `.auth_config.json` are populated from the
 [`instance_auth.json`](instance_auth.json) file at instance start time when
 using `dev_utils.py`.
 
@@ -145,8 +152,9 @@ You will be asked for your password by Singularity.
 
 Assumes `/tmp/chord` and `~/chord_data` are writable directories.
 
-**Note:** CHORD temporary and data directories can be specified by editing `dev_utils.py` (not recommended) or setting
-`CHORD_DATA_DIRECTORY` and `CHORD_TEMP_DIRECTORY` when running `dev_utils.py`.
+**Note:** CHORD temporary and data directories can be specified by editing
+`dev_utils.py` (not recommended) or setting `CHORD_DATA_DIRECTORY` and
+`CHORD_TEMP_DIRECTORY` when running `dev_utils.py`.
 
 To run a development cluster with `n` nodes, where `n` is some positive integer:
 
