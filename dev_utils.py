@@ -26,11 +26,15 @@ def get_instance_host(i: int):
     return f"{i}.chord.dlougheed.com"
 
 
+def get_instance_url(i: int):
+    return f"http://{i}.chord.dlougheed.com/"  # Trailing slash important here
+
+
 def action_start(args):
     for i in range(1, args.cluster_size + 1):
-        instance_host = get_instance_host(i)
-        if instance_host not in instance_auth:
-            print(f"[CHORD DEV UTILS] Cannot find auth configuration for instance {instance_host}", file=sys.stderr)
+        instance_url = get_instance_url(i)
+        if instance_url not in instance_auth:
+            print(f"[CHORD DEV UTILS] Cannot find auth configuration for instance {instance_url}", file=sys.stderr)
             exit(1)
 
     for i in range(1, args.cluster_size + 1):
@@ -50,8 +54,8 @@ def action_start(args):
                 "CHORD_PERMISSIONS": False,  # Whether the container uses the default permissions system
 
                 "CHORD_HOST": instance_host,
-                "CHORD_URL": f"http://{instance_host}/",  # Trailing slash important here
-                "CHORD_REGISTRY_URL": "http://1.chord.dlougheed.com/",  # ... and here
+                "CHORD_URL": get_instance_url(i),
+                "CHORD_REGISTRY_URL": get_instance_url(1),
             }, fc)
 
         with open(os.path.join(instance_data, CHORD_AUTH_CONFIG_FILE), "w") as fa:
