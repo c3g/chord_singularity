@@ -46,6 +46,7 @@ def action_start(args):
         subprocess.run(("mkdir", "-p", instance_data, instance_temp))
 
         instance_host = get_instance_host(i)
+        instance_url = get_instance_url(i)
 
         with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as fc:
             # TODO: Environment: CHORD_DEBUG, CHORD_PERMISSIONS
@@ -54,12 +55,12 @@ def action_start(args):
                 "CHORD_PERMISSIONS": False,  # Whether the container uses the default permissions system
 
                 "CHORD_HOST": instance_host,
-                "CHORD_URL": get_instance_url(i),
+                "CHORD_URL": instance_url,
                 "CHORD_REGISTRY_URL": get_instance_url(1),
             }, fc)
 
         with open(os.path.join(instance_data, CHORD_AUTH_CONFIG_FILE), "w") as fa:
-            json.dump(instance_auth[instance_host], fa)
+            json.dump(instance_auth[instance_url], fa)
 
         subprocess.run(("singularity", "instance", "start",
                         "--bind", f"{instance_temp}:/chord/tmp",
