@@ -53,7 +53,7 @@ events {{
 http {{
   # include /etc/nginx/mime.types;
   default_type application/octet-stream;
-  
+
   client_body_temp_path /chord/tmp/nginx/client_tmp;
   proxy_temp_path /chord/tmp/nginx/proxy_tmp;
   fastcgi_temp_path /chord/tmp/nginx/fastcgi_tmp;
@@ -62,8 +62,11 @@ http {{
 
   sendfile off;
   keepalive_timeout 600;
-  
+
   server_names_hash_bucket_size 128;
+
+  # Disable server_tokens for security reasons
+  server_tokens off;
 
   index index.html index.htm;
 
