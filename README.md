@@ -61,6 +61,10 @@ server {
         add_header 'Access-Control-Allow-Methods' '*' always;
         add_header 'Access-Control-Allow-Headers' '*' always;
 
+        try_files $uri @container;
+    }
+
+    location @container {
         proxy_pass                       http://unix:/tmp/chord/$1/nginx.sock;
         proxy_buffer_size                128k;
         proxy_buffers                    4 256k;
@@ -76,6 +80,56 @@ server {
 
 This configuration assumes that `*.chord.dlougheed.com` (in this example) has
 a DNS record set up to point at 127.0.0.1.
+
+**Note:** This NGINX configuration is unsuitable for production, since it
+has a wide-open CORS policy allowing requests from anywhere.
+
+
+### Example Production NGINX Configuration
+
+TODO: Figure out if WSS works here
+
+```nginx
+server {
+    listen 80;
+    server_name chord.example.org;
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+
+    # Insert production SSL configuration here
+    ssl_certificate     chord.example.org.crt;
+    ssl_certificate_key chord.example.org.key;
+
+    server_name chord.example.org;
+
+    location / {
+        try_files $uri @container;
+    }
+
+    location ~ ^\/api\/(?!auth) {
+        # Tweak these as needed for the security concerns of the instance.
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' '*' always;
+        add_header 'Access-Control-Allow-Headers' '*' always;
+
+        try_files $uri @container;
+    }
+
+    location @container {
+        proxy_pass                       http://unix:/tmp/chord/nginx.sock;
+        proxy_buffer_size                128k;
+        proxy_buffers                    4 256k;
+        proxy_busy_buffers_size          256k;
+        proxy_http_version               1.1;
+        proxy_set_header Host            $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Upgrade         $http_upgrade;
+        proxy_set_header Connection      "upgrade";
+    }
+}
+```
 
 
 ### Needed files in the CHORD `data` folder
