@@ -9,6 +9,7 @@ local uncached_response = function (status, mime, message)
   ngx.status = status
   ngx.header["Content-Type"] = mime
   ngx.header["Cache-Control"] = "no-store"
+  ngx.header["Pragma"] = "no-cache"  -- Backwards-compatibility for no-cache
   ngx.say(message)
   ngx.exit(status)
 end
