@@ -7,6 +7,8 @@ import sys
 from typing import Dict, List
 
 from .chord_common import (
+    CHORD_ENVIRONMENT_PATH,
+    get_runtime_common_chord_environment,
     get_service_command_preamble,
     bash_escape_single_quotes,
     get_runtime_config_vars,
@@ -20,6 +22,12 @@ NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
 def job(services: List[Dict]):
+    with open(CHORD_ENVIRONMENT_PATH, "w") as ef:
+        for c, v in get_runtime_common_chord_environment().items():
+            ef.write("export ")
+            ef.write(format_env_pair(c, v, escaped=False))
+            ef.write("\n")
+
     for s in services:
         config_vars = get_runtime_config_vars(s)
 

@@ -51,6 +51,9 @@ pg_ctlcluster ${CPG} main start
 echo "Running pre-start operations..."
 NEW_DATABASE=$database_created chord_container_pre_start
 
+# Load common runtime configuration
+source /chord/data/.environment
+
 echo "Starting uWSGI..."
 # TODO: Log to their own directories, not to uwsgi log
 nohup uwsgi \
@@ -63,6 +66,19 @@ nohup uwsgi \
 
 echo "Starting other services..."
 chord_container_non_wsgi_start
+
+echo "Installing chord_web..."
+
+cd /chord/data || exit
+if [[ ! -d /chord/data/web ]]; then
+  git clone --quiet --depth 1 https://github.com/c3g/chord_web.git web
+fi
+# TODO: Specify version
+cd /chord/data/web || exit
+git pull --quiet
+
+NODE_ENV=development npm install > /dev/null
+NODE_ENV=production npm run build > /dev/null
 
 echo "Starting OpenResty NGINX..."
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH

@@ -146,7 +146,7 @@ http {{
 
   server {{
     listen unix:/chord/tmp/nginx_internal.sock;
-    root /chord/web/public;
+    root /chord/data/web/dist;
     index index.html index.htm index.nginx-debian.html;
     server_name _;
 
@@ -154,8 +154,8 @@ http {{
       try_files $uri /index.html;
     }}
 
-    location /dist/ {{
-      alias /chord/web/dist/;
+    location /public/ {{
+      alias /chord/data/web/public/;
     }}
 
     include {services_conf};

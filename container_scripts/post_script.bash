@@ -200,15 +200,6 @@ apt-get install -y bcftools > /dev/null
 
 export HOME="/chord"
 
-# Install CHORD Web
-echo "[CHORD] Installing chord_web"
-cd /chord || exit
-git clone --quiet --depth 1 https://github.com/c3g/chord_web.git web
-cd /chord/web || exit
-NODE_ENV=development npm install > /dev/null
-NODE_ENV=production npm run build > /dev/null
-rm -r node_modules  # Don't need sources anymore after the bundle is built
-
 # Create CHORD folder structure
 mkdir -p /chord/data
 mkdir /chord/services
@@ -225,6 +216,6 @@ chord_container_setup
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache
-apt-get purge -y build-essential autoconf git curl python3-virtualenv > /dev/null
+apt-get purge -y build-essential autoconf curl python3-virtualenv > /dev/null
 apt-get autoremove -y > /dev/null
 apt-get clean > /dev/null

@@ -20,11 +20,13 @@ __all__ = [
     "AUTH_CONFIG_PATH",
     "INSTANCE_CONFIG_PATH",
     "RUNTIME_CONFIG_PATH",
+    "CHORD_ENVIRONMENT_PATH",
 
     "json_load_dict_or_empty",
     "load_services",
     "generate_secret_key",
     "get_config_vars",
+    "get_runtime_common_chord_environment",
     "get_runtime_config_vars",
     "get_service_command_preamble",
     "bash_escape_single_quotes",
@@ -46,6 +48,7 @@ SECRET_LENGTH = 64
 AUTH_CONFIG_PATH = "/chord/data/.auth_config.json"  # TODO: How to lock this down? It has sensitive stuff...
 INSTANCE_CONFIG_PATH = "/chord/data/.instance_config.json"  # TODO: Rename
 RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock this down? It has sensitive stuff...
+CHORD_ENVIRONMENT_PATH = "/chord/data/.environment"
 
 
 def json_load_dict_or_empty(path: str) -> Dict:
@@ -101,11 +104,19 @@ def get_config_vars(s: Dict) -> Dict[str, str]:
     return config[s_artifact]
 
 
+def get_runtime_common_chord_environment() -> Dict[str, str]:
+    """Should only be run from inside an instance."""
+    auth_config = json_load_dict_or_empty(AUTH_CONFIG_PATH)
+    instance_config = json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
+    return {
+        "OIDC_DISCOVERY_URI": auth_config["OIDC_DISCOVERY_URI"],
+        **instance_config
+    }
+
+
 def get_runtime_config_vars(s: Dict) -> Dict[str, str]:
     """Should only be run from inside an instance."""
 
-    auth_config = json_load_dict_or_empty(AUTH_CONFIG_PATH)
-    instance_config = json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     with open(CHORD_SERVICES_CONFIG_PATH, "r") as f:
         services_config = json.load(f)
     runtime_config = json_load_dict_or_empty(RUNTIME_CONFIG_PATH)
@@ -127,8 +138,7 @@ def get_runtime_config_vars(s: Dict) -> Dict[str, str]:
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
     return {
-        "OIDC_DISCOVERY_URI": auth_config["OIDC_DISCOVERY_URI"],
-        **instance_config,
+        **get_runtime_common_chord_environment(),
         **services_config[s_artifact],
         **runtime_config[s_artifact]
     }
