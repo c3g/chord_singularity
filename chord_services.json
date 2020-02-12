@@ -12,7 +12,7 @@
     "python_callable": "application",
     "run_environment": {
       "CHORD_SERVICES": "/chord/chord_services.json",
-      "URL_PATH_FORMAT": "/api/{{artifact}}"
+      "URL_PATH_FORMAT": "api/{{artifact}}"
     }
   },
   {
