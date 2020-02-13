@@ -240,6 +240,36 @@ Other available actions for `./dev_utils.py` are `stop` and `restart`.
   may be removed when shut down) files including UNIX sockets and log files
 
 
+### Running a Node as a Singularity Instance
+
+The following command will start an instance as `chord1`, assuming
+`.auth_config.json` and `.instance_config.json` have been created by hand in
+the `CHORD_DATA_DIRECTORY` location:
+
+```bash
+singularity instance start \
+	--bind /path/to/chord_tmp:/chord/tmp \
+	--bind /path/to/chord_data:/chord/data \
+	--bind /usr/share/zoneinfo/Etc/UTC:/usr/share/zoneinfo/Etc/UTC \
+	/path/to/chord.sif \
+	chord1
+```
+
+**Note:** In some cases timezone issues were encountered in the Singularity
+image build; binding the UTC definition from the host is a hack-y fix for this.
+
+
+#### Stopping the Instance
+
+An extra step must be taken to stop the new `chord1` instance safely - a stop
+script was written to facilitate this:
+
+```bash
+singularity exec instance://chord1 bash /chord/container_scripts/stop_script.bash
+singularity instance stop chord1
+```
+
+
 ### Running a Node in Docker
 
 **Note:** Docker support is experimental and possibly insecure. Use Singularity
@@ -250,7 +280,8 @@ in the `CHORD_DATA_DIRECTORY` location.
 
 ```bash
 docker run -d \
-  --mount type=bind,src=/home/dlougheed/chord_data/1,target=/chord/data \
-  --mount type=bind,src=/tmp/chord/1,target=/chord/tmp \
+  --mount type=bind,src=/path/to/chord_data,target=/chord/data \
+  --mount type=bind,src=/path/to/chord_tmp,target=/chord/tmp \
+  --mount type=bind,src=/usr/share/zoneinfo/Etc/UTC,target=/usr/share/zoneinfo/Etc/UTC \
   [container_id]
 ```
