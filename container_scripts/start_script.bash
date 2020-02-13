@@ -77,8 +77,8 @@ fi
 cd /chord/data/web || exit
 git pull --quiet
 
-NODE_ENV=development npm install > /dev/null
-NODE_ENV=production npm run build > /dev/null
+npm install > /dev/null
+npm run build > /dev/null
 
 echo "Starting OpenResty NGINX..."
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
