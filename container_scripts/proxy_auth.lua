@@ -2,6 +2,7 @@
 -- services under an OpenResty (or similarly configured NGINX) instance.
 
 local cjson = require("cjson")
+local openidc = require("resty.openidc")
 
 local uncached_response = function (status, mime, message)
   -- Helper method to return uncached responses directly from the proxy without
@@ -37,15 +38,18 @@ if not config_params["CHORD_DEBUG"] then
 end
 
 -- If in production, enforce CHORD_URL as the base for redirect
-local opts_redirect_uri = "/api/auth/callback"
+local RELATIVE_REDIRECT_PATH = "/api/auth/callback"
+local opts_redirect_uri = RELATIVE_REDIRECT_PATH
+local opts_redirect_after_logout_uri = "/"
 if not config_params["CHORD_DEBUG"] then
   opts_redirect_uri = config_params["CHORD_URL"] .. "api/auth/callback"
+  opts_redirect_after_logout_uri = config_params["CHORD_URL"]
 end
 
 local opts = {
   redirect_uri = opts_redirect_uri,
   logout_path = "/api/auth/sign-out",
-  redirect_after_logout_uri = "/",
+  redirect_after_logout_uri = opts_redirect_after_logout_uri,
   discovery = auth_params["OIDC_DISCOVERY_URI"],
   client_id = auth_params["CLIENT_ID"],
   client_secret = auth_params["CLIENT_SECRET"],
@@ -57,12 +61,19 @@ local opts = {
 local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
 
 
+-- Need to rewrite target URI for authenticate if we're in a sub-folder
+local auth_target_uri = ngx.var.request_uri
+if ngx.var.uri == RELATIVE_REDIRECT_PATH then
+  -- Re-assemble target URI with external URI prefixes/hosts/whatnot
+  auth_target_uri = opts_redirect_uri .. "?" .. (ngx.var.args or "")
+end
+
 local auth_attempts = 2
 local res
 local err
 local session
 while auth_attempts > 0 do
-  res, err, _, session = require("resty.openidc").authenticate(opts, nil, auth_mode(is_private_uri))
+  res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
   if res == nil or err then
     -- Authentication wasn't successful; try clearing the session and re-attempting
     auth_attempts = auth_attempts - 1
