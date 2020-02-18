@@ -26,6 +26,7 @@ venv = {SERVICE_VENV}
 chdir = /chord/services/{SERVICE_ARTIFACT}
 mount = /api/{SERVICE_ARTIFACT}={service_python_module}:{service_python_callable}
 vacuum = true
+logto = {SERVICE_LOGS}/{SERVICE_ARTIFACT}.log
 {service_python_args}
 # Import configuration environment variables into uWSGI environment
 for-readline = {SERVICE_ENVIRONMENT}

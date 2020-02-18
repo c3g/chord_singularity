@@ -55,12 +55,9 @@ NEW_DATABASE=$database_created chord_container_pre_start
 source /chord/data/.environment
 
 echo "Starting uWSGI..."
-# TODO: Log to their own directories, not to uwsgi log
 nohup uwsgi \
  --emperor /chord/vassals \
  --master \
- --log-master \
- --logto /chord/tmp/uwsgi/uwsgi.log \
  --safe-pidfile /chord/tmp/uwsgi/uwsgi.pid \
  &> /dev/null &
 
