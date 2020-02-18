@@ -72,6 +72,11 @@ def json_load_dict_or_empty(path: str) -> Dict:
     return {}
 
 
+def json_save(obj, path: str):
+    with open(path, "w") as f:
+        json.dump(obj, f)
+
+
 def load_services() -> ServiceList:
     with open(CHORD_SERVICES_PATH, "r") as f:
         return [s for s in json.load(f) if not s.get("disabled", False)]
@@ -110,9 +115,7 @@ def get_config_vars(s: Dict) -> ConfigVars:
             "SERVICE_ENVIRONMENT": f"/chord/data/{s_artifact}/.environment",
         }
 
-        with open(CHORD_SERVICES_CONFIG_PATH, "w") as scf:
-            json.dump(config, scf)
-
+        json_save(config, CHORD_SERVICES_CONFIG_PATH)
         subprocess.run(("chmod", "644", CHORD_SERVICES_CONFIG_PATH))  # TODO: How to secure properly?
 
     return config[s_artifact]
@@ -143,9 +146,7 @@ def get_runtime_config_vars(s: Service) -> ConfigVars:
             "SERVICE_ID": str(uuid.uuid4())  # Generate a unique UUID for the service
         }
 
-    with open(RUNTIME_CONFIG_PATH, "w") as rcf:
-        json.dump(runtime_config, rcf)
-
+    json_save(runtime_config, RUNTIME_CONFIG_PATH)
     subprocess.run(("chmod", "600", RUNTIME_CONFIG_PATH))
 
     return {
