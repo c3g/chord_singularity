@@ -67,13 +67,11 @@ local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
-if ngx.var.uri == OIDC_CALLBACK_PATH then
-  -- Re-assemble target URI with external URI prefixes/hosts/whatnot
-  auth_target_uri = opts_redirect_uri .. "?" .. (ngx.var.args or "")
-elseif auth_mode(is_private_uri) == nil then
-  -- Going to attempt a redirect
-  local after_chord_url = ngx.var.uri:match("^/(.*)")
-  if after_chord_url then
+if ngx.var.uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
+  -- Going to attempt a redirect; possibly dealing with the OpenIDC callback
+  local after_chord_url = ngx.var.uri and ngx.var.uri:match("^/(.*)")
+  if after_chord_url then  -- after_chord_url is not nil, i.e. ngx var uri starts with a /
+    -- Re-assemble target URI with external URI prefixes/hosts/whatnot
     auth_target_uri = config_params["CHORD_URL"] .. after_chord_url  .. "?" .. (ngx.var.args or "")
   end
 end
