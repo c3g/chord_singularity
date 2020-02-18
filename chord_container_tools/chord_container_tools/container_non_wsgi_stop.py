@@ -21,6 +21,7 @@ class ContainerNonWSGIStopJob(ContainerJob):
             config_vars = get_runtime_config_vars(service)
 
             try:
+                # Send a kill signal to the service via pkill and the service's process ID
                 pid_file = f"{config_vars['SERVICE_TEMP']}/{config_vars['SERVICE_ARTIFACT']}.pid"
                 subprocess.run(f"/bin/bash -c 'pkill -9 -F {pid_file}'", shell=True, check=True)
 
@@ -28,11 +29,11 @@ class ContainerNonWSGIStopJob(ContainerJob):
                 while wait_iterations > 0:
                     if subprocess.run(f"/bin/bash -c 'kill -0 \"$(cat {pid_file})\"'", shell=True,
                                       stderr=subprocess.DEVNULL).returncode == 1:
-                        # The process has been killed already, so kill returns 1 -- i.e. we're done
+                        # The process has been killed already, so kill -0 returns 1 -- i.e. we're done
                         break
 
-                    # The kill command exited with status 0, meaning it's currently being attempted - try to wait until
-                    # kill has occurred by sleeping and trying again
+                    # The kill -0 command exited with status 0, meaning it's currently being attempted - try to wait
+                    # until kill has occurred by sleeping and checking the process status again
                     time.sleep(SLEEP_TIME)
                     wait_iterations -= 1
 
