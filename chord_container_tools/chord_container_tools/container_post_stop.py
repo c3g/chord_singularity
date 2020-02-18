@@ -1,38 +1,16 @@
 #!/usr/bin/env python3
 
-import subprocess
-import sys
-
-from typing import Dict, List
-
-from .chord_common import (
-    get_service_command_preamble,
-    bash_escape_single_quotes,
-    get_runtime_config_vars,
-    get_env_str,
-    main,
-)
+from .chord_common import ServiceList, execute_runtime_commands, ContainerJob
 
 
-def job(services: List[Dict]):
-    for s in services:
-        config_vars = get_runtime_config_vars(s)
-
-        for command in s.get("post_stop_commands", ()):
-            commands = (*get_service_command_preamble(s, config_vars),
-                        f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}")
-
-            full_command = f"/bin/bash -c '{' && '.join(commands)}'"
-
-            try:
-                subprocess.run(full_command, shell=True, check=True)
-            except subprocess.CalledProcessError as e:
-                print(e, file=sys.stderr)
+class ContainerPostStopJob(ContainerJob):
+    def job(self, services: ServiceList):
+        # Execute post-stop hook commands for any services which have them
+        for s in services:
+            execute_runtime_commands(s, s.get("post_stop_commands", ()))
 
 
-def entry():
-    main(job)
-
+job = ContainerPostStopJob()
 
 if __name__ == "__main__":
-    entry()
+    job.main()

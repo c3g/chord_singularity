@@ -2,80 +2,84 @@
 
 import os
 import subprocess
-import sys
-
-from typing import Dict, List
 
 from .chord_common import (
     CHORD_ENVIRONMENT_PATH,
+    ConfigVars,
+    ServiceList,
     get_runtime_common_chord_environment,
-    get_service_command_preamble,
-    bash_escape_single_quotes,
+    execute_runtime_commands,
     get_runtime_config_vars,
-    get_env_str,
-    format_env_pair,
-    main,
+    write_environment_dict_to_path,
+    ContainerJob,
 )
 
 
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
-def job(services: List[Dict]):
-    with open(CHORD_ENVIRONMENT_PATH, "w") as ef:
-        for c, v in get_runtime_common_chord_environment().items():
-            ef.write("export ")
-            ef.write(format_env_pair(c, v, escaped=False))
-            ef.write("\n")
-
-    for s in services:
-        config_vars = get_runtime_config_vars(s)
-
-        # Create required directories if needed at startup
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
-        subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
-
-        # Write environment to the file system
-        with open(config_vars["SERVICE_ENVIRONMENT"], "w") as ef:
-            for c, v in config_vars.items():
-                ef.write(format_env_pair(c, v, escaped=False))
-                ef.write("\n")
-
-        subprocess.run(("chmod", "600", config_vars["SERVICE_ENVIRONMENT"]))
-
-        # Postgres setup
-        #  - Create a user with the service ID as the username
-        #  - Create a database with cs_{service ID} as the database name
-        #  - Only let the owner connect to the database
-        # TODO: Store password somewhere secure/locked down
-        if NEW_DATABASE == "True":
-            subprocess.run(("createuser", "-D", "-R", "-S", "-h", config_vars["POSTGRES_SOCKET_DIR"], "-p",
-                            config_vars["POSTGRES_PORT"], config_vars["POSTGRES_USER"]))
-            subprocess.run(("createdb", "-O", config_vars["POSTGRES_USER"], config_vars["POSTGRES_DATABASE"]))
-
-            subprocess.run(("psql", "-d", config_vars["POSTGRES_DATABASE"], "-c",
-                            f"REVOKE CONNECT ON DATABASE {config_vars['POSTGRES_DATABASE']} FROM PUBLIC;"))
-
-            subprocess.run(("psql", "-d", config_vars["POSTGRES_DATABASE"], "-c",
-                            f"ALTER USER {config_vars['POSTGRES_USER']} ENCRYPTED PASSWORD "
-                            f"'{config_vars['POSTGRES_PASSWORD']}'"))
-
-        for command in s.get("pre_start_commands", ()):
-            commands = (*get_service_command_preamble(s, config_vars),
-                        f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}")
-
-            full_command = f"/bin/bash -c '{' && '.join(commands)}'"
-
-            try:
-                subprocess.run(full_command, shell=True, check=True)
-            except subprocess.CalledProcessError as e:
-                print(e, file=sys.stderr)
+def create_service_directories_if_needed(config_vars: ConfigVars):
+    subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
+    subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
+    subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
 
 
-def entry():
-    main(job)
+def configure_postgres_if_needed(config_vars: ConfigVars):
+    # Set up Postgres for the service
+    # TODO: Store password somewhere secure/locked down
 
+    if NEW_DATABASE != "True":
+        # Not configuring Postgres for the first time
+        return
+
+    # Create a service user
+    subprocess.run(("createuser", "-D", "-R", "-S", "-h", config_vars["POSTGRES_SOCKET_DIR"], "-p",
+                    config_vars["POSTGRES_PORT"], config_vars["POSTGRES_USER"]))
+
+    # Create a service database owned by the service user
+    subprocess.run(("createdb", "-O", config_vars["POSTGRES_USER"], config_vars["POSTGRES_DATABASE"]))
+
+    # Prevent other users from connecting to the database
+    subprocess.run(("psql", "-d", config_vars["POSTGRES_DATABASE"], "-c",
+                    f"REVOKE CONNECT ON DATABASE {config_vars['POSTGRES_DATABASE']} FROM PUBLIC;"))
+
+    # Set the generated password for the service user
+    subprocess.run(("psql", "-d", config_vars["POSTGRES_DATABASE"], "-c",
+                    f"ALTER USER {config_vars['POSTGRES_USER']} ENCRYPTED PASSWORD "
+                    f"'{config_vars['POSTGRES_PASSWORD']}'"))
+
+
+class ContainerPreStartJob(ContainerJob):
+    def job(self, services: ServiceList):
+        """
+        Runs a series of pre-service-start actions, for each service, including:
+         - Writing common environment variables to a common environment file
+         - Creating service directories for data, logs, and temporary files
+         - Writing service-specific environment variables to a service environment file
+        :param services: List of services from chord_services.json
+        """
+
+        # Write common environment variables to a file for later sourcing
+        write_environment_dict_to_path(get_runtime_common_chord_environment(), CHORD_ENVIRONMENT_PATH, export=True)
+
+        for s in services:
+            config_vars = get_runtime_config_vars(s)
+
+            # Create required directories if needed at startup
+            create_service_directories_if_needed(config_vars)
+
+            # Write service-specific environment variables to the file system and lock down its permissions
+            write_environment_dict_to_path(config_vars, config_vars["SERVICE_ENVIRONMENT"])
+            subprocess.run(("chmod", "600", config_vars["SERVICE_ENVIRONMENT"]))
+
+            # Set up the service's Postgres database if not already set up
+            configure_postgres_if_needed(config_vars)
+
+            # Run any chord_services.json specified pre-start commands that may exist
+            execute_runtime_commands(s, s.get("pre_start_commands", ()))
+
+
+job = ContainerPreStartJob()
 
 if __name__ == "__main__":
-    entry()
+    job.main()

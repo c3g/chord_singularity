@@ -5,8 +5,9 @@ import subprocess
 import sys
 import uuid
 
+from abc import ABC, abstractmethod
 from jsonschema import validate
-from typing import Callable, Dict, List, Tuple
+from typing import Dict, List, Iterable, Tuple
 
 
 __all__ = [
@@ -22,6 +23,10 @@ __all__ = [
     "RUNTIME_CONFIG_PATH",
     "CHORD_ENVIRONMENT_PATH",
 
+    "ConfigVars",
+    "Service",
+    "ServiceList",
+
     "json_load_dict_or_empty",
     "load_services",
     "generate_secret_key",
@@ -29,10 +34,14 @@ __all__ = [
     "get_runtime_common_chord_environment",
     "get_runtime_config_vars",
     "get_service_command_preamble",
+    "execute_runtime_command",
+    "execute_runtime_commands",
     "bash_escape_single_quotes",
     "format_env_pair",
     "get_env_str",
-    "main",
+    "write_environment_dict_to_path",
+
+    "ContainerJob",
 ]
 
 
@@ -51,6 +60,11 @@ RUNTIME_CONFIG_PATH = "/chord/data/.runtime_config.json"  # TODO: How to lock th
 CHORD_ENVIRONMENT_PATH = "/chord/data/.environment"
 
 
+ConfigVars = Dict[str, str]
+Service = Dict
+ServiceList = List[Service]
+
+
 def json_load_dict_or_empty(path: str) -> Dict:
     if os.path.exists(path):
         with open(path, "r") as f:
@@ -58,7 +72,7 @@ def json_load_dict_or_empty(path: str) -> Dict:
     return {}
 
 
-def load_services() -> List[Dict]:
+def load_services() -> ServiceList:
     with open(CHORD_SERVICES_PATH, "r") as f:
         return [s for s in json.load(f) if not s.get("disabled", False)]
 
@@ -67,7 +81,7 @@ def generate_secret_key() -> str:
     return "".join(random.choice(SECRET_CHARACTERS) for _ in range(SECRET_LENGTH))
 
 
-def get_config_vars(s: Dict) -> Dict[str, str]:
+def get_config_vars(s: Dict) -> ConfigVars:
     config = json_load_dict_or_empty(CHORD_SERVICES_CONFIG_PATH)
 
     s_artifact = s["type"]["artifact"]
@@ -104,21 +118,18 @@ def get_config_vars(s: Dict) -> Dict[str, str]:
     return config[s_artifact]
 
 
-def get_runtime_common_chord_environment() -> Dict[str, str]:
+def get_runtime_common_chord_environment() -> ConfigVars:
     """Should only be run from inside an instance."""
     auth_config = json_load_dict_or_empty(AUTH_CONFIG_PATH)
-    instance_config = json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     return {
         "OIDC_DISCOVERY_URI": auth_config["OIDC_DISCOVERY_URI"],
-        **instance_config
+        **json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     }
 
 
-def get_runtime_config_vars(s: Dict) -> Dict[str, str]:
+def get_runtime_config_vars(s: Service) -> ConfigVars:
     """Should only be run from inside an instance."""
 
-    with open(CHORD_SERVICES_CONFIG_PATH, "r") as f:
-        services_config = json.load(f)
     runtime_config = json_load_dict_or_empty(RUNTIME_CONFIG_PATH)
 
     s_artifact = s["type"]["artifact"]
@@ -139,51 +150,83 @@ def get_runtime_config_vars(s: Dict) -> Dict[str, str]:
 
     return {
         **get_runtime_common_chord_environment(),
-        **services_config[s_artifact],
+        **json_load_dict_or_empty(CHORD_SERVICES_CONFIG_PATH)[s_artifact],
         **runtime_config[s_artifact]
     }
 
 
-def get_service_command_preamble(service: Dict, config_vars: Dict[str, str]) -> Tuple[str, ...]:
-    preamble = (
-        f"source {config_vars['SERVICE_ENVIRONMENT']}",
-        f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']})",
-    )
-
+def get_service_command_preamble(service: Service, config_vars: ConfigVars) -> Iterable[str]:
     if service["type"]["language"] == TYPE_PYTHON:
-        preamble = (f"source {config_vars['SERVICE_VENV']}/bin/activate",) + preamble
+        yield f"source {config_vars['SERVICE_VENV']}/bin/activate"
 
-    return preamble
+    yield f"source {config_vars['SERVICE_ENVIRONMENT']}"
+    yield f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']})"
+
+
+def execute_runtime_command(s: Service, command: str):
+    config_vars = get_runtime_config_vars(s)
+
+    commands = (*get_service_command_preamble(s, config_vars),
+                f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}")
+
+    full_command = f"/bin/bash -c '{' && '.join(commands)}'"
+
+    try:
+        subprocess.run(full_command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(e, file=sys.stderr)
+
+
+def execute_runtime_commands(s: Service, commands: Tuple[str]):
+    for command in commands:
+        execute_runtime_command(s, command)
 
 
 def bash_escape_single_quotes(v):
     return v.replace("'", r"'\''")
 
 
-def format_env_pair(k, v, escaped=False):
+def format_env_pair(k: str, v: str, escaped=False):
     return "{}='{}'".format(k, bash_escape_single_quotes(v)) if escaped else f"{k}={v}"
 
 
-def get_env_str(s, config_vars, escaped=True):
+def get_env_str(s: Service, config_vars: ConfigVars, escaped=True):
     return (" ".join(format_env_pair(k, v.format(**config_vars), escaped) for k, v in s["run_environment"].items())
             if "run_environment" in s else "")
 
 
-def main(job: Callable[[List[Dict]], None], build=False):
-    if len(sys.argv) != 1:
-        print(f"Usage: {sys.argv[0]}")
-        exit(1)
+def write_environment_dict_to_path(env: Dict[str, str], path: str, export: bool = False):
+    with open(path, "w") as ef:
+        for c, v in env.items():
+            if export:
+                ef.write("export ")
+            ef.write(format_env_pair(c, v, escaped=False))
+            ef.write("\n")
 
-    singularity_env = "SINGULARITY_ENVIRONMENT" if build else "SINGULARITY_CONTAINER"
 
-    if os.environ.get(singularity_env, "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
-        print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
-        exit(1)
+class ContainerJob(ABC):
+    def __init__(self, build=False):
+        self.build = build
 
-    with open(CHORD_SERVICES_SCHEMA_PATH) as cf:
-        schema = json.load(cf)
-        services = load_services()
+    def main(self):
+        if len(sys.argv) != 1:
+            print(f"Usage: {sys.argv[0]}")
+            exit(1)
 
-        validate(instance=services, schema=schema)
+        singularity_env = "SINGULARITY_ENVIRONMENT" if self.build else "SINGULARITY_CONTAINER"
 
-        job(services)
+        if os.environ.get(singularity_env, "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
+            print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
+            exit(1)
+
+        with open(CHORD_SERVICES_SCHEMA_PATH) as cf:
+            schema = json.load(cf)
+            services = load_services()
+
+            validate(instance=services, schema=schema)
+
+            self.job(services)
+
+    @abstractmethod
+    def job(self, services: ServiceList):
+        pass

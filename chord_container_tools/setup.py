@@ -17,11 +17,11 @@ setuptools.setup(
     packages=["chord_container_tools"],
     entry_points={
         "console_scripts": [
-            "chord_container_setup = chord_container_tools.container_setup:entry",
-            "chord_container_pre_start = chord_container_tools.container_pre_start:entry",
-            "chord_container_post_stop = chord_container_tools.container_post_stop:entry",
-            "chord_container_non_wsgi_start = chord_container_tools.container_non_wsgi_start:entry",
-            "chord_container_non_wsgi_stop = chord_container_tools.container_non_wsgi_stop:entry",
+            "chord_container_setup = chord_container_tools.container_setup:job.main",
+            "chord_container_pre_start = chord_container_tools.container_pre_start:job.main",
+            "chord_container_post_stop = chord_container_tools.container_post_stop:job.main",
+            "chord_container_non_wsgi_start = chord_container_tools.container_non_wsgi_start:job.main",
+            "chord_container_non_wsgi_stop = chord_container_tools.container_non_wsgi_stop:job.main",
         ]
     },
 

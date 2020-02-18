@@ -3,17 +3,18 @@
 import subprocess
 import sys
 
-from typing import Dict, List
-
 from .chord_common import (
+    ConfigVars,
+    Service,
+    ServiceList,
     get_service_command_preamble,
     get_runtime_config_vars,
     get_env_str,
-    main,
+    ContainerJob,
 )
 
 
-def run_command(service, config_vars):
+def run_command(service: Service, config_vars: ConfigVars):
     return " && ".join((
         *get_service_command_preamble(service, config_vars),
         f"{get_env_str(service, config_vars)} exec nohup {service['service_runnable']} &>"
@@ -22,22 +23,18 @@ def run_command(service, config_vars):
     ))
 
 
-def job(services: List[Dict]):
-    for s in services:
-        if "wsgi" not in s or s["wsgi"]:
-            continue
+class ContainerNonWSGIStartJob(ContainerJob):
+    def job(self, services: ServiceList):
+        for service in filter(lambda s: "wsgi" in s and not s["wsgi"], services):
+            config_vars = get_runtime_config_vars(service)
 
-        config_vars = get_runtime_config_vars(s)
-
-        try:
-            subprocess.run(f"/bin/bash -c '{run_command(s, config_vars)}'", shell=True, check=True)
-        except subprocess.CalledProcessError:
-            print(f"Error starting service {config_vars['SERVICE_ARTIFACT']}", file=sys.stderr)
+            try:
+                subprocess.run(f"/bin/bash -c '{run_command(service, config_vars)}'", shell=True, check=True)
+            except subprocess.CalledProcessError:
+                print(f"Error starting service {config_vars['SERVICE_ARTIFACT']}", file=sys.stderr)
 
 
-def entry():
-    main(job)
-
+job = ContainerNonWSGIStartJob()
 
 if __name__ == "__main__":
-    entry()
+    job.main()

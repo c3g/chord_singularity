@@ -4,15 +4,14 @@ import os
 import subprocess
 import sys
 
-from typing import Dict, List
-
 from .chord_common import (
     AUTH_CONFIG_PATH,
     INSTANCE_CONFIG_PATH,
     TYPE_PYTHON,
     TYPE_JAVASCRIPT,
+    ServiceList,
     get_config_vars,
-    main,
+    ContainerJob,
 )
 
 # threads = 4 to allow some "parallel" requests; important for peer discovery/confirmation.
@@ -208,78 +207,19 @@ location @{s_artifact} {{
 """
 
 
-def generate_uwsgi_confs(services: List[Dict]):
-    uwsgi_confs = []
-
-    for s in services:
-        if not s.get("wsgi", True):
-            continue
-
-        config_vars = get_config_vars(s)
-        uwsgi_confs.append(UWSGI_CONF_TEMPLATE.format(
-            **config_vars,
-            service_python_module=s["python_module"],
-            service_python_callable=s["python_callable"],
-            service_python_args=(f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}"
-                                 if "python_args" in s else ""),
-            service_run_environment="\n".join(f"env = {e}={val.format(**config_vars)}"
-                                              for e, val in s.get("run_environment", {}).items())
-        ))
-
-    return uwsgi_confs
-
-
-def generate_nginx_confs(services: List[Dict]):
-    nginx_conf = NGINX_CONF_TEMPLATE.format(upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
-                                            services_conf=NGINX_SERVICES_CONF_LOCATION,
-                                            auth_config=AUTH_CONFIG_PATH,
-                                            instance_config=INSTANCE_CONFIG_PATH)
-
-    nginx_upstreams_conf = ""
-    nginx_services_conf = ""
-
-    for s in services:
-        config_vars = get_config_vars(s)
-
-        # Upstream
-        nginx_upstreams_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
-                                                                       s_socket=config_vars["SERVICE_SOCKET"])
-
-        # Service location wrapper
-        nginx_services_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
-                                                                  s_artifact=config_vars["SERVICE_ARTIFACT"])
-
-        # Named location
-        nginx_services_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
-                                else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
-
-    return nginx_conf, nginx_upstreams_conf, nginx_services_conf
-
-
-def job(services: List[Dict]):
-    # STEP 1: Install deduplicated apt dependencies.
-
-    print("[CHORD Container Setup] Installing apt dependencies...")
-
-    apt_dependencies = set()
-    for s in services:
-        apt_dependencies = apt_dependencies.union(s.get("apt_dependencies", ()))
-
+def install_apt_dependencies(services: ServiceList):
+    apt_dependencies = set().union(*(s.get("apt_dependencies", ()) for s in services))
     subprocess.run(("apt-get", "install", "-y", *apt_dependencies), stdout=subprocess.DEVNULL, check=True)
 
-    # STEP 2: Run pre-install commands
 
-    print("[CHORD Container Setup] Running service pre-install commands...")
-
+def run_pre_install_commands(services: ServiceList):
     for s in services:
         for c in s.get("pre_install_commands", ()):
             print("[CHORD Container Setup]    {}".format(c))
             subprocess.run(c, shell=True, check=True, stdout=subprocess.DEVNULL)
 
-    # STEP 3: Create virtual environments and install packages
 
-    print("[CHORD Container Setup] Creating virtual environments...")
-
+def create_service_virtual_environments(services: ServiceList):
     for s in services:
         s_language = s["type"]["language"]
         s_artifact = s["type"]["artifact"]
@@ -311,14 +251,27 @@ def job(services: List[Dict]):
         else:
             raise NotImplementedError(f"Unknown language: {s_language}")
 
-    os.chdir("/chord")
 
-    # STEP 4: Generate uWSGI configuration files
+def _generate_uwsgi_confs(services: ServiceList):
+    for s in services:
+        if not s.get("wsgi", True):
+            continue
 
-    print("[CHORD Container Setup] Generating uWSGI configuration files...")
+        config_vars = get_config_vars(s)
+        yield (s, UWSGI_CONF_TEMPLATE.format(
+            **config_vars,
+            service_python_module=s["python_module"],
+            service_python_callable=s["python_callable"],
+            service_python_args=(f"pyargv = {' '.join(a.format(**config_vars) for a in s['python_args'])}"
+                                 if "python_args" in s else ""),
+            service_run_environment="\n".join(f"env = {e}={val.format(**config_vars)}"
+                                              for e, val in s.get("run_environment", {}).items())
+        ))
 
-    for s, c in zip((s2 for s2 in services if s2.get("wsgi", True)), generate_uwsgi_confs(services)):
-        conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"
+
+def write_uwsgi_confs(services: ServiceList):
+    for s, c in _generate_uwsgi_confs(services):
+        conf_path = f"/chord/vassals/{s['type']['artifact']}.ini"  # TODO: Make this a config var / template
 
         if os.path.exists(conf_path):
             print(f"Error: File already exists: '{conf_path}'", file=sys.stderr)
@@ -327,11 +280,32 @@ def job(services: List[Dict]):
         with open(conf_path, "w") as uf:
             uf.write(c)
 
-    # STEP 5: Generate NGINX configuration file
 
-    print("[CHORD Container Setup] Generating NGINX configuration file...")
+def write_nginx_confs(services: ServiceList):
+    nginx_conf = NGINX_CONF_TEMPLATE.format(upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
+                                            services_conf=NGINX_SERVICES_CONF_LOCATION,
+                                            auth_config=AUTH_CONFIG_PATH,
+                                            instance_config=INSTANCE_CONFIG_PATH)
 
-    nginx_conf, nginx_upstreams_conf, nginx_services_conf = generate_nginx_confs(services)
+    nginx_upstreams_conf = ""
+    nginx_services_conf = ""
+
+    for s in services:
+        config_vars = get_config_vars(s)
+
+        # Upstream
+        nginx_upstreams_conf += NGINX_SERVICE_UPSTREAM_TEMPLATE.format(s_artifact=config_vars["SERVICE_ARTIFACT"],
+                                                                       s_socket=config_vars["SERVICE_SOCKET"])
+
+        # Service location wrapper
+        nginx_services_conf += NGINX_SERVICE_BASE_TEMPLATE.format(base_url=config_vars["SERVICE_URL_BASE_PATH"],
+                                                                  s_artifact=config_vars["SERVICE_ARTIFACT"])
+
+        # Named location
+        nginx_services_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
+                                else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
+
+    # Write configurations to the container file system
 
     with open(NGINX_CONF_LOCATION, "w") as nf:
         nf.write(nginx_conf)
@@ -343,9 +317,30 @@ def job(services: List[Dict]):
         nf.write(nginx_services_conf)
 
 
-def entry():
-    main(job, build=True)
+class ContainerSetupJob(ContainerJob):
+    def job(self, services: ServiceList):
+        # STEP 1: Install deduplicated apt dependencies.
+        print("[CHORD Container Setup] Installing apt dependencies...")
+        install_apt_dependencies(services)
 
+        # STEP 2: Run pre-install commands
+        print("[CHORD Container Setup] Running service pre-install commands...")
+        run_pre_install_commands(services)
+
+        # STEP 3: Create virtual environments and install packages
+        print("[CHORD Container Setup] Creating virtual environments...")
+        create_service_virtual_environments(services)
+
+        # STEP 4: Generate uWSGI configuration files
+        print("[CHORD Container Setup] Generating uWSGI configuration files...")
+        write_uwsgi_confs(services)
+
+        # STEP 5: Generate NGINX configuration file
+        print("[CHORD Container Setup] Generating NGINX configuration file...")
+        write_nginx_confs(services)
+
+
+job = ContainerSetupJob(build=True)
 
 if __name__ == "__main__":
-    entry()
+    job.main()
