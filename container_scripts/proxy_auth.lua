@@ -67,7 +67,7 @@ local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
-if ngx.var.uri == RELATIVE_REDIRECT_PATH then
+if ngx.var.uri == OIDC_CALLBACK_PATH then
   -- Re-assemble target URI with external URI prefixes/hosts/whatnot
   auth_target_uri = opts_redirect_uri .. "?" .. (ngx.var.args or "")
 elseif auth_mode(is_private_uri) == nil then
