@@ -3,7 +3,6 @@
 
 local cjson = require("cjson")
 local openidc = require("resty.openidc")
-local r_session = require("resty.session")
 
 local uncached_response = function (status, mime, message)
   -- Helper method to return uncached responses directly from the proxy without
@@ -16,8 +15,10 @@ local uncached_response = function (status, mime, message)
   ngx.exit(status)
 end
 
-local SIGN_IN_PATH_NO_SLASH = "api/auth/sign-in"
-local SIGN_IN_PATH = "/" .. SIGN_IN_PATH_NO_SLASH
+local OIDC_CALLBACK_PATH_NO_SLASH = "api/auth/callback"
+local OIDC_CALLBACK_PATH = "/" .. OIDC_CALLBACK_PATH_NO_SLASH
+local SIGN_IN_PATH = "/api/auth/sign-in"
+local SIGN_OUT_PATH = "/api/auth/sign-out"
 
 local auth_mode = function (private_uri)
   if ngx.var.uri and (ngx.var.uri == SIGN_IN_PATH or private_uri)
@@ -42,17 +43,16 @@ if not config_params["CHORD_DEBUG"] then
 end
 
 -- If in production, enforce CHORD_URL as the base for redirect
-local RELATIVE_REDIRECT_PATH = "/api/auth/callback"
-local opts_redirect_uri = RELATIVE_REDIRECT_PATH
+local opts_redirect_uri = OIDC_CALLBACK_PATH
 local opts_redirect_after_logout_uri = "/"
 if not config_params["CHORD_DEBUG"] then
-  opts_redirect_uri = config_params["CHORD_URL"] .. "api/auth/callback"
+  opts_redirect_uri = config_params["CHORD_URL"] .. OIDC_CALLBACK_PATH_NO_SLASH
   opts_redirect_after_logout_uri = config_params["CHORD_URL"]
 end
 
 local opts = {
   redirect_uri = opts_redirect_uri,
-  logout_path = "/api/auth/sign-out",
+  logout_path = SIGN_OUT_PATH,
   redirect_after_logout_uri = opts_redirect_after_logout_uri,
   discovery = auth_params["OIDC_DISCOVERY_URI"],
   client_id = auth_params["CLIENT_ID"],
@@ -65,22 +65,16 @@ local opts = {
 local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
 
 
-local chord_url_path = config_params["CHORD_URL"]:match(".-//[^/]+(/.*)")
-
-
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
 if ngx.var.uri == RELATIVE_REDIRECT_PATH then
   -- Re-assemble target URI with external URI prefixes/hosts/whatnot
   auth_target_uri = opts_redirect_uri .. "?" .. (ngx.var.args or "")
-
-  -- Need to rewrite session.data.original_url for openidc.authenticate() if we're in a sub-folder
-  local session, _ = r_session.start()
-  if session and session.data.original_url == SIGN_IN_PATH then  -- TODO: Need to parse arguments
-    if chord_url_path and chord_url_path ~= "/" then -- Check if we're in a sub-folder
-      session.data.original_url = chord_url_path .. SIGN_IN_PATH_NO_SLASH
-      session:save()
-    end
+elseif auth_mode(is_private_uri) == nil then
+  -- Going to attempt a redirect
+  local after_chord_url = ngx.var.uri:match("^/(.*)")
+  if after_chord_url then
+    auth_target_uri = config_params["CHORD_URL"] .. after_chord_url  .. "?" .. (ngx.var.args or "")
   end
 end
 
