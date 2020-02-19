@@ -19,6 +19,7 @@ local OIDC_CALLBACK_PATH_NO_SLASH = "api/auth/callback"
 local OIDC_CALLBACK_PATH = "/" .. OIDC_CALLBACK_PATH_NO_SLASH
 local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
+local USER_INFO_PATH = "/api/auth/user"
 
 local auth_mode = function (private_uri)
   if ngx.var.uri and (ngx.var.uri == SIGN_IN_PATH or private_uri)
@@ -62,7 +63,7 @@ local opts = {
   ssl_verify = opts_ssl_verify,
 }
 
-local is_private_uri = ngx.var.uri and string.find(ngx.var.uri, "^/api/%a[%w-_]*/private")
+local is_private_uri = string.find(ngx.var.uri or "", "^/api/%a[%w-_]*/private")
 
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
@@ -70,8 +71,9 @@ local auth_target_uri = ngx.var.request_uri
 if ngx.var.uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
   -- Going to attempt a redirect; possibly dealing with the OpenIDC callback
   local after_chord_url = ngx.var.uri and ngx.var.uri:match("^/(.*)")
-  if after_chord_url then  -- after_chord_url is not nil, i.e. ngx var uri starts with a /
-    -- Re-assemble target URI with external URI prefixes/hosts/whatnot
+  if after_chord_url then
+    -- If after_chord_url is not nil, i.e. ngx var uri starts with a /
+    -- Re-assemble target URI with external URI prefixes/hosts/whatnot:
     auth_target_uri = config_params["CHORD_URL"] .. after_chord_url  .. "?" .. (ngx.var.args or "")
   end
 end
@@ -83,9 +85,13 @@ local session
 while auth_attempts > 0 do
   res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
   if res == nil or err then
-    -- Authentication wasn't successful; try clearing the session and re-attempting
+    -- Authentication wasn't successful; try clearing the session and
+    -- re-attempting (for a maximum of 2 times.)
     auth_attempts = auth_attempts - 1
-    if session.data.user_id ~= nil then session:destroy() end  -- Destroy the current session if it just expired
+    if session.data.user_id ~= nil then
+      -- Destroy the current session if it just expired
+      session:destroy()
+    end
     if err and auth_attempts == 0 then
       uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
     end
@@ -107,7 +113,9 @@ if res ~= nil then  -- Authentication worked
     user_id = res.id_token.sub
     user_role = "user"
     for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
-      if owner_id == user_id then user_role = "owner" end  -- The user is an owner
+      -- Check each owner ID set in the auth params; if the current user's ID
+      -- matches one, set the user's role to "owner".
+      if owner_id == user_id then user_role = "owner" end
     end
     session.data.user_id = user_id
     session.data.user_role = user_role
@@ -130,7 +138,7 @@ ngx.req.set_header("X-User-Role", user_role)
 -- Endpoint: /api/auth/user
 --   Generates a JSON response with user data if the user is authenticated;
 --   otherwise returns a 403 Forbidden error.
-if ngx.var.uri == "/api/auth/user" then
+if ngx.var.uri == USER_INFO_PATH then
   if res == nil then
     uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
   else
