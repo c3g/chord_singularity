@@ -47,7 +47,7 @@ development CHORD cluster.
 
 ##### Example Development NGINX Configuration
 
-Configuration for a development CHORD cluster, to use with `dev_utils.py`:
+Configuration for a **development** CHORD cluster, to use with `dev_utils.py`:
 
 ```nginx
 server {
