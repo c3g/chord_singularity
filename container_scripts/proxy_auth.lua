@@ -63,14 +63,16 @@ local opts = {
   ssl_verify = opts_ssl_verify,
 }
 
-local is_private_uri = string.find(ngx.var.uri or "", "^/api/%a[%w-_]*/private")
+-- Cache commonly-used ngx.var.uri to save expensive access call
+local ngx_var_uri = ngx.var.uri or ""
+local is_private_uri = string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
 
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
-if ngx.var.uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
+if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
   -- Going to attempt a redirect; possibly dealing with the OpenIDC callback
-  local after_chord_url = ngx.var.uri and ngx.var.uri:match("^/(.*)")
+  local after_chord_url = ngx_var_uri:match("^/(.*)")
   if after_chord_url then
     -- If after_chord_url is not nil, i.e. ngx var uri starts with a /
     -- Re-assemble target URI with external URI prefixes/hosts/whatnot:
@@ -138,11 +140,27 @@ ngx.req.set_header("X-User-Role", user_role)
 -- Endpoint: /api/auth/user
 --   Generates a JSON response with user data if the user is authenticated;
 --   otherwise returns a 403 Forbidden error.
-if ngx.var.uri == USER_INFO_PATH then
+if ngx_var_uri == USER_INFO_PATH then
   if res == nil then
     uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
   else
     res.user["chord_user_role"] = user_role
     uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(res.user))
+  end
+end
+
+-- Endpoint: /api/auth/sign-in
+--   - If the user has not signed in, this will get caught above by the
+--     authenticate() call;
+--   - If the user just signed in and was redirected here, check the args for
+--     a redirect parameter and return a redirect if necessary.
+-- TODO: Do the same for sign-out (in certain cases)
+if ngx_var_uri == SIGN_IN_PATH then
+  local args, args_error = ngx.req.get_uri_args()
+  if args_error == nil then
+    local redirect = args.redirect
+    if redirect and type(redirect) ~= "table" then
+      ngx.redirect(redirect)
+    end
   end
 end
