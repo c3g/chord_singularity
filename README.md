@@ -93,6 +93,7 @@ TODO: Figure out if WSS works here
 server {
     listen 80;
     server_name chord.example.org;
+    server_tokens off;
     return 301 https://$host$request_uri;
 }
 server {
@@ -103,6 +104,7 @@ server {
     ssl_certificate_key chord.example.org.key;
 
     server_name chord.example.org;
+    server_tokens off;
 
     location / {
         try_files $uri @container;
