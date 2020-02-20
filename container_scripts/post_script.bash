@@ -2,6 +2,8 @@
 
 # Script to install components of CHORD into a Singularity container.
 
+CPU_COUNT=$(grep -c "^processor" /proc/cpuinfo)
+
 OPENRESTY_VERSION="1.15.8.2"
 NODE_VERSION="12.x"
 POSTGRES_VERSION="11"
@@ -59,8 +61,8 @@ echo "[CHORD]    Building"
 tar -xzf openresty.tar.gz
 cd "openresty-${OPENRESTY_VERSION}" || exit
 # To compile NGINX with debug info, use --with-debug
-./configure --with-pcre-jit --with-ipv6 -j2 > /dev/null
-make -j2 > /dev/null
+./configure --with-pcre-jit --with-ipv6 > /dev/null
+make "-j${CPU_COUNT}" > /dev/null
 echo "[CHORD]    Installing"
 make install > /dev/null
 echo "[CHORD]    Cleaning up"
@@ -95,7 +97,7 @@ curl -Lso redis-stable.tar.gz http://download.redis.io/redis-stable.tar.gz > /de
 echo "[CHORD]    Building"
 tar -xzf redis-stable.tar.gz
 cd redis-stable || exit
-make > /dev/null
+make "-j${CPU_COUNT}" > /dev/null
 echo "[CHORD]    Installing"
 make install > /dev/null
 echo "[CHORD]    Cleaning up"
@@ -182,7 +184,7 @@ echo "[CHORD]    Building"
 autoheader
 autoconf
 ./configure > /dev/null
-make > /dev/null
+make "-j${CPU_COUNT}" > /dev/null
 echo "[CHORD]    Installing"
 make install > /dev/null
 echo "[CHORD]    Cleaning up"
