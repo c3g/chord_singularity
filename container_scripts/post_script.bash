@@ -4,6 +4,8 @@
 
 CPU_COUNT=$(grep -c "^processor" /proc/cpuinfo)
 
+echo "[CHORD] Using ${CPU_COUNT} cores for compilations"
+
 OPENRESTY_VERSION="1.15.8.2"
 NODE_VERSION="12.x"
 POSTGRES_VERSION="11"
