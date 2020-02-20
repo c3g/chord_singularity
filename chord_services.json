@@ -63,7 +63,7 @@
       "artifact": "federation",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_federation_service@v0.1.1",
+    "repository": "https://github.com/c3g/chord_federation_service@v0.2.0",
     "data_service": false,
     "wsgi": false,
     "service_runnable": "chord_federation_service",
