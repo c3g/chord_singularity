@@ -17,7 +17,7 @@ export DEBIAN_FRONTEND=noninteractive
 mkdir -p /usr/share/man/man1
 mkdir -p /usr/share/man/man7
 
-echo "[CHORD] Installing base dependencies from apt"
+echo "[CHORD] Installing apt-sourced shared dependencies"
 
 # Update APT
 apt-get update > /dev/null
@@ -30,7 +30,9 @@ locale-gen > /dev/null
 export LANG="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
 
-# Install shared build dependencies
+# Install:
+#   - shared build dependencies
+#   - Python 3.7
 apt-get full-upgrade -y > /dev/null
 apt-get install -y -q \
  build-essential \
@@ -41,10 +43,10 @@ apt-get install -y -q \
  libpcre3-dev \
  libssl-dev \
  zlib1g-dev \
+ python3 \
+ python3-pip \
+ python3-virtualenv \
  > /dev/null
-
-# Install Python 3.7
-apt-get install -y python3 python3-pip python3-virtualenv > /dev/null
 
 # Install Node.JS
 curl -Ls "https://deb.nodesource.com/setup_${NODE_VERSION}" | bash - > /dev/null
