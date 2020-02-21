@@ -231,7 +231,7 @@ def create_service_virtual_environments(services: ServiceList):
         if s_language == TYPE_PYTHON:
             subprocess.run(
                 f"/bin/bash -c 'cd /chord/services/{s_artifact}; "
-                f"              python3.7 -m virtualenv -p python3.7 env; "
+                f"              python3.7 -m virtualenv --system-site-packages -p python3.7 env; "
                 f"              source env/bin/activate; "
                 f"              pip install --no-cache-dir git+{s_repo};"
                 f"              deactivate'",
