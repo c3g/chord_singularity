@@ -2,8 +2,8 @@
   "http://1.chord.dlougheed.com/": {
     "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
     "CLIENT_ID": "chord1",
-    "CLIENT_SECRET": "60f4d9ce-a8fd-4925-b4fc-2f4f403c2ac9",
-    "OWNER_IDS": ["1025bc2e-77be-4ba2-bcf8-929374acbe0f"]
+    "CLIENT_SECRET": "TODO",
+    "OWNER_IDS": ["subject-id"]
   },
   "http://2.chord.dlougheed.com/": {
     "OIDC_DISCOVERY_URI": "http://127.0.0.1:8080/auth/realms/master/.well-known/openid-configuration",
