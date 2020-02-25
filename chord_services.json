@@ -25,7 +25,13 @@
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drop_box_service.app",
-    "python_callable": "application"
+    "python_callable": "application",
+    "run_environment": {
+      "MINIO_URL": "",
+      "MINIO_USERNAME": "",
+      "MINIO_PASSWORD": "",
+      "MINIO_BUCKET": ""
+    }
   },
   {
     "type": {

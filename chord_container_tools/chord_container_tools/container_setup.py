@@ -27,6 +27,8 @@ chdir = /chord/services/{SERVICE_ARTIFACT}
 mount = /api/{SERVICE_ARTIFACT}={service_python_module}:{service_python_callable}
 vacuum = true
 logto = {SERVICE_LOGS}/{SERVICE_ARTIFACT}.log
+# To solve an issue between werkzeug, uWSGI and reading from a file pointer
+wsgi-disable-file-wrapper = true
 {service_python_args}
 # Import configuration environment variables into uWSGI environment
 for-readline = {SERVICE_ENVIRONMENT}
