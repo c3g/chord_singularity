@@ -169,7 +169,7 @@ using `dev_utils.py`.
        the node's owner(s)
 
 Example configuration files are available in the
-(`example_config/`)[https://github.com/c3g/chord_singularity/tree/master/example_config]
+[`example_config/`](https://github.com/c3g/chord_singularity/tree/master/example_config)
 folder.
 
 **If in production:** Everything should be ran with SSL enabled; both
