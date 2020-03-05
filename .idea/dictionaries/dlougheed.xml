@@ -4,6 +4,7 @@
       <w>abcdefghijklmnopqrstuvwxyz</w>
       <w>aseq</w>
       <w>autoremove</w>
+      <w>canarie</w>
       <w>candig</w>
       <w>cjson</w>
       <w>computationalgenomics</w>
@@ -13,8 +14,10 @@
       <w>ctype</w>
       <w>datasets</w>
       <w>debian</w>
+      <w>defacto</w>
       <w>dlougheed</w>
       <w>endfor</w>
+      <w>facto</w>
       <w>genomics</w>
       <w>htslib</w>
       <w>jsonschema</w>
@@ -23,6 +26,7 @@
       <w>liblzma</w>
       <w>libncurses</w>
       <w>libncursesw</w>
+      <w>logto</w>
       <w>lougheed</w>
       <w>nginx</w>
       <w>nodelay</w>
@@ -53,6 +57,7 @@
       <w>venv</w>
       <w>vhost</w>
       <w>websockets</w>
+      <w>werkzeug</w>
       <w>womtool</w>
       <w>zoneinfo</w>
     </words>

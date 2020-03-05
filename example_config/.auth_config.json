@@ -1,0 +1,6 @@
+{
+  "OIDC_DISCOVERY_URI": "https://keycloak.example.org/auth/realms/master/.well-known/openid-configuration",
+  "CLIENT_ID": "chord1",
+  "CLIENT_SECRET": "secret-for-the-chord1-client",
+  "OWNER_IDS": ["uuid-of-the-owner-user"]
+}
