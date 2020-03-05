@@ -144,23 +144,33 @@ Values for each node's `.auth_config.json` are populated from the
 using `dev_utils.py`.
 
   * `.instance_config.json`, containing the following key-value pairs:
-    * `CHORD_DEBUG`: Whether the container is started in debug mode.
-      **Important security note:** debug mode is **insecure** and cannot be
-      used in production **AT ALL**.
-    * `CHORD_PERMISSIONS`: Whether the container, and services within, use the
-      default CHORD permissions system. Turning this off WITHOUT an alternative
-      in place is **insecure** and **cannot** be used in production **AT ALL**.
-    * `CHORD_HOST`: The domain name of the host (no `http://`, no trailing
-      slash)
-    * `CHORD_URL`: The URL of the node (for federation), with trailing slash
-    * `CHORD_REGISTRY_URL`: The URL of the registry node (for federation),
-      with trailing slash
+    * `CHORD_DEBUG` (`boolean`): Whether the container is started in debug
+      mode. **Important security note:** debug mode is **insecure** and cannot
+      be used in production **AT ALL**.
+    * `CHORD_PERMISSIONS` (`boolean`): Whether the container, and services
+      within, use the default CHORD permissions system. Turning this off
+      WITHOUT an alternative in place is **insecure** and **cannot** be used in
+      production **AT ALL**.
+    * `CHORD_HOST` (`string`): The domain name of the host (no `http://`, no
+      trailing slash, no sub-paths)
+    * `CHORD_URL` (`string`): The URL of the node (for federation), including
+      trailing slash, and sub path (if any)
+    * `CHORD_REGISTRY_URL` (`string`): The URL of the registry node (for
+      federation), with trailing slash, and sub path (if any.) A
+      **registry node** is a trusted CHORD node which is the de-facto reference
+      for the peer list.
   * `.auth_config.json`:
-    * `OIDC_DISCOVERY_URI`: The discovery URI (typically
+    * `OIDC_DISCOVERY_URI` (`string`): The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP
-    * `CLIENT_ID`: The client ID for the node in the OIDC IdP
-    * `CLIENT_SECRET`: The client secret for the node in the OIDC IdP
-    * `OWNER_IDS`: The subject IDs (from the OIDC IdP) of the node's owner(s)
+    * `CLIENT_ID` (`string`): The client ID for the node in the OIDC IdP
+    * `CLIENT_SECRET` (`string`): The client secret for the node in the OIDC
+       IdP
+    * `OWNER_IDS` (`array` of `string`): The subject IDs (from the OIDC IdP) of
+       the node's owner(s)
+
+Example configuration files are available in the
+(`example_config/`)[https://github.com/c3g/chord_singularity/tree/master/example_config]
+folder.
 
 **If in production:** Everything should be ran with SSL enabled; both
 `OIDC_DISCOVERY_URI` and the site itself should be configured to use `https`.
