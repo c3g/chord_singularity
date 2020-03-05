@@ -18,9 +18,7 @@ What's included in a CHORD Singularity container?
 **Note:** Google DNS servers are used to resolve OIDC IdP domain names.
 
 
-## Setting Up the Build/Development Environment
 
-### Setup
 
 ## Developing and Building
 
