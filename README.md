@@ -19,6 +19,22 @@ What's included in a CHORD Singularity container?
 
 
 
+## Table of Contents
+
+  * [Developing and Building](#developing-and-building)
+    * [Setting Up the Build/Development Environment](#setting-up-the-builddevelopment-environment)
+    * [Building](#building)
+    * [Setting Up Authentication](#setting-up-authentication)
+    * [Running a Development Cluster](#running-a-development-cluster)
+    * [Bind Locations](#bind-locations)
+  * [Configuring an Instance](#configuring-an-instance)
+    * [Example Production NGINX Configuration](#example-production-nginx-configuration)
+  * [Running an Instance](#running-an-instance)
+    * [Running as a Singularity Instance](#running-as-a-singularity-instance)
+    * [Running in Docker](#running-in-docker)
+    * [Important Log Locations](#important-log-locations)
+
+
 
 ## Developing and Building
 
