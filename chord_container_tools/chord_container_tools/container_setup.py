@@ -19,6 +19,8 @@ UWSGI_CONF_TEMPLATE = """[uwsgi]
 vhost = true
 manage-script-name = true
 enable-threads = true
+socket-timeout = 600
+harakiri = 610
 lazy-apps = true  # use pre-forking instead, to prevent threading headaches
 buffer-size = 32768  # allow reading of larger headers, for e.g. auth
 socket = {SERVICE_SOCKET}
@@ -63,7 +65,7 @@ http {{
   scgi_temp_path /chord/tmp/nginx/scgi_tmp;
 
   sendfile off;
-  keepalive_timeout 600;
+  keepalive_timeout 660;
 
   server_names_hash_bucket_size 128;
 
@@ -104,7 +106,7 @@ http {{
     set $session_redis_socket    unix:///chord/tmp/redis.sock;
 
     # CHORD constants (configuration file locations)
-    set $chord_auth_config "{auth_config}";
+    set $chord_auth_config     "{auth_config}";
     set $chord_instance_config "{instance_config}";
 
     location = /favicon.ico {{
@@ -131,7 +133,9 @@ http {{
       access_by_lua_file /chord/container_scripts/proxy_auth.lua;
 
       # TODO: Deduplicate with below?
+
       proxy_http_version 1.1;
+
       proxy_pass_header  Server;
       proxy_set_header   Upgrade           $http_upgrade;
       proxy_set_header   Connection        "upgrade";
@@ -139,10 +143,18 @@ http {{
       proxy_set_header   X-Real-IP         $remote_addr;
       proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+
+      # Clear X-CHORD-Internal header and set it to the "off" value (0)
+      proxy_set_header   X-CHORD-Internal  "0";
+
       proxy_pass         http://unix:/chord/tmp/nginx_internal.sock;
-      proxy_read_timeout 660s;
-      proxy_send_timeout 660s;
-      send_timeout       660s;
+
+      client_body_timeout  660s;
+      proxy_read_timeout   660s;
+      proxy_send_timeout   660s;
+      send_timeout         660s;
+
+      client_max_body_size 200m;
     }}
   }}
 
@@ -182,30 +194,40 @@ location {base_url} {{
 
 NGINX_SERVICE_WSGI_TEMPLATE = """
 location @{s_artifact} {{
-  include            uwsgi_params;
-  uwsgi_param        Host            $http_host;
-  uwsgi_param        X-Forwarded-For $proxy_add_x_forwarded_for;
-  uwsgi_pass         chord_{s_artifact};
-  uwsgi_read_timeout 600s;
-  uwsgi_send_timeout 600s;
-  send_timeout       600s;
+  include              uwsgi_params;
+  uwsgi_param          Host            $http_host;
+  uwsgi_param          X-Forwarded-For $proxy_add_x_forwarded_for;
+  uwsgi_pass           chord_{s_artifact};
+  uwsgi_read_timeout   630s;
+  uwsgi_send_timeout   630s;
+
+  client_body_timeout  630s;
+  client_max_body_size 200m;
+  send_timeout         630s;
 }}
 """
 
 NGINX_SERVICE_NON_WSGI_TEMPLATE = """
 location @{s_artifact} {{
-  proxy_http_version 1.1;
-  proxy_pass_header  Server;
-  proxy_set_header   Upgrade           $http_upgrade;
-  proxy_set_header   Connection        "upgrade";
-  proxy_pass_header  Host;
-  proxy_pass_header  X-Real-IP;
-  proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-  proxy_pass_header  X-Forwarded-Proto;
-  proxy_pass         http://chord_{s_artifact};
-  proxy_read_timeout 600s;
-  proxy_send_timeout 600s;
-  send_timeout       600s;
+  proxy_http_version   1.1;
+
+  proxy_pass_header    Server;
+  proxy_set_header     Upgrade           $http_upgrade;
+  proxy_set_header     Connection        "upgrade";
+  proxy_pass_header    Host;
+  proxy_pass_header    X-Real-IP;
+  proxy_set_header     X-Forwarded-For   $proxy_add_x_forwarded_for;
+  proxy_pass_header    X-Forwarded-Proto;
+  proxy_pass_header    X-CHORD-Internal;  # Pass any internal-authorized accesses along
+
+  proxy_pass           http://chord_{s_artifact};
+
+  proxy_read_timeout   630s;
+  proxy_send_timeout   630s;
+
+  client_body_timeout  630s;
+  client_max_body_size 200m;
+  send_timeout         630s;
 }}
 """
 
