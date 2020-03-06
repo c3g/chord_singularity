@@ -19,6 +19,7 @@
       <w>endfor</w>
       <w>facto</w>
       <w>genomics</w>
+      <w>harakiri</w>
       <w>htslib</w>
       <w>jsonschema</w>
       <w>jwks</w>
@@ -28,6 +29,7 @@
       <w>libncursesw</w>
       <w>logto</w>
       <w>lougheed</w>
+      <w>minio</w>
       <w>nginx</w>
       <w>nodelay</w>
       <w>nohup</w>

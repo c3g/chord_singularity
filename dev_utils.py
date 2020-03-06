@@ -6,6 +6,8 @@ import os
 import subprocess
 import sys
 
+from pathlib import Path
+
 
 USER_DIR = os.path.expanduser("~")
 CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
@@ -14,8 +16,7 @@ CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
 CHORD_AUTH_CONFIG_FILE = ".auth_config.json"
 CHORD_INSTANCE_CONFIG_FILE = ".instance_config.json"
 
-with open("instance_auth.json", "r") as f:
-    instance_auth = json.load(f)
+DEFAULT_INSTANCE_AUTH_FILE = Path(__file__).parent.absolute() / "instance_auth.json"
 
 
 def get_instance_name(i: int):
@@ -31,6 +32,9 @@ def get_instance_url(i: int):
 
 
 def action_start(args):
+    with open(args.instance_auth, "r") as f:
+        instance_auth = json.load(f)
+
     for i in range(1, args.cluster_size + 1):
         instance_url = get_instance_url(i)
         if instance_url not in instance_auth:
@@ -84,6 +88,8 @@ def action_shell(args):
 def main():
     parser = argparse.ArgumentParser(description="Helpers for CHORD server development.")
     parser.add_argument("--cluster-size", dest="cluster_size", type=int, default=1)
+    parser.add_argument("--instance-auth", dest="instance_auth", type=lambda p: Path(p).absolute(),
+                        default=DEFAULT_INSTANCE_AUTH_FILE, help="path/to/instance_auth.json")
     parser.add_argument("--node", dest="node", type=int, help="[node index]", default=1)
     parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart", "shell"),
                         help="build|start|stop|restart|shell")
