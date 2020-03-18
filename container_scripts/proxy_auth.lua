@@ -65,7 +65,10 @@ local opts = {
 
 -- Cache commonly-used ngx.var.uri to save expensive access call
 local ngx_var_uri = ngx.var.uri or ""
-local is_private_uri = string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
+
+-- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
+local is_private_uri = config_params["CHORD_PERMISSIONS"] and
+    string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
 
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
