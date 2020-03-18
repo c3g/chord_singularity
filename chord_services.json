@@ -60,7 +60,8 @@
       "CELERY_BROKER_URL": "redis+socket://{REDIS_SOCKET}",
       "DATABASE":  "{SERVICE_DATA}/wes.db",
       "NGINX_INTERNAL_SOCKET": "/chord/tmp/nginx_internal.sock",
-      "WOM_TOOL_LOCATION": "/chord/womtool.jar"
+      "WOM_TOOL_LOCATION": "/chord/womtool.jar",
+      "WRITE_OUTPUT_TO_DRS": "0"
     }
   },
   {
