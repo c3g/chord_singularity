@@ -145,7 +145,8 @@
     "python_module": "chord_variant_service.app",
     "python_callable": "application",
     "run_environment": {
-      "DATA": "{SERVICE_DATA}/"
+      "DATA": "{SERVICE_DATA}/",
+      "TABLE_MANAGER": "vcf"
     }
   },
   {
