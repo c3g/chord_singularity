@@ -93,8 +93,8 @@ while auth_attempts > 0 do
     -- Authentication wasn't successful; try clearing the session and
     -- re-attempting (for a maximum of 2 times.)
     auth_attempts = auth_attempts - 1
-    if session.data.user_id ~= nil then
-      -- Destroy the current session if it just expired
+    if session ~= nil and session.data.user_id ~= nil then
+      -- Destroy the current session if it exists and just expired
       session:destroy()
     end
     if err and auth_attempts == 0 then
