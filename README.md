@@ -21,6 +21,7 @@ What's included in a CHORD Singularity container?
 
 ## Table of Contents
 
+  * [Minimum System Requirements](#minimum-system-requirements)
   * [Developing and Building](#developing-and-building)
     * [Setting Up the Build/Development Environment](#setting-up-the-builddevelopment-environment)
     * [Building](#building)
@@ -33,6 +34,19 @@ What's included in a CHORD Singularity container?
     * [Running as a Singularity Instance](#running-as-a-singularity-instance)
     * [Running in Docker](#running-in-docker)
     * [Important Log Locations](#important-log-locations)
+    
+    
+    
+## Minimum System Requirements
+
+  * 3 GB of RAM (WES jobs alone will fail below roughly `2.2 GB`)
+  * 5 GB of disk space, or roughly `2.5 * sizeof(dataset)`:
+    * `.sif` image is around 700 MB, more needed for data and ingestion
+    * Ingestion procedures typically take at minimum 
+      `sizeof(input) + sizeof(output)` to run. More space may be required in
+      order to generate additional temporary files.
+  * A minimum of **2 CPU cores** is **recommended**, but is not a hard 
+    requirement.
 
 
 
