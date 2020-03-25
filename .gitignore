@@ -4,6 +4,7 @@ instance_auth.json
 
 # IDE stuff
 .idea/misc.xml
+.idea/rSettings.xml
 .idea/workspace.xml
 *.swp
 *.swo
