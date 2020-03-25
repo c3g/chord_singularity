@@ -3,6 +3,7 @@ instance_auth.json
 *.sif
 
 # IDE stuff
+.idea/misc.xml
 .idea/workspace.xml
 *.swp
 *.swo
