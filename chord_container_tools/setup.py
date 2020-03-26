@@ -19,6 +19,7 @@ setuptools.setup(
         "console_scripts": [
             "chord_container_setup = chord_container_tools.container_setup:job.main",
             "chord_container_pre_start = chord_container_tools.container_pre_start:job.main",
+            "chord_container_post_start = chord_container_tools.container_post_start:job.main",
             "chord_container_post_stop = chord_container_tools.container_post_stop:job.main",
             "chord_container_non_wsgi_start = chord_container_tools.container_non_wsgi_start:job.main",
             "chord_container_non_wsgi_stop = chord_container_tools.container_non_wsgi_stop:job.main",

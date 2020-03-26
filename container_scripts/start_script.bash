@@ -38,13 +38,14 @@ if [[ ! -f /chord/tmp/postgresql/postgresql-${POSTGRES_VERSION}-main.log ]]; the
   touch /chord/tmp/postgresql/postgresql-${POSTGRES_VERSION}-main.log
 fi
 
-# Initialize DB if nothing's there, then start the cluster
+# Initialize DB if nothing's there
 database_created=False
 if [[ ! "$(ls -A /chord/data/postgresql)" ]]; then
   /usr/lib/postgresql/${POSTGRES_VERSION}/bin/initdb -D /chord/data/postgresql &> /dev/null
   database_created=True
 fi
 
+# Start the Postges cluster
 pg_ctlcluster ${POSTGRES_VERSION} main start
 
 
@@ -80,3 +81,9 @@ npm run build > /dev/null
 echo "Starting OpenResty NGINX..."
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
 nohup nginx &> /dev/null &
+
+# Wait for NGINX to start before running post-start hooks
+sleep 1
+
+echo "Running post-start operations..."
+chord_container_post_start
