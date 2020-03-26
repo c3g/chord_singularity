@@ -164,8 +164,8 @@ http {{
     index index.html index.htm index.nginx-debian.html;
     server_name _;
 
-    header_filter_by_lua_block {{
-      if ngx.header['X-CHORD-Internal'] == nil then
+    access_by_lua_block {{
+      if ngx.var.http_x_chord_internal == nil then
         ngx.req.set_header('X-CHORD-Internal', '1')
       else
         ngx.req.set_header('X-CHORD-Internal', '0')
