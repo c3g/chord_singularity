@@ -158,15 +158,16 @@
     },
     "repository": "https://github.com/c3g/chord_drs",
     "data_service": false,
-    "pre_start_commands": [
-      "flask db upgrade"
-    ],
     "wsgi": true,
     "python_module": "chord_drs.app",
     "python_callable": "application",
     "run_environment": {
+      "DATA": "{SERVICE_DATA}/drs_data",
       "DATABASE": "{SERVICE_DATA}",
       "FLASK_APP": "chord_drs.app"
-    }
+    },
+    "pre_start_commands": [
+      "flask db upgrade"
+    ]
   }
 ]
