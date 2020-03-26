@@ -222,6 +222,6 @@ chord_container_setup
 
 # Remove caches and build dependencies
 rm -rf /chord/.cache
-apt-get purge -y build-essential autoconf curl python3-virtualenv > /dev/null
+apt-get purge -y build-essential autoconf python3-virtualenv > /dev/null
 apt-get autoremove -y > /dev/null
 apt-get clean > /dev/null
