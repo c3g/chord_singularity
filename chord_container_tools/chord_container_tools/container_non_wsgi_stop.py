@@ -11,7 +11,7 @@ MAX_WAIT_TIME = 10  # seconds
 
 
 class ContainerNonWSGIStopJob(ContainerJob):
-    def job(self, services: ServiceList):
+    def job(self, services: ServiceList) -> None:
         """
         Stops all non-WSGI services (i.e. services which run their own HTTP server), killing them if needed.
         :param services: List of all services to first filter to only non-WSGI services and then to kill

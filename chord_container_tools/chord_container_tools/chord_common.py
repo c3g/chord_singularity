@@ -72,7 +72,7 @@ def json_load_dict_or_empty(path: str) -> Dict:
     return {}
 
 
-def json_save(obj, path: str):
+def json_save(obj, path: str) -> None:
     with open(path, "w") as f:
         json.dump(obj, f)
 
@@ -164,7 +164,7 @@ def get_service_command_preamble(service: Service, config_vars: ConfigVars) -> I
     yield f"export $(cut -d= -f1 {config_vars['SERVICE_ENVIRONMENT']})"
 
 
-def execute_runtime_command(s: Service, command: str):
+def execute_runtime_command(s: Service, command: str) -> None:
     config_vars = get_runtime_config_vars(s)
 
     commands = (*get_service_command_preamble(s, config_vars),
@@ -178,16 +178,16 @@ def execute_runtime_command(s: Service, command: str):
         print(e, file=sys.stderr)
 
 
-def execute_runtime_commands(s: Service, commands: Tuple[str]):
+def execute_runtime_commands(s: Service, commands: Tuple[str]) -> None:
     for command in commands:
         execute_runtime_command(s, command)
 
 
-def bash_escape_single_quotes(v):
+def bash_escape_single_quotes(v: str) -> str:
     return v.replace("'", r"'\''")
 
 
-def format_env_pair(k: str, v: str, escaped=False):
+def format_env_pair(k: str, v: str, escaped=False) -> str:
     return "{}='{}'".format(k, bash_escape_single_quotes(v)) if escaped else f"{k}={v}"
 
 
@@ -196,7 +196,7 @@ def get_env_str(s: Service, config_vars: ConfigVars, escaped=True):
             if "run_environment" in s else "")
 
 
-def write_environment_dict_to_path(env: Dict[str, str], path: str, export: bool = False):
+def write_environment_dict_to_path(env: Dict[str, str], path: str, export: bool = False) -> None:
     with open(path, "w") as ef:
         for c, v in env.items():
             if export:
@@ -209,7 +209,7 @@ class ContainerJob(ABC):
     def __init__(self, build=False):
         self.build = build
 
-    def main(self):
+    def main(self) -> None:
         if len(sys.argv) != 1:
             print(f"Usage: {sys.argv[0]}")
             exit(1)
@@ -229,5 +229,5 @@ class ContainerJob(ABC):
             self.job(services)
 
     @abstractmethod
-    def job(self, services: ServiceList):
+    def job(self, services: ServiceList) -> None:
         pass

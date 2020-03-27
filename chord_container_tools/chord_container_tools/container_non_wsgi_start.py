@@ -14,7 +14,7 @@ from .chord_common import (
 )
 
 
-def run_command(service: Service, config_vars: ConfigVars):
+def run_command(service: Service, config_vars: ConfigVars) -> str:
     return " && ".join((
         *get_service_command_preamble(service, config_vars),
         f"{get_env_str(service, config_vars)} exec nohup {service['service_runnable']} &>"
@@ -24,7 +24,7 @@ def run_command(service: Service, config_vars: ConfigVars):
 
 
 class ContainerNonWSGIStartJob(ContainerJob):
-    def job(self, services: ServiceList):
+    def job(self, services: ServiceList) -> None:
         for service in filter(lambda s: "wsgi" in s and not s["wsgi"], services):
             config_vars = get_runtime_config_vars(service)
 

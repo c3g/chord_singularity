@@ -18,13 +18,13 @@ from .chord_common import (
 NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
 
 
-def create_service_directories_if_needed(config_vars: ConfigVars):
+def create_service_directories_if_needed(config_vars: ConfigVars) -> None:
     subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
     subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
     subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
 
 
-def configure_postgres_if_needed(config_vars: ConfigVars):
+def configure_postgres_if_needed(config_vars: ConfigVars) -> None:
     # Set up Postgres for the service
     # TODO: Store password somewhere secure/locked down
 
@@ -50,7 +50,7 @@ def configure_postgres_if_needed(config_vars: ConfigVars):
 
 
 class ContainerPreStartJob(ContainerJob):
-    def job(self, services: ServiceList):
+    def job(self, services: ServiceList) -> None:
         """
         Runs a series of pre-service-start actions, for each service, including:
          - Writing common environment variables to a common environment file
