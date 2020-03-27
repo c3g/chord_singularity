@@ -191,9 +191,9 @@ def format_env_pair(k: str, v: str, escaped=False) -> str:
     return "{}='{}'".format(k, bash_escape_single_quotes(v)) if escaped else f"{k}={v}"
 
 
-def get_env_str(s: Service, config_vars: ConfigVars, escaped=True):
-    return (" ".join(format_env_pair(k, v.format(**config_vars), escaped) for k, v in s["run_environment"].items())
-            if "run_environment" in s else "")
+def get_env_str(s: Service, config_vars: ConfigVars, escaped: bool = True) -> str:
+    return " ".join(format_env_pair(k, v.format(**config_vars), escaped)
+                    for k, v in s.get("run_environment", {}).items())
 
 
 def write_environment_dict_to_path(env: Dict[str, str], path: str, export: bool = False) -> None:
