@@ -8,7 +8,7 @@ wait_for_kill () {
   done
 }
 
-CPG="11"
+POSTGRES_VERSION="11"
 
 # Kill the proxy first
 killall nginx &> /dev/null
@@ -25,7 +25,7 @@ chord_container_non_wsgi_stop
 redis-cli -s /chord/tmp/redis.sock shutdown &> /dev/null
 
 # Stop Postgres cluster
-pg_ctlcluster ${CPG} main stop &> /dev/null
+pg_ctlcluster ${POSTGRES_VERSION} main stop &> /dev/null
 
 # Stop commands
 chord_container_post_stop
