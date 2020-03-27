@@ -42,6 +42,7 @@ __all__ = [
     "write_environment_dict_to_path",
 
     "ContainerJob",
+    "BasicCommandHookContainerJob",
 ]
 
 
@@ -220,14 +221,20 @@ class ContainerJob(ABC):
             print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
             exit(1)
 
-        with open(CHORD_SERVICES_SCHEMA_PATH) as cf:
-            schema = json.load(cf)
+        with open(CHORD_SERVICES_SCHEMA_PATH) as chord_services_fh:
             services = load_services()
-
-            validate(instance=services, schema=schema)
-
+            validate(instance=services, schema=json.load(chord_services_fh))
             self.job(services)
 
     @abstractmethod
     def job(self, services: ServiceList) -> None:
         pass
+
+
+class BasicCommandHookContainerJob(ContainerJob):
+    commands_key = "commands"
+
+    def job(self, services: ServiceList) -> None:
+        # Execute post-start hook commands for any services which have them
+        for s in services:
+            execute_runtime_commands(s, s.get(self.commands_key, ()))
