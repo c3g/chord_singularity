@@ -31,6 +31,17 @@ def get_instance_url(i: int):
     return f"http://{i}.chord.dlougheed.com/"  # Trailing slash important here
 
 
+def action_build(args):
+    subprocess.run((
+        "sudo",
+        "singularity",
+        "build",
+        *(("--remote",) if args.remote_build else ()),
+        "chord.sif",
+        "chord.def",
+    ))
+
+
 def action_start(args):
     with open(args.instance_auth, "r") as f:
         instance_auth = json.load(f)
@@ -93,11 +104,13 @@ def main():
     parser.add_argument("--node", dest="node", type=int, help="[node index]", default=1)
     parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart", "shell"),
                         help="build|start|stop|restart|shell")
+    parser.add_argument("--remote-build", dest="remote_build", action="store_true",
+                        help="use Sylabs remote build service")
 
     args = parser.parse_args()
 
     if args.action == "build":
-        subprocess.run(("sudo", "singularity", "build", "chord.sif", "chord.def"))
+        action_build(args)
 
     elif args.action == "start":
         action_start(args)
