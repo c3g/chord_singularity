@@ -42,6 +42,10 @@ def action_build(args):
     ))
 
 
+def action_build_docker():
+    subprocess.run(("docker", "build", "--no-cache", "."))
+
+
 def action_start(args):
     with open(args.instance_auth, "r") as f:
         instance_auth = json.load(f)
@@ -102,15 +106,23 @@ def main():
     parser.add_argument("--instance-auth", dest="instance_auth", type=lambda p: Path(p).absolute(),
                         default=DEFAULT_INSTANCE_AUTH_FILE, help="path/to/instance_auth.json")
     parser.add_argument("--node", dest="node", type=int, help="[node index]", default=1)
-    parser.add_argument("action", metavar="action", type=str, choices=("build", "start", "stop", "restart", "shell"),
-                        help="build|start|stop|restart|shell")
     parser.add_argument("--remote-build", dest="remote_build", action="store_true",
                         help="use Sylabs remote build service")
+    parser.add_argument(
+        "action",
+        metavar="action",
+        type=str,
+        choices=("build", "build-docker", "start", "stop", "restart", "shell"),
+        help="build|build-docker|start|stop|restart|shell"
+    )
 
     args = parser.parse_args()
 
     if args.action == "build":
         action_build(args)
+
+    elif args.action == "build-docker":
+        action_build_docker()
 
     elif args.action == "start":
         action_start(args)
