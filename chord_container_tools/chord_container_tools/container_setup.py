@@ -165,11 +165,15 @@ http {{
     server_name _;
 
     access_by_lua_block {{
-      if ngx.var.http_x_chord_internal == nil then
-        ngx.req.set_header('X-CHORD-Internal', '1')
-      else
-        ngx.req.set_header('X-CHORD-Internal', '0')
+      if ngx.ctx.chord_internal == nil then
+        -- Need to set CHORD internal status, since we're at the start of the request
+        if ngx.var.http_x_chord_internal == nil then
+          ngx.ctx.chord_internal = '1'
+        else
+          ngx.ctx.chord_internal = '0'
+        end
       end
+      ngx.req.set_header('X-CHORD-Internal', ngx.ctx.chord_internal)
     }}
 
     location / {{
@@ -203,8 +207,8 @@ location {base_url} {{
 NGINX_SERVICE_WSGI_TEMPLATE = """
 location @{s_artifact} {{
   include              uwsgi_params;
-  uwsgi_param          Host            $http_host;
-  uwsgi_param          X-Forwarded-For $proxy_add_x_forwarded_for;
+  uwsgi_param          HTTP_Host            $http_host;
+  uwsgi_param          HTTP_X-Forwarded-For $proxy_add_x_forwarded_for;
   uwsgi_pass           chord_{s_artifact};
   uwsgi_read_timeout   630s;
   uwsgi_send_timeout   630s;
