@@ -11,7 +11,11 @@ NODE_VERSION="12.x"
 POSTGRES_VERSION="11"
 HTSLIB_VERSION="1.9"  # TODO: When pysam allows it, upgrade to 1.10.x
 
+# Avoid warnings about non-interactive shell
 export DEBIAN_FRONTEND=noninteractive
+
+# Avoid warnings about parsing apt keys due to stdout redirection
+export APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=true
 
 # Make sure man folders are present (for Java and Postgres)
 mkdir -p /usr/share/man/man1
@@ -21,6 +25,9 @@ echo "[CHORD] Installing apt-sourced shared dependencies"
 
 # Update APT
 apt-get update > /dev/null
+
+# Install apt-utils and suppress the "no apt-utils" warning here
+apt-get install -y --no-install-recommends apt-utils > /dev/null 2>&1
 
 # Fix locale issues (Postgres seemed sensitive to this -- 2019-09-25)
 apt-get install -y locales > /dev/null
@@ -84,7 +91,7 @@ ln -s /chord/tmp/nginx/access.log /usr/local/openresty/nginx/logs/access.log
 ln -s /chord/tmp/nginx/error.log /usr/local/openresty/nginx/logs/error.log
 
 echo "[CHORD] Installing OpenResty modules"
-opm install zmartzone/lua-resty-openidc > /dev/null
+opm install zmartzone/lua-resty-openidc > /dev/null 2>&1
 
 
 ###############################################################################
