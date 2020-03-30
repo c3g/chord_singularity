@@ -83,28 +83,22 @@ if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
   end
 end
 
-local auth_attempts = 2
-local res
-local err
-local session
-while auth_attempts > 0 do
-  res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
-  if res == nil or err then
-    -- Authentication wasn't successful; try clearing the session and
-    -- re-attempting (for a maximum of 2 times.)
-    auth_attempts = auth_attempts - 1
-    if session ~= nil and session.data.user_id ~= nil then
+local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
+if res == nil or err then  -- Authentication wasn't successful
+  -- Authentication wasn't successful; clear the session and
+  -- re-attempting (for a maximum of 2 times.)
+  if session ~= nil then
+    if session.data.user_id ~= nil then
       -- Destroy the current session if it exists and just expired
       session:destroy()
+    elseif err then
+      -- Close the current session before returning an error message
+      session:close()
     end
-    if err and auth_attempts == 0 then
-      if session ~= nil then
-        -- Close the current session before returning an error message
-        session:close()
-      end
-      uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
-    end
-  else break end  -- Authentication was successful
+  end
+  if err then
+    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
+  end
 end
 
 -- If authenticate hasn't rejected us above but it's "open", i.e.
