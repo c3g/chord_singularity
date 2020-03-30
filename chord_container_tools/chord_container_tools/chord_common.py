@@ -176,7 +176,7 @@ def execute_runtime_command(s: Service, command: str) -> None:
     try:
         subprocess.run(full_command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(e, file=sys.stderr)
+        print(e, file=sys.stderr, flush=True)
 
 
 def execute_runtime_commands(s: Service, commands: Tuple[str]) -> None:
@@ -217,6 +217,7 @@ class ContainerJob(ABC):
 
         singularity_env = "SINGULARITY_ENVIRONMENT" if self.build else "SINGULARITY_CONTAINER"
 
+        # TODO: No way of differentiating build from runtime with Docker at the moment
         if os.environ.get(singularity_env, "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
             print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
             exit(1)

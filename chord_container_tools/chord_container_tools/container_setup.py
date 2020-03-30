@@ -256,7 +256,7 @@ def create_service_virtual_environments(services: ServiceList):
     for s in services:
         s_language = s["type"]["language"]
         s_artifact = s["type"]["artifact"]
-        s_repo = s['repository']
+        s_repo = s["repository"]
 
         subprocess.run(f"/bin/bash -c 'mkdir -p /chord/services/{s_artifact}'", shell=True, check=True)
 
