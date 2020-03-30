@@ -3,6 +3,7 @@
 # Script to start various processes for the CHORD system in order.
 
 POSTGRES_VERSION="11"
+REDIS_SOCKET="/chord/tmp/redis.sock"
 
 # Remove any stray socket files
 rm -f /chord/tmp/*.sock
@@ -27,6 +28,12 @@ mkdir -p /chord/data/redis
 
 echo "Starting Redis..."
 nohup redis-server /etc/redis/redis.conf &> /chord/tmp/redis/redis.log  # Daemonized, so doesn't need &
+
+# Wait for Redis to start
+sleep 2
+# Delete existing session locks in case they were persisted by accident
+redis-cli -s "${REDIS_SOCKET}" --scan --pattern "oidc:*.lock" \
+  | xargs -L 100 redis-cli -s "${REDIS_SOCKET}" "DEL"
 
 mkdir -p /chord/data/postgresql
 
