@@ -98,6 +98,10 @@ while auth_attempts > 0 do
       session:destroy()
     end
     if err and auth_attempts == 0 then
+      if session ~= nil then
+        -- Close the current session before returning an error message
+        session:close()
+      end
       uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
     end
   else break end  -- Authentication was successful
@@ -113,6 +117,8 @@ if res ~= nil then  -- Authentication worked
     -- Load user_id and user_role from session if available
     user_id = session.data.user_id
     user_role = session.data.user_role
+    -- Close the session, since we're done loading data from it
+    session:close()
   else
     -- Save user_id and user_role into session for future use
     user_id = res.id_token.sub
@@ -126,6 +132,9 @@ if res ~= nil then  -- Authentication worked
     session.data.user_role = user_role
     session:save()
   end
+elseif session ~= nil
+  -- Close the session, since we don't need it anymore
+  session:close()
 end
 
 if is_private_uri and user_role ~= "owner" then
