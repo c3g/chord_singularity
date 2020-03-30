@@ -1,0 +1,13 @@
+.DS_Store
+
+/.git
+.gitignore
+
+.travis.yml
+/env/*
+/*.def
+/*.sif
+
+/CANARIE.md
+/example_config/*
+/instance_auth.json
