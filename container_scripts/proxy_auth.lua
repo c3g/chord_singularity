@@ -132,7 +132,7 @@ if res ~= nil then  -- Authentication worked
     session.data.user_role = user_role
     session:save()
   end
-elseif session ~= nil
+elseif session ~= nil then
   -- Close the session, since we don't need it anymore
   session:close()
 end
