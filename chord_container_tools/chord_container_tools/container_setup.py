@@ -92,6 +92,7 @@ http {{
 
   server {{
     listen unix:/chord/tmp/nginx.sock;
+    root /chord/data/web/dist;
     server_name _;
 
     # Enable to show debugging information in the error log:
@@ -109,45 +110,58 @@ http {{
     set $chord_auth_config     "{auth_config}";
     set $chord_instance_config "{instance_config}";
 
+    # Head off any favicon requests before they pass through the auth flow
     location = /favicon.ico {{
       return 404;
       log_not_found off;
       access_log off;
     }}
 
+    # Serve up public files before they pass through the auth flow
+    location /public/ {{
+      alias /chord/data/web/public/;
+    }}
+
+    # For the next few blocks, set up two-stage rate limiting:
+    #   Store:  10 MB worth of IP addresses (~160 000)
+    #   Rate:   10 requests per second.
+    #   Bursts: Allow for bursts of 15 with no delay and an additional 25
+    #          (total 40) queued requests before throwing up 503.
+    #   This limit is for requests from outside the DMZ; internal microservices
+    #   currently get unlimited access.
+    # See: https://www.nginx.com/blog/rate-limiting-nginx/
+
+    location / {{
+      limit_req zone=external burst=40 delay=15;
+      access_by_lua_file /chord/container_scripts/proxy_auth.lua;
+      try_files $uri /index.html;
+    }}
+
     location = /api/node-info {{
+      limit_req zone=external burst=40 delay=15;
       content_by_lua_file /chord/container_scripts/node_info.lua;
     }}
 
-    location / {{
-      # Set up two-stage rate limiting:
-      #   Store:  10 MB worth of IP addresses (~160 000)
-      #   Rate:   10 requests per second.
-      #   Bursts: Allow for bursts of 15 with no delay and an additional 25
-      #          (total 40) queued requests before throwing up 503.
-      #   This limit is for requests from outside the DMZ; internal microservices
-      #   currently get unlimited access.
-      # See: https://www.nginx.com/blog/rate-limiting-nginx/
+    location /api/ {{
       limit_req zone=external burst=40 delay=15;
-
-      access_by_lua_file /chord/container_scripts/proxy_auth.lua;
+      access_by_lua_file   /chord/container_scripts/proxy_auth.lua;
 
       # TODO: Deduplicate with below?
 
-      proxy_http_version 1.1;
+      proxy_http_version   1.1;
 
-      proxy_pass_header  Server;
-      proxy_set_header   Upgrade           $http_upgrade;
-      proxy_set_header   Connection        "upgrade";
-      proxy_set_header   Host              $http_host;
-      proxy_set_header   X-Real-IP         $remote_addr;
-      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-      proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+      proxy_pass_header    Server;
+      proxy_set_header     Upgrade           $http_upgrade;
+      proxy_set_header     Connection        "upgrade";
+      proxy_set_header     Host              $http_host;
+      proxy_set_header     X-Real-IP         $remote_addr;
+      proxy_set_header     X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header     X-Forwarded-Proto $http_x_forwarded_proto;
 
       # Clear X-CHORD-Internal header and set it to the "off" value (0)
-      proxy_set_header   X-CHORD-Internal  "0";
+      proxy_set_header     X-CHORD-Internal  "0";
 
-      proxy_pass         http://unix:/chord/tmp/nginx_internal.sock;
+      proxy_pass           http://unix:/chord/tmp/nginx_internal.sock;
 
       client_body_timeout  660s;
       proxy_read_timeout   660s;
@@ -160,9 +174,8 @@ http {{
 
   server {{
     listen unix:/chord/tmp/nginx_internal.sock;
-    root /chord/data/web/dist;
-    index index.html index.htm index.nginx-debian.html;
-    server_name _;
+    root /chord/data/web/dist;  # Leave this here so the server has a root (unused)
+    server_name '';
 
     access_by_lua_block {{
       if ngx.ctx.chord_internal == nil then
@@ -174,14 +187,6 @@ http {{
         end
       end
       ngx.req.set_header('X-CHORD-Internal', ngx.ctx.chord_internal)
-    }}
-
-    location / {{
-      try_files $uri /index.html;
-    }}
-
-    location /public/ {{
-      alias /chord/data/web/public/;
     }}
 
     include {services_conf};
@@ -207,8 +212,8 @@ location {base_url} {{
 NGINX_SERVICE_WSGI_TEMPLATE = """
 location @{s_artifact} {{
   include              uwsgi_params;
-  uwsgi_param          HTTP_Host            $http_host;
-  uwsgi_param          HTTP_X-Forwarded-For $proxy_add_x_forwarded_for;
+  # uwsgi_param          HTTP_Host            $http_host;
+  # uwsgi_param          HTTP_X-Forwarded-For $proxy_add_x_forwarded_for;
   uwsgi_pass           chord_{s_artifact};
   uwsgi_read_timeout   630s;
   uwsgi_send_timeout   630s;
