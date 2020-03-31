@@ -86,6 +86,9 @@ http {{
   # e.g. https://docs.djangoproject.com/en/3.0/howto/auth-remote-user/
   underscores_in_headers off;
 
+  # Prevent proxy from trying multiple upstreams.
+  proxy_next_upstream off;
+
   include {upstreams_conf};
 
   limit_req_zone $binary_remote_addr zone=external:10m rate=10r/s;
