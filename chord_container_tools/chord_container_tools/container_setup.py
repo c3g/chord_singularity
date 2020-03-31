@@ -204,13 +204,10 @@ NGINX_SERVICE_BASE_TEMPLATE = """
 location = {base_url} {{
   rewrite ^ {base_url}/;
 }}
-location {base_url} {{
-  try_files $uri @{s_artifact};
-}}
 """
 
 NGINX_SERVICE_WSGI_TEMPLATE = """
-location @{s_artifact} {{
+location {base_url} {{
   include              uwsgi_params;
   # uwsgi_param          HTTP_Host            $http_host;
   # uwsgi_param          HTTP_X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -225,7 +222,7 @@ location @{s_artifact} {{
 """
 
 NGINX_SERVICE_NON_WSGI_TEMPLATE = """
-location @{s_artifact} {{
+location {base_url} {{
   proxy_http_version   1.1;
 
   proxy_pass_header    Server;
@@ -345,7 +342,8 @@ def write_nginx_confs(services: ServiceList):
 
         # Named location
         nginx_services_conf += (NGINX_SERVICE_WSGI_TEMPLATE if "wsgi" not in s or s["wsgi"]
-                                else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(s_artifact=config_vars["SERVICE_ARTIFACT"])
+                                else NGINX_SERVICE_NON_WSGI_TEMPLATE).format(
+            base_url=config_vars["SERVICE_URL_BASE_PATH"], s_artifact=config_vars["SERVICE_ARTIFACT"])
 
     # Write configurations to the container file system
 
