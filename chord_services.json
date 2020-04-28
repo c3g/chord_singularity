@@ -39,7 +39,7 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_wes",
+    "repository": "https://github.com/c3g/chord_wes@v0.1.0",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
@@ -61,7 +61,7 @@
       "DATABASE":  "{SERVICE_DATA}/wes.db",
       "NGINX_INTERNAL_SOCKET": "/chord/tmp/nginx_internal.sock",
       "WOM_TOOL_LOCATION": "/chord/womtool.jar",
-      "WRITE_OUTPUT_TO_DRS": "false"
+      "WRITE_OUTPUT_TO_DRS": "true"
     }
   },
   {
@@ -137,26 +137,30 @@
       "artifact": "variant",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_variant_service@v0.1.0",
+    "repository": "https://github.com/c3g/chord_variant_service@v0.2.0",
     "data_service": true,
     "manageable_tables": true,
     "apt_dependencies": ["samtools"],
     "wsgi": true,
-    "python_module": "chord_variant_service.app",
+    "python_module": "chord_variant_service.wsgi",
     "python_callable": "application",
     "run_environment": {
       "DATA": "{SERVICE_DATA}/",
+      "DRS_URL_BASE_PATH": "/api/drs",
+      "INITIALIZE_IMMEDIATELY": "false",
       "TABLE_MANAGER": "vcf"
-    }
+    },
+    "post_start_commands": [
+      "curl --unix-socket /chord/tmp/nginx_internal.sock http://localhost{SERVICE_URL_BASE_PATH}/private/post-start-hook"
+    ]
   },
   {
-    "disabled": true,
     "type": {
       "organization": "ca.c3g.chord",
       "artifact": "drs",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_drs",
+    "repository": "https://github.com/c3g/chord_drs@v0.1.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drs.app",
