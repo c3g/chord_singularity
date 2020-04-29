@@ -39,7 +39,7 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_wes@v0.1.0",
+    "repository": "https://github.com/c3g/chord_wes@v0.1.1",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
