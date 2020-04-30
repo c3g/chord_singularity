@@ -148,7 +148,7 @@
       "DATA": "{SERVICE_DATA}/",
       "DRS_URL_BASE_PATH": "/api/drs",
       "INITIALIZE_IMMEDIATELY": "false",
-      "TABLE_MANAGER": "vcf"
+      "TABLE_MANAGER": "drs"
     },
     "post_start_commands": [
       "curl --unix-socket /chord/tmp/nginx_internal.sock http://localhost{SERVICE_URL_BASE_PATH}/private/post-start-hook"
