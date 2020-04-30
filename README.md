@@ -2,6 +2,8 @@
 
 ![Build Status](https://travis-ci.org/c3g/chord_singularity.svg?branch=master)
 
+The CanDIG CHORD project was funded by [CANARIE](https://www.canarie.ca/).
+
 What's included in a CHORD Singularity container?
 
   * NodeJS 12
