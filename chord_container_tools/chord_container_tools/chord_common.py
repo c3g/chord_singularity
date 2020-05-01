@@ -124,9 +124,8 @@ def get_config_vars(s: Dict) -> ConfigVars:
 
 def get_runtime_common_chord_environment() -> ConfigVars:
     """Should only be run from inside an instance."""
-    auth_config = json_load_dict_or_empty(AUTH_CONFIG_PATH)
     return {
-        "OIDC_DISCOVERY_URI": auth_config["OIDC_DISCOVERY_URI"],
+        "OIDC_DISCOVERY_URI": json_load_dict_or_empty(AUTH_CONFIG_PATH).get("OIDC_DISCOVERY_URI", ""),
         **json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     }
 
@@ -171,10 +170,8 @@ def execute_runtime_command(s: Service, command: str) -> None:
     commands = (*get_service_command_preamble(s, config_vars),
                 f"{get_env_str(s, config_vars)} {bash_escape_single_quotes(command.format(**config_vars))}")
 
-    full_command = f"/bin/bash -c '{' && '.join(commands)}'"
-
     try:
-        subprocess.run(full_command, shell=True, check=True)
+        subprocess.run(f"/bin/bash -c '{' && '.join(commands)}'", shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(e, file=sys.stderr, flush=True)
 
@@ -189,7 +186,7 @@ def bash_escape_single_quotes(v: str) -> str:
 
 
 def format_env_pair(k: str, v: str, escaped=False) -> str:
-    return "{}='{}'".format(k, bash_escape_single_quotes(v)) if escaped else f"{k}={v}"
+    return f"{k}='{bash_escape_single_quotes(v)}'" if escaped else f"{k}={v}"
 
 
 def get_env_str(s: Service, config_vars: ConfigVars, escaped: bool = True) -> str:
@@ -199,11 +196,7 @@ def get_env_str(s: Service, config_vars: ConfigVars, escaped: bool = True) -> st
 
 def write_environment_dict_to_path(env: Dict[str, str], path: str, export: bool = False) -> None:
     with open(path, "w") as ef:
-        for c, v in env.items():
-            if export:
-                ef.write("export ")
-            ef.write(format_env_pair(c, v, escaped=False))
-            ef.write("\n")
+        ef.writelines(f"{'export ' if export else ''}{format_env_pair(c, v)}\n" for c, v in env.items())
 
 
 class ContainerJob(ABC):
@@ -218,7 +211,7 @@ class ContainerJob(ABC):
         singularity_env = "SINGULARITY_ENVIRONMENT" if self.build else "SINGULARITY_CONTAINER"
 
         # TODO: No way of differentiating build from runtime with Docker at the moment
-        if os.environ.get(singularity_env, "") == "" and os.environ.get("CHORD_DOCKER_BUILD", "") == "":
+        if not (os.environ.get(singularity_env) or os.environ.get("CHORD_DOCKER_BUILD")):
             print(f"Error: {sys.argv[0]} cannot be run outside of a Singularity or Docker container.")
             exit(1)
 

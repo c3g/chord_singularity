@@ -15,7 +15,7 @@ from .chord_common import (
 )
 
 
-NEW_DATABASE = os.environ.get("NEW_DATABASE", "False")
+NEW_DATABASE = os.environ.get("NEW_DATABASE", "False") == "True"
 
 
 def create_service_directories_if_needed(config_vars: ConfigVars) -> None:
@@ -28,7 +28,7 @@ def configure_postgres_if_needed(config_vars: ConfigVars) -> None:
     # Set up Postgres for the service
     # TODO: Store password somewhere secure/locked down
 
-    if NEW_DATABASE != "True":
+    if not NEW_DATABASE:
         # Not configuring Postgres for the first time
         return
 
