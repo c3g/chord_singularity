@@ -138,7 +138,7 @@
       "artifact": "variant",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_variant_service@v0.2.0",
+    "repository": "https://github.com/c3g/chord_variant_service@v0.2.1",
     "data_service": true,
     "manageable_tables": true,
     "apt_dependencies": ["samtools"],
