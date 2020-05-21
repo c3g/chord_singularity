@@ -182,6 +182,7 @@ ln -s "/chord/tmp/postgresql/postgresql-${POSTGRES_VERSION}-main.log" \
 ###############################################################################
 
 # Install HTSLib (may as well provide it, it'll likely be commonly used)
+# TODO: Do we even need this?
 echo "[CHORD] Installing HTSLib v${HTSLIB_VERSION}"
 # TODO: Do we want to move this into pre_install for WES/variant/something, or no?
 apt-get install -y zlib1g-dev libbz2-dev liblzma-dev > /dev/null
@@ -208,7 +209,8 @@ echo "[CHORD] Installing bcftools v${BCFTOOLS_VERSION}"
 cd /chord || exit
 echo "[CHORD]    Downloading"
 curl -Lso bcftools.tar.bz2 \
-  "https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2" > /dev/null
+  "https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2" \
+  > /dev/null
 tar -xjf bcftools.tar.bz2
 cd "bcftools-${BCFTOOLS_VERSION}" || exit
 echo "[CHORD]    Building"
@@ -221,7 +223,7 @@ make install > /dev/null
 echo "[CHORD]    Cleaning up"
 cd /chord || exit
 rm bcftools.tar.bz2
-rm -r "bcftools-${HTSLIB_VERSION}"
+rm -r "bcftools-${BCFTOOLS_VERSION}"
 
 
 ###############################################################################
