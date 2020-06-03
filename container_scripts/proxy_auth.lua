@@ -67,8 +67,11 @@ local opts = {
 local ngx_var_uri = ngx.var.uri or ""
 
 -- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
-local is_private_uri = config_params["CHORD_PERMISSIONS"] and
-    string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
+-- All URIs are effectively "private" externally for CHORD_PRIVATE_MODE nodes
+local is_private_uri = config_params["CHORD_PERMISSIONS"] and (
+  config_file["CHORD_PRIVATE_MODE"] or
+  string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
+)
 
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder

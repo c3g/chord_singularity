@@ -68,10 +68,10 @@ def action_start(args):
         instance_url = get_instance_url(i)
 
         with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as fc:
-            # TODO: Environment: CHORD_DEBUG, CHORD_PERMISSIONS
             json.dump({
                 "CHORD_DEBUG": True,  # Whether the container is started in DEBUG mode
                 "CHORD_PERMISSIONS": False,  # Whether the container uses the default permissions system
+                "CHORD_PRIVATE_MODE": False,  # Whether the container will require authentication for everything
 
                 "CHORD_HOST": instance_host,
                 "CHORD_URL": instance_url,

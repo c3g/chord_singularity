@@ -229,6 +229,10 @@ using `dev_utils.py`.
       within, use the default CHORD permissions system. Turning this off
       WITHOUT an alternative in place is **insecure** and **cannot** be used in
       production **AT ALL**.
+    * `CHORD_PRIVATE_MODE` (`boolean`): Whether this node will require
+      authentication for any access. Also affects whether the node will be able
+      to join other nodes in a network. Disabling ``CHORD_PERMISSIONS` 
+      **will override** this value.
     * `CHORD_HOST` (`string`): The domain name of the host (no `http://`, no
       trailing slash, no sub-paths)
     * `CHORD_URL` (`string`): The URL of the node (for federation), including
