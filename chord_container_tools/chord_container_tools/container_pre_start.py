@@ -19,9 +19,9 @@ NEW_DATABASE = os.environ.get("NEW_DATABASE", "False") == "True"
 
 
 def create_service_directories_if_needed(config_vars: ConfigVars) -> None:
-    subprocess.run(("mkdir", "-p", config_vars["SERVICE_DATA"]), check=True)
-    subprocess.run(("mkdir", "-p", config_vars["SERVICE_LOGS"]), check=True)
-    subprocess.run(("mkdir", "-p", config_vars["SERVICE_TEMP"]), check=True)
+    subprocess.run(("mkdir", "-m770", "-p", config_vars["SERVICE_DATA"]), check=True)
+    subprocess.run(("mkdir", "-m770", "-p", config_vars["SERVICE_LOGS"]), check=True)
+    subprocess.run(("mkdir", "-m770", "-p", config_vars["SERVICE_TEMP"]), check=True)
 
 
 def configure_postgres_if_needed(config_vars: ConfigVars) -> None:
