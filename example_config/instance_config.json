@@ -1,6 +1,7 @@
 {
   "CHORD_DEBUG": false,
   "CHORD_PERMISSIONS": true,
+  "CHORD_PRIVATE_MODE": false,
   "CHORD_HOST": "chord.example.org",
   "CHORD_URL": "https://chord.example.org/optional/sub/path/",
   "CHORD_REGISTRY_URL": "https://candig-app.calculquebec.ca/chord1/"

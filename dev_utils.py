@@ -13,8 +13,8 @@ USER_DIR = os.path.expanduser("~")
 CHORD_DATA_DIRECTORY = os.environ.get("CHORD_DATA_DIRECTORY", os.path.join(USER_DIR, "chord_data"))
 CHORD_TEMP_DIRECTORY = os.environ.get("CHORD_TEMP_DIRECTORY", "/tmp/chord")
 
-CHORD_AUTH_CONFIG_FILE = ".auth_config.json"
-CHORD_INSTANCE_CONFIG_FILE = ".instance_config.json"
+CHORD_AUTH_CONFIG_FILE = "auth_config.json"
+CHORD_INSTANCE_CONFIG_FILE = "instance_config.json"
 
 DEFAULT_INSTANCE_AUTH_FILE = Path(__file__).parent.absolute() / "instance_auth.json"
 

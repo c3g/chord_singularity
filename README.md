@@ -217,11 +217,11 @@ Some files are needed in the CHORD `data` folder to configure the node.
 **These files are automatically created when using the `dev_utils.py` script,
 but should be set up in another way for production deployment.**
 
-Values for each node's `.auth_config.json` are populated from the
+Values for each node's `auth_config.json` are populated from the
 [`instance_auth.json`](instance_auth.json) file at instance start time when
 using `dev_utils.py`.
 
-  * `.instance_config.json`, containing the following key-value pairs:
+  * `instance_config.json`, containing the following key-value pairs:
     * `CHORD_DEBUG` (`boolean`): Whether the container is started in debug
       mode. **Important security note:** debug mode is **insecure** and cannot
       be used in production **AT ALL**.
@@ -241,7 +241,7 @@ using `dev_utils.py`.
       federation), with trailing slash, and sub path (if any.) A
       **registry node** is a trusted CHORD node which is the de-facto reference
       for the peer list.
-  * `.auth_config.json`:
+  * `auth_config.json`:
     * `OIDC_DISCOVERY_URI` (`string`): The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP
     * `CLIENT_ID` (`string`): The client ID for the node in the OIDC IdP
