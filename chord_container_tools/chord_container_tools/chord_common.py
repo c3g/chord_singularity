@@ -117,7 +117,7 @@ def get_config_vars(s: Dict) -> ConfigVars:
         }
 
         json_save(config, CHORD_SERVICES_CONFIG_PATH)
-        subprocess.run(("chmod", "640", CHORD_SERVICES_CONFIG_PATH))  # TODO: How to secure properly?
+        subprocess.run(("chmod", "644", CHORD_SERVICES_CONFIG_PATH))  # TODO: How to secure properly?
 
     return config[s_artifact]
 
