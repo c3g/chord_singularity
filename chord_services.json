@@ -39,11 +39,11 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_wes@v0.1.1",
+    "repository": "https://github.com/c3g/chord_wes@v0.1.2",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
-      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/50/womtool-50.jar"
+      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/51/womtool-51.jar"
     ],
     "pre_start_commands": [
       "nohup celery -A chord_wes.app worker &> {SERVICE_LOGS}/celery.log &"
