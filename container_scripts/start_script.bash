@@ -72,18 +72,8 @@ nohup uwsgi \
 echo "Starting other services..."
 chord_container_non_wsgi_start
 
-echo "Installing chord_web..."
-
-cd /chord/data || exit
-if [[ ! -d /chord/data/web ]]; then
-  git clone --quiet --depth 1 https://github.com/c3g/chord_web.git web
-fi
-# TODO: Specify version
-cd /chord/data/web || exit
-git pull --quiet
-
-npm install > /dev/null
-npm run build > /dev/null
+echo "Installing or updating chord_web..."
+bash /chord/container_scripts/install_web.bash
 
 echo "Starting OpenResty NGINX..."
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH

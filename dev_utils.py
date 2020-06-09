@@ -42,8 +42,12 @@ def action_build(args):
     ))
 
 
-def action_build_docker():
+def action_build_docker(_args):
     subprocess.run(("docker", "build", "--no-cache", "."))
+
+
+def action_shell(args):
+    subprocess.run(("singularity", "shell", f"instance://{get_instance_name(args.node)}"))
 
 
 def action_start(args):
@@ -96,8 +100,27 @@ def action_stop(args):
         subprocess.run(("singularity", "instance", "stop", get_instance_name(i)))
 
 
-def action_shell(args):
-    subprocess.run(("singularity", "shell", f"instance://{get_instance_name(args.node)}"))
+def action_restart(args):
+    action_start(args)
+    action_stop(args)
+
+
+def action_update_web(args):
+    subprocess.run(("singularity", "exec", f"instance://{get_instance_name(args.node)}",
+                    "bash", "/chord/container_scripts/install_web.bash"))
+
+
+ACTIONS = {
+    "build": action_build,
+    "build-docker": action_build_docker,
+    "shell": action_shell,
+    "start": action_start,
+    "stop": action_stop,
+    "restart": action_restart,
+    "update-web": action_update_web,
+}
+
+ACTION_CHOICES = tuple(sorted(ACTIONS.keys()))
 
 
 def main():
@@ -112,30 +135,12 @@ def main():
         "action",
         metavar="action",
         type=str,
-        choices=("build", "build-docker", "start", "stop", "restart", "shell"),
-        help="build|build-docker|start|stop|restart|shell"
+        choices=ACTION_CHOICES,
+        help="|".join(ACTION_CHOICES)
     )
 
     args = parser.parse_args()
-
-    if args.action == "build":
-        action_build(args)
-
-    elif args.action == "build-docker":
-        action_build_docker()
-
-    elif args.action == "start":
-        action_start(args)
-
-    elif args.action == "stop":
-        action_stop(args)
-
-    elif args.action == "restart":
-        action_stop(args)
-        action_start(args)
-
-    elif args.action == "shell":
-        action_shell(args)
+    ACTIONS[args.action](args)
 
 
 if __name__ == "__main__":
