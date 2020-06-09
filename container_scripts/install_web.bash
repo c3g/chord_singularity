@@ -9,7 +9,7 @@ source /chord/data/.environment
 # Clone the repository if it hasn't been done already
 cd /chord/data || exit
 if [[ ! -d /chord/data/web ]]; then
-  git clone --quiet --depth 1 https://github.com/c3g/chord_web.git web
+  git clone --quiet --depth 1 https://github.com/bento-platform/bento_web.git web
 fi
 
 # TODO: Specify version
