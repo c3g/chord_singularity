@@ -17,11 +17,11 @@
   },
   {
     "type": {
-      "organization": "ca.c3g.chord",
+      "organization": "ca.c3g.bento",
       "artifact": "drop-box",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_drop_box_service@v0.3.1",
+    "repository": "https://github.com/c3g/bento_drop_box_service@v0.4.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drop_box_service.app",
