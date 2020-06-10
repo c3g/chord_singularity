@@ -101,14 +101,14 @@
   },
   {
     "type": {
-      "organization": "ca.c3g.chord",
+      "organization": "ca.c3g.bento",
       "artifact": "event-relay",
       "language": "javascript"
     },
-    "repository": "https://github.com/c3g/chord_event_relay#v0.2.1",
+    "repository": "https://github.com/bento-platform/bento_event_relay#v0.3.1",
     "data_service": false,
     "wsgi": false,
-    "service_runnable": "chord-event-relay",
+    "service_runnable": "bento-event-relay",
     "run_environment": {
       "SOCKET_IO_PATH": "/private/socket.io"
     }
