@@ -24,7 +24,7 @@
     "repository": "https://github.com/bento-platform/bento_drop_box_service@v0.4.0",
     "data_service": false,
     "wsgi": true,
-    "python_module": "chord_drop_box_service.app",
+    "python_module": "bento_drop_box_service.app",
     "python_callable": "application",
     "run_environment": {
       "MINIO_URL": "",
