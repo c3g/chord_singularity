@@ -21,7 +21,7 @@
       "artifact": "drop-box",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/bento_drop_box_service@v0.4.0",
+    "repository": "https://github.com/bento-project/bento_drop_box_service@v0.4.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drop_box_service.app",
