@@ -71,7 +71,7 @@
       "artifact": "federation",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_federation_service@v0.4.0",
+    "repository": "https://github.com/bento-platform/bento_federation_service@v0.4.0",
     "data_service": false,
     "wsgi": false,
     "service_runnable": "chord_federation_service",
