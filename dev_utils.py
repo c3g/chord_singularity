@@ -23,10 +23,6 @@ def get_instance_name(i: int):
     return f"chord{i}"
 
 
-def get_instance_host(i: int):
-    return f"{i}.chord.dlougheed.com"
-
-
 def get_instance_url(i: int):
     return f"http://{i}.chord.dlougheed.com/"  # Trailing slash important here
 
@@ -68,7 +64,6 @@ def action_start(args):
 
         subprocess.run(("mkdir", "-p", instance_data, instance_temp))
 
-        instance_host = get_instance_host(i)
         instance_url = get_instance_url(i)
 
         with open(os.path.join(instance_data, CHORD_INSTANCE_CONFIG_FILE), "w") as fc:
@@ -77,7 +72,6 @@ def action_start(args):
                 "CHORD_PERMISSIONS": False,  # Whether the container uses the default permissions system
                 "CHORD_PRIVATE_MODE": False,  # Whether the container will require authentication for everything
 
-                "CHORD_HOST": instance_host,
                 "CHORD_URL": instance_url,
                 "CHORD_REGISTRY_URL": get_instance_url(1),
             }, fc)

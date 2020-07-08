@@ -233,8 +233,6 @@ using `dev_utils.py`.
       authentication for any access. Also affects whether the node will be able
       to join other nodes in a network. Disabling ``CHORD_PERMISSIONS` 
       **will override** this value.
-    * `CHORD_HOST` (`string`): The domain name of the host (no `http://`, no
-      trailing slash, no sub-paths)
     * `CHORD_URL` (`string`): The URL of the node (for federation), including
       trailing slash, and sub path (if any)
     * `CHORD_REGISTRY_URL` (`string`): The URL of the registry node (for
