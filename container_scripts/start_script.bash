@@ -76,6 +76,13 @@ echo "Installing or updating chord_web..."
 bash /chord/container_scripts/install_web.bash
 
 echo "Starting OpenResty NGINX..."
+
+# Copy configuration template to writable location and replace template
+# configuration variables with their set values.
+cp /usr/local/openresty/nginx/conf/nginx_gateway.conf.template /chord/tmp/nginx_gateway.conf
+sed -i "s=LISTEN_ON=${LISTEN_ON}=g" /chord/tmp/nginx_gateway.conf
+
+# Start the OpenResty NGINX executable
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
 nohup nginx &> /dev/null &
 

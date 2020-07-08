@@ -74,6 +74,8 @@ def action_start(args):
 
                 "CHORD_URL": instance_url,
                 "CHORD_REGISTRY_URL": get_instance_url(1),
+
+                "LISTEN_ON": "unix:/chord/tmp/nginx.sock",
             }, fc)
 
         with open(os.path.join(instance_data, CHORD_AUTH_CONFIG_FILE), "w") as fa:

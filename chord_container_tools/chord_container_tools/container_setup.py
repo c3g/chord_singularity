@@ -41,7 +41,95 @@ endfor =
 
 NGINX_CONF_LOCATION = "/usr/local/openresty/nginx/conf/nginx.conf"
 NGINX_UPSTREAMS_CONF_LOCATION = "/usr/local/openresty/nginx/conf/chord_upstreams.conf"
+NGINX_GATEWAY_CONF_TPL_LOCATION = "/usr/local/openresty/nginx/conf/nginx_gateway.conf.template"
+NGINX_GATEWAY_CONF_LOCATION = "/chord/tmp/nginx_gateway.conf"
 NGINX_SERVICES_CONF_LOCATION = "/usr/local/openresty/nginx/conf/chord_services.conf"
+
+NGINX_GATEWAY_CONF_TPL_TEMPLATE = """
+limit_req_zone $binary_remote_addr zone=external:10m rate=10r/s;
+
+server {{
+  listen LISTEN_ON;  # unix:/chord/tmp/nginx.sock;
+  root /chord/data/web/dist;
+  server_name _;
+
+  # Enable to show debugging information in the error log:
+  # error_log /usr/local/openresty/nginx/logs/error.log debug;
+
+  # lua-resty-session configuration
+  # - use Redis for sessions to allow scaling of NGINX
+  set $session_cookie_lifetime 180s;
+  set $session_cookie_renew    180s;
+  set $session_storage         redis;
+  set $session_redis_prefix    oidc;
+  set $session_redis_socket    unix:///chord/tmp/redis.sock;
+
+  # CHORD constants (configuration file locations)
+  set $chord_auth_config     "{auth_config}";
+  set $chord_instance_config "{instance_config}";
+
+  # Head off any favicon requests before they pass through the auth flow
+  location = /favicon.ico {{
+    return 404;
+    log_not_found off;
+    access_log off;
+  }}
+
+  # Serve up public files before they pass through the auth flow
+  location /public/ {{
+    alias /chord/data/web/public/;
+  }}
+
+  # For the next few blocks, set up two-stage rate limiting:
+  #   Store:  10 MB worth of IP addresses (~160 000)
+  #   Rate:   10 requests per second.
+  #   Bursts: Allow for bursts of 15 with no delay and an additional 25
+  #          (total 40) queued requests before throwing up 503.
+  #   This limit is for requests from outside the DMZ; internal microservices
+  #   currently get unlimited access.
+  # See: https://www.nginx.com/blog/rate-limiting-nginx/
+
+  location / {{
+    limit_req zone=external burst=40 delay=15;
+    access_by_lua_file /chord/container_scripts/proxy_auth.lua;
+    try_files $uri /index.html;
+  }}
+
+  location = /api/node-info {{
+    limit_req zone=external burst=40 delay=15;
+    content_by_lua_file /chord/container_scripts/node_info.lua;
+  }}
+
+  location /api/ {{
+    limit_req zone=external burst=40 delay=15;
+    access_by_lua_file   /chord/container_scripts/proxy_auth.lua;
+
+    # TODO: Deduplicate with below?
+
+    proxy_http_version   1.1;
+
+    proxy_pass_header    Server;
+    proxy_set_header     Upgrade           $http_upgrade;
+    proxy_set_header     Connection        "upgrade";
+    proxy_set_header     Host              $http_host;
+    proxy_set_header     X-Real-IP         $remote_addr;
+    proxy_set_header     X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header     X-Forwarded-Proto $http_x_forwarded_proto;
+
+    # Clear X-CHORD-Internal header and set it to the "off" value (0)
+    proxy_set_header     X-CHORD-Internal  "0";
+
+    proxy_pass           http://unix:/chord/tmp/nginx_internal.sock;
+
+    client_body_timeout  660s;
+    proxy_read_timeout   660s;
+    proxy_send_timeout   660s;
+    send_timeout         660s;
+
+    client_max_body_size 200m;
+  }}
+}}
+"""
 
 # TODO: PROD: SSL VERIFY AUTH
 NGINX_CONF_TEMPLATE = """
@@ -91,89 +179,7 @@ http {{
 
   include {upstreams_conf};
 
-  limit_req_zone $binary_remote_addr zone=external:10m rate=10r/s;
-
-  server {{
-    listen unix:/chord/tmp/nginx.sock;
-    root /chord/data/web/dist;
-    server_name _;
-
-    # Enable to show debugging information in the error log:
-    # error_log /usr/local/openresty/nginx/logs/error.log debug;
-
-    # lua-resty-session configuration
-    # - use Redis for sessions to allow scaling of NGINX
-    set $session_cookie_lifetime 180s;
-    set $session_cookie_renew    180s;
-    set $session_storage         redis;
-    set $session_redis_prefix    oidc;
-    set $session_redis_socket    unix:///chord/tmp/redis.sock;
-
-    # CHORD constants (configuration file locations)
-    set $chord_auth_config     "{auth_config}";
-    set $chord_instance_config "{instance_config}";
-
-    # Head off any favicon requests before they pass through the auth flow
-    location = /favicon.ico {{
-      return 404;
-      log_not_found off;
-      access_log off;
-    }}
-
-    # Serve up public files before they pass through the auth flow
-    location /public/ {{
-      alias /chord/data/web/public/;
-    }}
-
-    # For the next few blocks, set up two-stage rate limiting:
-    #   Store:  10 MB worth of IP addresses (~160 000)
-    #   Rate:   10 requests per second.
-    #   Bursts: Allow for bursts of 15 with no delay and an additional 25
-    #          (total 40) queued requests before throwing up 503.
-    #   This limit is for requests from outside the DMZ; internal microservices
-    #   currently get unlimited access.
-    # See: https://www.nginx.com/blog/rate-limiting-nginx/
-
-    location / {{
-      limit_req zone=external burst=40 delay=15;
-      access_by_lua_file /chord/container_scripts/proxy_auth.lua;
-      try_files $uri /index.html;
-    }}
-
-    location = /api/node-info {{
-      limit_req zone=external burst=40 delay=15;
-      content_by_lua_file /chord/container_scripts/node_info.lua;
-    }}
-
-    location /api/ {{
-      limit_req zone=external burst=40 delay=15;
-      access_by_lua_file   /chord/container_scripts/proxy_auth.lua;
-
-      # TODO: Deduplicate with below?
-
-      proxy_http_version   1.1;
-
-      proxy_pass_header    Server;
-      proxy_set_header     Upgrade           $http_upgrade;
-      proxy_set_header     Connection        "upgrade";
-      proxy_set_header     Host              $http_host;
-      proxy_set_header     X-Real-IP         $remote_addr;
-      proxy_set_header     X-Forwarded-For   $proxy_add_x_forwarded_for;
-      proxy_set_header     X-Forwarded-Proto $http_x_forwarded_proto;
-
-      # Clear X-CHORD-Internal header and set it to the "off" value (0)
-      proxy_set_header     X-CHORD-Internal  "0";
-
-      proxy_pass           http://unix:/chord/tmp/nginx_internal.sock;
-
-      client_body_timeout  660s;
-      proxy_read_timeout   660s;
-      proxy_send_timeout   660s;
-      send_timeout         660s;
-
-      client_max_body_size 200m;
-    }}
-  }}
+  include {gateway_conf};
 
   server {{
     listen unix:/chord/tmp/nginx_internal.sock;
@@ -324,11 +330,15 @@ def write_uwsgi_confs(services: ServiceList):
 
 
 def write_nginx_confs(services: ServiceList):
-    nginx_conf = NGINX_CONF_TEMPLATE.format(upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
-                                            services_conf=NGINX_SERVICES_CONF_LOCATION,
-                                            auth_config=AUTH_CONFIG_PATH,
-                                            instance_config=INSTANCE_CONFIG_PATH)
-
+    nginx_conf = NGINX_CONF_TEMPLATE.format(
+        upstreams_conf=NGINX_UPSTREAMS_CONF_LOCATION,
+        gateway_conf=NGINX_GATEWAY_CONF_LOCATION,
+        services_conf=NGINX_SERVICES_CONF_LOCATION,
+    )
+    nginx_gateway_conf_tpl = NGINX_GATEWAY_CONF_TPL_TEMPLATE.format(
+        auth_config=AUTH_CONFIG_PATH,
+        instance_config=INSTANCE_CONFIG_PATH,
+    )
     nginx_upstreams_conf = ""
     nginx_services_conf = ""
 
@@ -352,6 +362,9 @@ def write_nginx_confs(services: ServiceList):
 
     with open(NGINX_CONF_LOCATION, "w") as nf:
         nf.write(nginx_conf)
+
+    with open(NGINX_GATEWAY_CONF_TPL_LOCATION, "w") as nf:
+        nf.write(nginx_gateway_conf_tpl)
 
     with open(NGINX_UPSTREAMS_CONF_LOCATION, "w") as nf:
         nf.write(nginx_upstreams_conf)

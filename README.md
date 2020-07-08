@@ -239,6 +239,14 @@ using `dev_utils.py`.
       federation), with trailing slash, and sub path (if any.) A
       **registry node** is a trusted CHORD node which is the de-facto reference
       for the peer list.
+    * `LISTEN_ON` (`string`): 
+      [NGINX syntax](http://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
+      for where the server should listen. For UNIX sockets, the generally-accepted
+      de-facto location is `unix:/chord/tmp/nginx.sock`. Note that `/chord/tmp`
+      and `/chord/data` are **container-internal** writable locations. Since
+      the NGINX instance is *inside* the container, socket paths must also be
+      inside. Ports are bound inside; Singularity will bind the port outside
+      the container as well, whereas Docker will not.
   * `auth_config.json`:
     * `OIDC_DISCOVERY_URI` (`string`): The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP
