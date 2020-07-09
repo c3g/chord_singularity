@@ -9,7 +9,7 @@ echo "[CHORD] Using ${CPU_COUNT} cores for compilations"
 OPENRESTY_VERSION="1.17.8.1"
 NODE_VERSION="12.x"
 POSTGRES_VERSION="11"
-HTSLIB_VERSION="1.9"  # TODO: When pysam allows it, upgrade to 1.10.x
+HTSLIB_VERSION="1.10"
 BCFTOOLS_VERSION="1.10"
 
 # Avoid warnings about non-interactive shell
