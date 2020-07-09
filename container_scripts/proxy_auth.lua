@@ -37,16 +37,33 @@ local config_file = assert(io.open(ngx.var.chord_instance_config))
 local config_params = cjson.decode(config_file:read("*all"))
 config_file:close()
 
+-- Set defaults for any possibly-unspecified configuration options
+
+local chord_debug = config_params["CHORD_DEBUG"]
+if chord_debug == nil then
+  chord_debug = false
+end
+
+local chord_permissions = config_params["CHORD_PERMISSIONS"]
+if chord_permissions == nil then
+  chord_permissions = true
+end
+
+local chord_private_mode = config_params["CHORD_PRIVATE_MODE"]
+if chord_private_mode == nil then
+  chord_private_mode = false
+end
+
 -- If in production, validate the SSL certificate if HTTPS is being used
 local opts_ssl_verify = "no"
-if not config_params["CHORD_DEBUG"] then
+if not chord_debug then
   opts_ssl_verify = "yes"
 end
 
 -- If in production, enforce CHORD_URL as the base for redirect
 local opts_redirect_uri = OIDC_CALLBACK_PATH
 local opts_redirect_after_logout_uri = "/"
-if not config_params["CHORD_DEBUG"] then
+if not chord_debug then
   opts_redirect_uri = config_params["CHORD_URL"] .. OIDC_CALLBACK_PATH_NO_SLASH
   opts_redirect_after_logout_uri = config_params["CHORD_URL"]
 end
@@ -68,8 +85,8 @@ local ngx_var_uri = ngx.var.uri or ""
 
 -- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
 -- All URIs are effectively "private" externally for CHORD_PRIVATE_MODE nodes
-local is_private_uri = config_params["CHORD_PERMISSIONS"] and (
-  config_file["CHORD_PRIVATE_MODE"] or
+local is_private_uri = chord_permissions and (
+  chord_private_mode or
   string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
 )
 

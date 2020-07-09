@@ -225,20 +225,35 @@ using `dev_utils.py`.
     * `CHORD_DEBUG` (`boolean`): Whether the container is started in debug
       mode. **Important security note:** debug mode is **insecure** and cannot
       be used in production **AT ALL**.
+      
+      **Default:** `false`
+      
     * `CHORD_PERMISSIONS` (`boolean`): Whether the container, and services
       within, use the default CHORD permissions system. Turning this off
       WITHOUT an alternative in place is **insecure** and **cannot** be used in
       production **AT ALL**.
+      
+      **Default:** `true`
+      
     * `CHORD_PRIVATE_MODE` (`boolean`): Whether this node will require
       authentication for any access. Also affects whether the node will be able
       to join other nodes in a network. Disabling ``CHORD_PERMISSIONS` 
       **will override** this value.
+      
+      **Default:** `false`
+      
     * `CHORD_URL` (`string`): The URL of the node (for federation), including
       trailing slash, and sub path (if any)
+      
+      **No default value**
+      
     * `CHORD_REGISTRY_URL` (`string`): The URL of the registry node (for
       federation), with trailing slash, and sub path (if any.) A
       **registry node** is a trusted CHORD node which is the de-facto reference
       for the peer list.
+      
+      **No default value**
+      
     * `LISTEN_ON` (`string`): 
       [NGINX syntax](http://nginx.org/en/docs/http/ngx_http_core_module.html#listen)
       for where the server should listen. For UNIX sockets, the generally-accepted
@@ -247,6 +262,9 @@ using `dev_utils.py`.
       the NGINX instance is *inside* the container, socket paths must also be
       inside. Ports are bound inside; Singularity will bind the port outside
       the container as well, whereas Docker will not.
+      
+      **Default:** `unix:/chord/tmp/nginx.sock`
+      
   * `auth_config.json`:
     * `OIDC_DISCOVERY_URI` (`string`): The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP

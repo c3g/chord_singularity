@@ -61,6 +61,14 @@ RUNTIME_CONFIG_PATH = "/chord/data/runtime_config.json"  # TODO: How to lock thi
 CHORD_ENVIRONMENT_PATH = "/chord/data/.environment"
 
 
+INSTANCE_CONFIG_DEFAULTS = {
+    "CHORD_DEBUG": False,
+    "CHORD_PERMISSIONS": True,
+    "CHORD_PRIVATE_MODE": False,
+    "LISTEN_ON": "unix:/chord/tmp/nginx.sock",
+}
+
+
 ConfigVars = Dict[str, str]
 Service = Dict
 ServiceList = List[Service]
@@ -126,6 +134,7 @@ def get_runtime_common_chord_environment() -> ConfigVars:
     """Should only be run from inside an instance."""
     return {
         "OIDC_DISCOVERY_URI": json_load_dict_or_empty(AUTH_CONFIG_PATH).get("OIDC_DISCOVERY_URI", ""),
+        **INSTANCE_CONFIG_DEFAULTS,
         **json_load_dict_or_empty(INSTANCE_CONFIG_PATH)
     }
 
