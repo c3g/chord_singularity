@@ -86,7 +86,7 @@ local ngx_var_uri = ngx.var.uri or ""
 -- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
 -- All URIs are effectively "private" externally for CHORD_PRIVATE_MODE nodes
 local is_private_uri = chord_permissions and (
-  chord_private_mode or
+  (chord_private_mode and not string.find(ngx_var_uri, "^/api/auth")) or
   string.find(ngx_var_uri, "^/api/%a[%w-_]*/private")
 )
 
