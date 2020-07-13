@@ -175,6 +175,8 @@ else
     local auth_token, err = openidc.access_token()
     if not err then
       nested_auth_header = "Bearer " .. auth_token
+    else
+      ngx.log(ngx.ERR, err)
     end
   elseif session ~= nil then
     -- Close the session, since we don't need it anymore
