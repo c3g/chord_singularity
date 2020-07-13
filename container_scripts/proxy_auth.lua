@@ -185,7 +185,7 @@ else
     local auth_token, err = openidc.access_token()
     if err == nil then
       if auth_token == nil then auth_token = res.access_token end
-      if auth_token != nil then
+      if auth_token ~= nil then
         nested_auth_header = "Bearer " .. auth_token
       end
     else
