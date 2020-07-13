@@ -28,16 +28,6 @@ local auth_mode = function (private_uri)
   end
 end
 
-local get_user_role = function (user_id)
-  user_role = "user"
-  for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
-    -- Check each owner ID set in the auth params; if the current user's ID
-    -- matches one, set the user's role to "owner".
-    if owner_id == user_id then user_role = "owner" end
-  end
-  return user_role
-end
-
 -- Load auth configuration for setting up lua-resty-oidconnect
 local auth_file = assert(io.open(ngx.var.chord_auth_config))
 local auth_params = cjson.decode(auth_file:read("*all"))
@@ -46,6 +36,21 @@ auth_file:close()
 local config_file = assert(io.open(ngx.var.chord_instance_config))
 local config_params = cjson.decode(config_file:read("*all"))
 config_file:close()
+
+local auth_owner_ids = auth_params["OWNER_IDS"]
+if auth_owner_ids == nil then
+  auth_owner_ids = {}
+end
+
+local get_user_role = function (user_id)
+  user_role = "user"
+  for _, owner_id in ipairs(auth_owner_ids) do
+    -- Check each owner ID set in the auth params; if the current user's ID
+    -- matches one, set the user's role to "owner".
+    if owner_id == user_id then user_role = "owner" end
+  end
+  return user_role
+end
 
 -- Set defaults for any possibly-unspecified configuration options
 
