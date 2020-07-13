@@ -1,6 +1,9 @@
 -- Script to manage authentication and some basic authorization for CHORD
 -- services under an OpenResty (or similarly configured NGINX) instance.
 
+local ngx = ngx
+local require = require
+
 local cjson = require("cjson")
 local openidc = require("resty.openidc")
 
@@ -177,7 +180,7 @@ else
 
     -- Set Bearer header for nested requests
     local auth_token, err = openidc.access_token()
-    if not err then
+    if not err and auth_token then
       nested_auth_header = "Bearer " .. auth_token
     else
       ngx.log(ngx.ERR, err)
