@@ -28,6 +28,16 @@ local auth_mode = function (private_uri)
   end
 end
 
+local get_user_role = function (user_id)
+  user_role = "user"
+  for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
+    -- Check each owner ID set in the auth params; if the current user's ID
+    -- matches one, set the user's role to "owner".
+    if owner_id == user_id then user_role = "owner" end
+  end
+  return user_role
+end
+
 -- Load auth configuration for setting up lua-resty-oidconnect
 local auth_file = assert(io.open(ngx.var.chord_auth_config))
 local auth_params = cjson.decode(auth_file:read("*all"))
@@ -103,52 +113,73 @@ if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
   end
 end
 
-local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
-if res == nil or err then  -- Authentication wasn't successful
-  -- Authentication wasn't successful; clear the session and
-  -- re-attempting (for a maximum of 2 times.)
-  if session ~= nil then
-    if session.data.user_id ~= nil then
-      -- Destroy the current session if it exists and just expired
-      session:destroy()
-    elseif err then
-      -- Close the current session before returning an error message
-      session:close()
-    end
-  end
-  if err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
-  end
-end
-
--- If authenticate hasn't rejected us above but it's "open", i.e.
--- non-authenticated users can see the page, clear X-User and
--- X-User-Role by setting the value to nil.
 local user_id
 local user_role
-if res ~= nil then  -- Authentication worked
-  if session.data.user_id ~= nil then
-    -- Load user_id and user_role from session if available
-    user_id = session.data.user_id
-    user_role = session.data.user_role
-    -- Close the session, since we're done loading data from it
-    session:close()
-  else
-    -- Save user_id and user_role into session for future use
-    user_id = res.id_token.sub
-    user_role = "user"
-    for _, owner_id in ipairs(auth_params["OWNER_IDS"]) do
-      -- Check each owner ID set in the auth params; if the current user's ID
-      -- matches one, set the user's role to "owner".
-      if owner_id == user_id then user_role = "owner" end
-    end
-    session.data.user_id = user_id
-    session.data.user_role = user_role
-    session:save()
+local nested_auth_header
+
+-- Check bearer token if set
+-- Adapted from https://github.com/zmartzone/lua-resty-openidc/issues/266#issuecomment-542771402
+local auth_header = ngx.req.get_headers()["Authorization"]
+if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
+  -- A Bearer auth header is set, use it instead of session
+  local res, err = openidc.bearer_jwt_verify(opts)
+  if err then
+    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
+  elseif res ~= nil then
+    -- Authentication was successful
+    user_id = res.sub
+    user_role = get_user_role(user_id)
+    nested_auth_header = auth_header
   end
-elseif session ~= nil then
-  -- Close the session, since we don't need it anymore
-  session:close()
+else
+  -- If no Bearer token is set, use session cookie to get authentication infomation
+  local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
+  if res == nil or err then  -- Authentication wasn't successful
+    -- Authentication wasn't successful; clear the session and
+    -- re-attempting (for a maximum of 2 times.)
+    if session ~= nil then
+      if session.data.user_id ~= nil then
+        -- Destroy the current session if it exists and just expired
+        session:destroy()
+      elseif err then
+        -- Close the current session before returning an error message
+        session:close()
+      end
+    end
+    if err then
+      uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
+    end
+  end
+
+  -- If authenticate hasn't rejected us above but it's "open", i.e.
+  -- non-authenticated users can see the page, clear X-User and
+  -- X-User-Role by setting the value to nil.
+  if res ~= nil then  -- Authentication worked
+    if session.data.user_id ~= nil then
+      -- Load user_id and user_role from session if available
+      user_id = session.data.user_id
+      user_role = session.data.user_role
+      nested_auth_header
+      -- Close the session, since we're done loading data from it
+      session:close()
+    else
+      -- Save user_id and user_role into session for future use
+      user_id = res.id_token.sub
+      user_role = get_user_role(user_id)
+      session.data.user_id = user_id
+      session.data.user_role = user_role
+      session:save()
+    end
+
+    -- Set Bearer header for nested requests
+    local auth_token, err = openidc.access_token()
+    if not err then
+      nested_auth_header = "Bearer " .. auth_token
+    end
+  elseif session ~= nil then
+    -- Close the session, since we don't need it anymore
+    session:close()
+  end
 end
 
 if is_private_uri and user_role ~= "owner" then
@@ -159,9 +190,12 @@ end
 -- Clear and possibly set internal headers to inform services of user identity
 -- and their basic role/permissions set (either the node's owner or a user of
 -- another type.)
+-- Set an X-Authorization header containing a valid Bearer token for nested
+-- requests to other services.
 -- TODO: Pull this from session for performance
 ngx.req.set_header("X-User", user_id)
 ngx.req.set_header("X-User-Role", user_role)
+ngx.req.set_header("X-Authorization", nested_auth_header)
 
 -- Endpoint: /api/auth/user
 --   Generates a JSON response with user data if the user is authenticated;
