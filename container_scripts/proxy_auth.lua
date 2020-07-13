@@ -179,9 +179,15 @@ else
     end
 
     -- Set Bearer header for nested requests
+    --  - First tries to use session-derived access token; if it's unset,
+    --    try using the response access token.
+    -- TODO: Maybe only res token needed?
     local auth_token, err = openidc.access_token()
-    if not err and auth_token then
-      nested_auth_header = "Bearer " .. auth_token
+    if err == nil then
+      if auth_token == nil then auth_token = res.access_token end
+      if auth_token != nil then
+        nested_auth_header = "Bearer " .. auth_token
+      end
     else
       ngx.log(ngx.ERR, err)
     end
