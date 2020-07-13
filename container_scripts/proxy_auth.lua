@@ -159,7 +159,6 @@ else
       -- Load user_id and user_role from session if available
       user_id = session.data.user_id
       user_role = session.data.user_role
-      nested_auth_header
       -- Close the session, since we're done loading data from it
       session:close()
     else
