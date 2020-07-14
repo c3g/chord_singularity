@@ -1,6 +1,10 @@
 -- Script to manage authentication and some basic authorization for CHORD
 -- services under an OpenResty (or similarly configured NGINX) instance.
 
+-- Note: Many things are cached locally; this is considered good practice in
+--       the context of OpenResty given that non-local variable access is quite
+--       slow. This includes ngx, require, table accesses, etc.
+
 local ngx = ngx
 local require = require
 
@@ -121,6 +125,7 @@ if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
   end
 end
 
+local user
 local user_id
 local user_role
 local nested_auth_header
@@ -130,11 +135,13 @@ local nested_auth_header
 local auth_header = ngx.req.get_headers()["Authorization"]
 if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
   -- A Bearer auth header is set, use it instead of session
-  local res, err = openidc.bearer_jwt_verify(opts)
+  local res, err, access_token = openidc.bearer_jwt_verify(opts)
   if err then
     uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
   elseif res ~= nil then
     -- Authentication was successful
+    user, err = openidc.call_userinfo_endpoint(opts, access_token)
+    -- TODO: Check userinfo err?
     user_id = res.sub
     user_role = get_user_role(user_id)
     nested_auth_header = auth_header
@@ -178,6 +185,9 @@ else
       session:save()
     end
 
+    -- Set user object for possible /api/auth/user response
+    user = res.user
+
     -- Set Bearer header for nested requests
     --  - First tries to use session-derived access token; if it's unset,
     --    try using the response access token.
@@ -198,9 +208,41 @@ else
   end
 end
 
-if is_private_uri and user_role ~= "owner" then
+-- Either authenticated or not, so from hereon out we:
+--  - Handle scripted virtual endpoints (user info, )
+--  - Check access given the URL
+--  - Set proxy-internal headers
+
+if ngx_var_uri == USER_INFO_PATH then
+  -- Endpoint: /api/auth/user
+  --   Generates a JSON response with user data if the user is authenticated;
+  --   otherwise returns a 403 Forbidden error.
+  if user == nil then
+    local forbidden_response = {message="Forbidden", user_role=nil}
+    uncached_response(ngx.HTTP_FORBIDDEN, "application/json", cjson.encode(forbidden_response))
+  else
+    user["chord_user_role"] = user_role
+    uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(res.user))
+  end
+elseif ngx_var_uri == SIGN_IN_PATH then
+  -- Endpoint: /api/auth/sign-in
+  --   - If the user has not signed in, this will get caught above by the
+  --     authenticate() call;
+  --   - If the user just signed in and was redirected here, check the args for
+  --     a redirect parameter and return a redirect if necessary.
+  -- TODO: Do the same for sign-out (in certain cases)
+  local args, args_error = ngx.req.get_uri_args()
+  if args_error == nil then
+    local redirect = args.redirect
+    if redirect and type(redirect) ~= "table" then
+      ngx.redirect(redirect)
+    end
+  end
+elseif is_private_uri and user_role ~= "owner" then
+  -- Check owner status before allowing through the proxy
   -- TODO: Check ownership / grants?
-  uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
+  local forbidden_response = {message="Forbidden", user_role=user_role}
+  uncached_response(ngx.HTTP_FORBIDDEN, "application/json", cjson.encode(forbidden_response))
 end
 
 -- Clear and possibly set internal headers to inform services of user identity
@@ -212,31 +254,3 @@ end
 ngx.req.set_header("X-User", user_id)
 ngx.req.set_header("X-User-Role", user_role)
 ngx.req.set_header("X-Authorization", nested_auth_header)
-
--- Endpoint: /api/auth/user
---   Generates a JSON response with user data if the user is authenticated;
---   otherwise returns a 403 Forbidden error.
-if ngx_var_uri == USER_INFO_PATH then
-  if res == nil then
-    uncached_response(ngx.HTTP_FORBIDDEN, "text/plain", "Forbidden")
-  else
-    res.user["chord_user_role"] = user_role
-    uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(res.user))
-  end
-end
-
--- Endpoint: /api/auth/sign-in
---   - If the user has not signed in, this will get caught above by the
---     authenticate() call;
---   - If the user just signed in and was redirected here, check the args for
---     a redirect parameter and return a redirect if necessary.
--- TODO: Do the same for sign-out (in certain cases)
-if ngx_var_uri == SIGN_IN_PATH then
-  local args, args_error = ngx.req.get_uri_args()
-  if args_error == nil then
-    local redirect = args.redirect
-    if redirect and type(redirect) ~= "table" then
-      ngx.redirect(redirect)
-    end
-  end
-end
