@@ -5,7 +5,7 @@
       "artifact": "service-registry",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_service_registry@v0.2.1",
+    "repository": "https://github.com/bento-platform/bento_service_registry@v0.3.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "bento_service_registry.app",
@@ -39,7 +39,7 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_wes@v0.2.0",
+    "repository": "https://github.com/bento-platform/bento_wes@v0.3.0",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
