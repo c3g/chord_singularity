@@ -222,7 +222,7 @@ if ngx_var_uri == USER_INFO_PATH then
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json", cjson.encode(forbidden_response))
   else
     user["chord_user_role"] = user_role
-    uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(res.user))
+    uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(user))
   end
 elseif ngx_var_uri == SIGN_IN_PATH then
   -- Endpoint: /api/auth/sign-in
