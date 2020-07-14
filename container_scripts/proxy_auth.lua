@@ -182,14 +182,15 @@ else
     --  - First tries to use session-derived access token; if it's unset,
     --    try using the response access token.
     -- TODO: Maybe only res token needed?
-    local auth_token, err = openidc.access_token()
-    if err == nil then
-      if auth_token == nil then auth_token = res.access_token end
-      if auth_token ~= nil then
-        nested_auth_header = "Bearer " .. auth_token
+    local auth_token = res.access_token
+    if auth_token == nil then
+      local auth_token, err = openidc.access_token()  -- TODO: Remove this block?
+      if err ~= nil then
+        ngx.log(ngx.ERR, err)
       end
-    else
-      ngx.log(ngx.ERR, err)
+    end
+    if auth_token ~= nil then
+      nested_auth_header = "Bearer " .. auth_token
     end
   elseif session ~= nil then
     -- Close the session, since we don't need it anymore
