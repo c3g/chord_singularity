@@ -1,4 +1,4 @@
-# CHORD Singularity Release Changelog
+# Bento Singularity Release Changelog
 
 # Version 0.1.0
 

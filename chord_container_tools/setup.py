@@ -12,7 +12,7 @@ setuptools.setup(
     author="David Lougheed",
     author_email="david.lougheed@mail.mcgill.ca",
 
-    description="Unpublished package for setting up CHORD containers",
+    description="Unpublished package for setting up Bento Platform containers",
 
     packages=["chord_container_tools"],
     entry_points={
