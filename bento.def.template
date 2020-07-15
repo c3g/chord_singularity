@@ -6,12 +6,12 @@ From: debian:buster-slim
     export LC_CTYPE=en_US.UTF-8
 
 %files
-    chord_services.json /chord/chord_services.json
-    chord_services.schema.json /chord/chord_services.schema.json
-    container_scripts /chord/container_scripts
-    chord_container_tools /chord/chord_container_tools
-    LICENSE /chord/LICENSE
-    README.md /chord/README.md
+    __BENTO_SERVICES_JSON /chord/chord_services.json
+    __BENTO_SERVICES_JSON_SCHEMA /chord/chord_services.schema.json
+    __BENTO_CONTAINER_SCRIPTS /chord/container_scripts
+    __BENTO_CONTAINER_TOOLS /chord/chord_container_tools
+    __BENTO_LICENSE /chord/LICENSE
+    __BENTO_README /chord/README.md
 
 %post
     exec /bin/bash /chord/container_scripts/post_script.bash

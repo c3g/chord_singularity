@@ -151,10 +151,10 @@ has a wide-open CORS policy allowing requests from anywhere.
 To build the image:
 
 ```bash
-./dev_utils.py build
+./container_utils.py build [--container name custom.sif] [--bento-services-json ./custom.json]
 ```
 
-You will be asked for your password by Singularity.
+You will be asked for your OS password by Singularity.
 
 
 ### Setting Up Authentication

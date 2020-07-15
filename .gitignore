@@ -1,6 +1,10 @@
 env
 instance_auth.json
+
+# Generated files
+*.def
 *.sif
+Dockerfile
 
 # IDE stuff
 .idea/misc.xml

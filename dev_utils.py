@@ -29,12 +29,14 @@ def get_instance_url(i: int):
 
 def action_build(args):
     subprocess.run((
-        "sudo",
-        "singularity",
+        sys.executable,
+        (Path(__file__).parent.absolute() / "container_utils.py").resolve(),
         "build",
-        *(("--remote",) if args.remote_build else ()),
+        *(("--remote-build",) if args.remote_build else ()),
+        "--bento-services-json",
+        "./chord.json",
+        "--container-name",
         "chord.sif",
-        "chord.def",
     ))
 
 
