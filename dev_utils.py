@@ -34,7 +34,7 @@ def action_build(args):
         "build",
         *(("--remote-build",) if args.remote_build else ()),
         "--bento-services-json",
-        "./chord.json",
+        "./chord_services.json",
         "--container-name",
         "chord.sif",
     ))
