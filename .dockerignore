@@ -7,6 +7,7 @@
 /env/*
 /*.def
 /*.sif
+/*.template
 
 /CANARIE.md
 /example_config/*
