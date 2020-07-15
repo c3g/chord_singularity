@@ -11,18 +11,18 @@ BENTO_SINGULARITY_TEMPLATE = BENTO_FOLDER / "bento.def.template"
 BENTO_DOCKER_TEMPLATE = BENTO_FOLDER / "Dockerfile.template"
 
 TEMPLATE_REPLACEMENTS = {
-    "__BENTO_SERVICES_JSON_SCHEMA": (BENTO_FOLDER / "chord_services.schema.json").resolve(),
-    "__BENTO_CONTAINER_SCRIPTS": (BENTO_FOLDER / "container_scripts").resolve(),
-    "__BENTO_CONTAINER_TOOLS": (BENTO_FOLDER / "chord_container_tools").resolve(),
-    "__BENTO_LICENSE": (BENTO_FOLDER / "LICENSE").resolve(),
-    "__BENTO_README": (BENTO_FOLDER / "README.md").resolve(),
+    "__BENTO_SERVICES_JSON_SCHEMA__": (BENTO_FOLDER / "chord_services.schema.json").resolve(),
+    "__BENTO_CONTAINER_SCRIPTS__": (BENTO_FOLDER / "container_scripts").resolve(),
+    "__BENTO_CONTAINER_TOOLS__": (BENTO_FOLDER / "chord_container_tools").resolve(),
+    "__BENTO_LICENSE__": (BENTO_FOLDER / "LICENSE").resolve(),
+    "__BENTO_README__": (BENTO_FOLDER / "README.md").resolve(),
 }
 
 DEFAULT_BENTO_SERVICES_JSON = BENTO_FOLDER / "chord_services.json"
 
 
 def _edit_template(file_path: str, bento_services_path: str):
-    subprocess.run(("sed", "-i", f"s=__BENTO_SERVICES_JSON={bento_services_path}=g", file_path))
+    subprocess.run(("sed", "-i", f"s=__BENTO_SERVICES_JSON__={bento_services_path}=g", file_path))
     for value, replacement in TEMPLATE_REPLACEMENTS.items():
         subprocess.run(("sed", "-i", f"s={value}={replacement}=g", file_path))
 

@@ -8,12 +8,12 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /chord/
 WORKDIR /chord/
 
-ADD __BENTO_SERVICES_JSON /chord/chord_services.json
-ADD __BENTO_SERVICES_JSON_SCHEMA /chord/chord_services.schema.json
-ADD __BENTO_CONTAINER_SCRIPTS /chord/container_scripts
-ADD __BENTO_CONTAINER_TOOLS /chord/chord_container_tools
-ADD __BENTO_LICENSE /chord/LICENSE
-ADD __BENTO_README /chord/README.md
+ADD __BENTO_SERVICES_JSON__ /chord/chord_services.json
+ADD __BENTO_SERVICES_JSON_SCHEMA__ /chord/chord_services.schema.json
+ADD __BENTO_CONTAINER_SCRIPTS__ /chord/container_scripts
+ADD __BENTO_CONTAINER_TOOLS__ /chord/chord_container_tools
+ADD __BENTO_LICENSE__ /chord/LICENSE
+ADD __BENTO_README__ /chord/README.md
 
 RUN /bin/bash /chord/container_scripts/post_script.bash
 
