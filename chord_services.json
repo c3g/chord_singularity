@@ -190,6 +190,9 @@
     "data_service": false,
     "wsgi": true,
     "python_module": "bento_log_service.app",
-    "python_callable": "application"
+    "python_callable": "application",
+    "run_environment": {
+      "CHORD_SERVICES": "/chord/chord_services.json"
+    }
   }
 ]
