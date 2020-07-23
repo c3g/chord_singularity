@@ -185,7 +185,7 @@
       "artifact": "log-service",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_log_service",
+    "repository": "https://github.com/bento-platform/bento_log_service@v0.1.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "bento_log_service.app",
