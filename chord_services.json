@@ -125,7 +125,7 @@
     },
     "repository": "https://github.com/c3g/chord_metadata_service@v1.0.0",
     "data_service": true,
-    "manageable_tables": false,
+    "manageable_tables": true,
     "pre_start_commands": [
       "django-admin migrate"
     ],
