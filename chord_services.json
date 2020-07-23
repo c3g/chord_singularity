@@ -72,13 +72,12 @@
       "artifact": "federation",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_federation_service@v0.6.0",
+    "repository": "https://github.com/bento-platform/bento_federation_service@v0.7.0",
     "data_service": false,
     "wsgi": false,
     "service_runnable": "bento_federation_service",
     "run_environment": {
       "DATABASE": "{SERVICE_DATA}/federation.db",
-      "SOCKET_INTERNAL": "/chord/tmp/nginx_internal.sock",
       "INITIALIZE_IMMEDIATELY": "false"
     },
     "post_start_commands": [
