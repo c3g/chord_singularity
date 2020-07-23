@@ -39,11 +39,11 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_wes@v0.3.0",
+    "repository": "https://github.com/bento-platform/bento_wes@v0.3.1",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
-      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/51/womtool-51.jar"
+      "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/52/womtool-52.jar"
     ],
     "pre_start_commands": [
       "nohup celery -A bento_wes.app worker &> {SERVICE_LOGS}/celery.log &"
