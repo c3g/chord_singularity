@@ -109,12 +109,15 @@
       "artifact": "event-relay",
       "language": "javascript"
     },
-    "repository": "https://github.com/bento-platform/bento_event_relay#v0.3.1",
+    "repository": "https://github.com/bento-platform/bento_event_relay#v0.4.0",
     "data_service": false,
     "wsgi": false,
     "service_runnable": "bento-event-relay",
     "run_environment": {
-      "SOCKET_IO_PATH": "/private/socket.io"
+      "SOCKET_IO_PATH": "/private/socket.io",
+      "REDIS_CONNECTION": "{REDIS_SOCKET}",
+      "REDIS_SUBSCRIBE_PATTERN": "chord.*",
+      "JSON_MESSAGES": "true"
     }
   },
   {
