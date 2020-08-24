@@ -99,8 +99,8 @@ def action_stop(args):
 
 
 def action_restart(args):
-    action_start(args)
     action_stop(args)
+    action_start(args)
 
 
 def action_update_web(args):
