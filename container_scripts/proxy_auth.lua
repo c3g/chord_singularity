@@ -137,7 +137,11 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
   -- A Bearer auth header is set, use it instead of session
   local res, err, access_token = openidc.bearer_jwt_verify(opts)
   if err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
+    uncached_response(
+      ngx.HTTP_INTERNAL_SERVER_ERROR,
+      "application/json",
+      cjson.encode({message=err, tags="bearer, bearer_jwt_verify", user_role=nil})
+    )
   elseif res ~= nil then
     -- Authentication was successful
     user, err = openidc.call_userinfo_endpoint(opts, access_token)
@@ -147,7 +151,7 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
     nested_auth_header = auth_header
   end
 else
-  -- If no Bearer token is set, use session cookie to get authentication infomation
+  -- If no Bearer token is set, use session cookie to get authentication information
   local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
   if res == nil or err then  -- Authentication wasn't successful
     -- Authentication wasn't successful; clear the session and
@@ -162,7 +166,11 @@ else
       end
     end
     if err then
-      uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "text/plain", err)
+      uncached_response(
+        ngx.HTTP_INTERNAL_SERVER_ERROR,
+        "application/json",
+        cjson.encode({message=err, tag="no bearer, authenticate", user_role=nil})
+      )
     end
   end
 
@@ -218,7 +226,7 @@ if ngx_var_uri == USER_INFO_PATH then
   --   Generates a JSON response with user data if the user is authenticated;
   --   otherwise returns a 403 Forbidden error.
   if user == nil then
-    local forbidden_response = {message="Forbidden", user_role=nil}
+    local forbidden_response = {message="Forbidden", tag="user nil", user_role=nil}
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json", cjson.encode(forbidden_response))
   else
     user["chord_user_role"] = user_role
@@ -241,7 +249,7 @@ elseif ngx_var_uri == SIGN_IN_PATH then
 elseif is_private_uri and user_role ~= "owner" then
   -- Check owner status before allowing through the proxy
   -- TODO: Check ownership / grants?
-  local forbidden_response = {message="Forbidden", user_role=user_role}
+  local forbidden_response = {message="Forbidden", tag="user not owner", user_role=user_role}
   uncached_response(ngx.HTTP_FORBIDDEN, "application/json", cjson.encode(forbidden_response))
 end
 
