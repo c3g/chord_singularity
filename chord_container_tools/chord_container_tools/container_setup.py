@@ -68,6 +68,9 @@ server {{
   set $chord_auth_config     "{auth_config}";
   set $chord_instance_config "{instance_config}";
 
+  # Configure a 3-minute introspection cache
+  lua_shared_dict introspection 10m;
+
   # Head off any favicon requests before they pass through the auth flow
   location = /favicon.ico {{
     return 404;

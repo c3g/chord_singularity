@@ -134,22 +134,44 @@ local nested_auth_header
 -- Adapted from https://github.com/zmartzone/lua-resty-openidc/issues/266#issuecomment-542771402
 local auth_header = ngx.req.get_headers()["Authorization"]
 if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
-  -- A Bearer auth header is set, use it instead of session
-  local res, err, access_token = openidc.bearer_jwt_verify(opts)
-  if err then
-    uncached_response(
-      ngx.HTTP_INTERNAL_SERVER_ERROR,
-      "application/json",
-      cjson.encode({message=err, tags="bearer, bearer_jwt_verify", user_role=nil})
+  -- A Bearer auth header is set, use it instead of session through introspection
+  local res, err = openidc.introspect(opts)
+  if err == nil then
+    -- If we have a valid access token, try to get the user info
+    user, err = openidc.call_userinfo_endpoint(
+      opts,
+      -- Slice out the access token from the Authorization header
+      auth_header:sub(auth_header:find(" ") + 1)
     )
-  elseif res ~= nil then
-    -- Authentication was successful
-    user, err = openidc.call_userinfo_endpoint(opts, access_token)
-    -- TODO: Check userinfo err?
-    user_id = res.sub
-    user_role = get_user_role(user_id)
-    nested_auth_header = auth_header
+    if err == nil then
+      -- User profile fetch was successful, grab the values
+      user_id = user.sub
+      user_role = get_user_role(user_id)
+      nested_auth_header = auth_header
+    end
   end
+
+  if err then
+    -- Log any errors that occurred above
+    ngx.log(ngx.ERR, err)
+  end
+
+  -- Below is old code for validating JWT access tokens only
+  --   local res, err, access_token = openidc.bearer_jwt_verify(opts)
+  --   if err then
+  --     uncached_response(
+  --       ngx.HTTP_INTERNAL_SERVER_ERROR,
+  --       "application/json",
+  --       cjson.encode({message=err, tags="bearer, bearer_jwt_verify", user_role=nil})
+  --     )
+  --   elseif res ~= nil then
+  --     -- Authentication was successful
+  --     user, err = openidc.call_userinfo_endpoint(opts, access_token)
+  --     -- TODO: Check userinfo err?
+  --     user_id = res.sub
+  --     user_role = get_user_role(user_id)
+  --     nested_auth_header = auth_header
+  --   end
 else
   -- If no Bearer token is set, use session cookie to get authentication information
   local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
