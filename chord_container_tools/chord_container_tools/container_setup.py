@@ -68,9 +68,6 @@ server {{
   set $chord_auth_config     "{auth_config}";
   set $chord_instance_config "{instance_config}";
 
-  # Configure a 3-minute introspection cache
-  lua_shared_dict introspection 10m;
-
   # Head off any favicon requests before they pass through the auth flow
   location = /favicon.ico {{
     return 404;
@@ -171,6 +168,7 @@ http {{
   lua_ssl_verify_depth 5;
   lua_shared_dict discovery 1m;
   lua_shared_dict jwks 1m;
+  lua_shared_dict introspection 2m;
 
   # Explicitly prevent underscores in headers from being passed, even though
   # off is the default. This prevents auth header forging.
