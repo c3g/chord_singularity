@@ -90,6 +90,9 @@ if not chord_debug then
   opts_redirect_after_logout_uri = config_params["CHORD_URL"]
 end
 
+local TOKEN_ENDPOINT_AUTH_BASIC = "client_secret_basic"
+local TOKEN_ENDPOINT_AUTH_POST = "client_secret_post"
+
 local opts = {
   redirect_uri = opts_redirect_uri,
   logout_path = SIGN_OUT_PATH,
@@ -100,8 +103,7 @@ local opts = {
   client_id = auth_params["CLIENT_ID"],
   client_secret = auth_params["CLIENT_SECRET"],
 
-  -- Needs to be client_secret_post for Compute Canada at least:
-  token_endpoint_auth_method = "client_secret_post",
+  token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_BASIC,
 
   accept_none_alg = false,
   accept_unsupported_alg = false,
@@ -143,7 +145,11 @@ local nested_auth_header
 local auth_header = ngx.req.get_headers()["Authorization"]
 if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
   -- A Bearer auth header is set, use it instead of session through introspection
+  -- For some reason, needs to be client_secret_post for Compute Canada at least:
+  -- TODO: Ideally this should be somewhat consistent...
+  opts.token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_POST
   local res, err = openidc.introspect(opts)
+  opts.token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_BASIC
   if err == nil then
     -- If we have a valid access token, try to get the user info
     user, err = openidc.call_userinfo_endpoint(
