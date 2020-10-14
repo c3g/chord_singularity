@@ -150,7 +150,7 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
   -- opts.token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_POST
   local res, err = openidc.introspect(opts)
   -- opts.token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_BASIC
-  if err == nil then
+  if err == nil and res.active then
     -- If we have a valid access token, try to get the user info
     user, err = openidc.call_userinfo_endpoint(
       opts,
