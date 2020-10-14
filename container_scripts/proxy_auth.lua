@@ -94,12 +94,20 @@ local opts = {
   redirect_uri = opts_redirect_uri,
   logout_path = SIGN_OUT_PATH,
   redirect_after_logout_uri = opts_redirect_after_logout_uri,
+
   discovery = auth_params["OIDC_DISCOVERY_URI"],
+
   client_id = auth_params["CLIENT_ID"],
   client_secret = auth_params["CLIENT_SECRET"],
+
+  -- Needs to be client_secret_post for Compute Canada at least:
+  token_endpoint_auth_method = "client_secret_post",
+
   accept_none_alg = false,
   accept_unsupported_alg = false,
   ssl_verify = opts_ssl_verify,
+
+  refresh_session_interval = 120,  -- TODO: Do we need this?
 }
 
 -- Cache commonly-used ngx.var.uri to save expensive access call
