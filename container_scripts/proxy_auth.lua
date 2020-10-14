@@ -104,6 +104,7 @@ local opts = {
   client_secret = auth_params["CLIENT_SECRET"],
 
   -- token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_BASIC,
+  token_endpoint_auth_method = "client_secret_jwt",
 
   accept_none_alg = false,
   accept_unsupported_alg = false,
