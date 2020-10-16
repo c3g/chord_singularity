@@ -268,16 +268,30 @@ using `dev_utils.py`.
   * `auth_config.json`:
     * `OIDC_DISCOVERY_URI` (`string`): The discovery URI (typically
       `.../.well_known/openid-configuration`) for the OIDC IdP
+      
+      **No default value**
+      
     * `CLIENT_ID` (`string`): The client ID for the node in the OIDC IdP
+    
+      **No default value**
+    
     * `CLIENT_SECRET` (`string`): The client secret for the node in the OIDC
        IdP
+       
+       **No default value**
+       
     * `TOKEN_ENDPOINT_AUTH_METHOD` (`string enum` of `client_secret_basic`, 
       `client_secret_post`, `client_secret_jwt`, or `private_key_jwt`): Which 
       authentication method to use for OIDC token endpoints. Depends on what 
       the OIDC IdP supports. 
       See [RFC 7591](https://tools.ietf.org/html/rfc7591#page-8) for details.
+      
+      **Default:** `client_secret_basic`
+      
     * `OWNER_IDS` (`array` of `string`): The subject IDs (from the OIDC IdP) of
        the node's owner(s)
+       
+       **Default:** `[]`
 
 Example configuration files are available in the
 [`example_config/`](https://github.com/c3g/chord_singularity/tree/master/example_config)
