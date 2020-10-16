@@ -159,23 +159,6 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
     -- Log any errors that occurred above
     ngx.log(ngx.ERR, err)
   end
-
-  -- Below is old code for validating JWT access tokens only
-  --   local res, err, access_token = openidc.bearer_jwt_verify(opts)
-  --   if err then
-  --     uncached_response(
-  --       ngx.HTTP_INTERNAL_SERVER_ERROR,
-  --       "application/json",
-  --       cjson.encode({message=err, tags="bearer, bearer_jwt_verify", user_role=nil})
-  --     )
-  --   elseif res ~= nil then
-  --     -- Authentication was successful
-  --     user, err = openidc.call_userinfo_endpoint(opts, access_token)
-  --     -- TODO: Check userinfo err?
-  --     user_id = res.sub
-  --     user_role = get_user_role(user_id)
-  --     nested_auth_header = auth_header
-  --   end
 else
   -- If no Bearer token is set, use session cookie to get authentication information
   local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
