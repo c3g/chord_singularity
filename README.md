@@ -271,6 +271,11 @@ using `dev_utils.py`.
     * `CLIENT_ID` (`string`): The client ID for the node in the OIDC IdP
     * `CLIENT_SECRET` (`string`): The client secret for the node in the OIDC
        IdP
+    * `TOKEN_ENDPOINT_AUTH_METHOD` (`string enum` of `client_secret_basic`, 
+      `client_secret_post`, `client_secret_jwt`, or `private_key_jwt`): Which 
+      authentication method to use for OIDC token endpoints. Depends on what 
+      the OIDC IdP supports. 
+      See [RFC 7591](https://tools.ietf.org/html/rfc7591#page-8) for details.
     * `OWNER_IDS` (`array` of `string`): The subject IDs (from the OIDC IdP) of
        the node's owner(s)
 

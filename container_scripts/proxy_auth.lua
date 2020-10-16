@@ -44,14 +44,14 @@ local config_file = assert(io.open(ngx.var.chord_instance_config))
 local config_params = cjson.decode(config_file:read("*all"))
 config_file:close()
 
-local auth_owner_ids = auth_params["OWNER_IDS"]
-if auth_owner_ids == nil then
-  auth_owner_ids = {}
+local auth__owner_ids = auth_params["OWNER_IDS"]
+if auth__owner_ids == nil then
+  auth__owner_ids = {}
 end
 
 local get_user_role = function (user_id)
   user_role = "user"
-  for _, owner_id in ipairs(auth_owner_ids) do
+  for _, owner_id in ipairs(auth__owner_ids) do
     -- Check each owner ID set in the auth params; if the current user's ID
     -- matches one, set the user's role to "owner".
     if owner_id == user_id then user_role = "owner" end
@@ -59,28 +59,20 @@ local get_user_role = function (user_id)
   return user_role
 end
 
--- Set defaults for any possibly-unspecified configuration options
+-- Set defaults for any possibly-unspecified configuration options, including
+-- some boolean casts
 
-local chord_debug = config_params["CHORD_DEBUG"]
-if chord_debug == nil then
-  chord_debug = false
-end
+local chord_debug = not (not config_params["CHORD_DEBUG"])
 
+-- Cannot use "or" shortcut, otherwise would always be true
 local chord_permissions = config_params["CHORD_PERMISSIONS"]
-if chord_permissions == nil then
-  chord_permissions = true
-end
+if chord_permissions == nil then chord_permissions = true end
 
-local chord_private_mode = config_params["CHORD_PRIVATE_MODE"]
-if chord_private_mode == nil then
-  chord_private_mode = false
-end
+local chord_private_mode = not (not config_params["CHORD_PRIVATE_MODE"])
 
--- If in production, validate the SSL certificate if HTTPS is being used
-local opts_ssl_verify = "no"
-if not chord_debug then
-  opts_ssl_verify = "yes"
-end
+-- If in production, validate the SSL certificate if HTTPS is being used (for
+-- non-Lua folks, this is a ternary - ssl_verify = !chord_debug)
+local opts_ssl_verify = chord_debug and "no" or "yes"
 
 -- If in production, enforce CHORD_URL as the base for redirect
 local opts_redirect_uri = OIDC_CALLBACK_PATH
@@ -89,9 +81,6 @@ if not chord_debug then
   opts_redirect_uri = config_params["CHORD_URL"] .. OIDC_CALLBACK_PATH_NO_SLASH
   opts_redirect_after_logout_uri = config_params["CHORD_URL"]
 end
-
--- local TOKEN_ENDPOINT_AUTH_BASIC = "client_secret_basic"
--- local TOKEN_ENDPOINT_AUTH_POST = "client_secret_post"
 
 local opts = {
   redirect_uri = opts_redirect_uri,
@@ -103,8 +92,8 @@ local opts = {
   client_id = auth_params["CLIENT_ID"],
   client_secret = auth_params["CLIENT_SECRET"],
 
-  -- token_endpoint_auth_method = TOKEN_ENDPOINT_AUTH_BASIC,
-  token_endpoint_auth_method = "client_secret_jwt",
+  -- Default token_endpoint_auth_method to client_secret_basic
+  token_endpoint_auth_method = auth_params["TOKEN_ENDPOINT_AUTH_METHOD"] or "client_secret_basic",
 
   accept_none_alg = false,
   accept_unsupported_alg = false,
