@@ -122,11 +122,11 @@
   },
   {
     "type": {
-      "organization": "ca.c3g.chord",
+      "organization": "ca.c3g.bento",
       "artifact": "metadata",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_metadata_service@v1.0.0",
+    "repository": "https://github.com/bento-platform/katsu@v1.1.0",
     "data_service": true,
     "manageable_tables": true,
     "pre_start_commands": [
