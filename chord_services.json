@@ -126,7 +126,7 @@
       "artifact": "metadata",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/katsu@v1.1.0",
+    "repository": "https://github.com/bento-platform/katsu@v1.1.1",
     "data_service": true,
     "manageable_tables": true,
     "pre_start_commands": [
