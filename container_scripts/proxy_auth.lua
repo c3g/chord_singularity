@@ -99,7 +99,8 @@ local opts = {
   accept_unsupported_alg = false,
   ssl_verify = opts_ssl_verify,
 
-  refresh_session_interval = 120,  -- TODO: Do we need this?
+  refresh_session_interval = 900,
+  iat_slack = 120,
 }
 
 -- Cache commonly-used ngx.var.uri to save expensive access call

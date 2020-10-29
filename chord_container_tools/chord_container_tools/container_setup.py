@@ -58,8 +58,8 @@ server {{
 
   # lua-resty-session configuration
   # - use Redis for sessions to allow scaling of NGINX
-  set $session_cookie_lifetime 180s;
-  set $session_cookie_renew    180s;
+  set $session_cookie_lifetime 10800s;
+  set $session_cookie_renew    900s;
   set $session_storage         redis;
   set $session_redis_prefix    oidc;
   set $session_redis_socket    unix:///chord/tmp/redis.sock;
