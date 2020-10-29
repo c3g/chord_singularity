@@ -99,6 +99,10 @@ local opts = {
   accept_unsupported_alg = false,
   ssl_verify = opts_ssl_verify,
 
+  -- Disable keepalive to try to prevent some "lost access token" issues with the OP
+  -- See https://github.com/zmartzone/lua-resty-openidc/pull/307 for details
+  keepalive = "no",
+
   -- refresh_session_interval = 900,
   iat_slack = 120,
 }
