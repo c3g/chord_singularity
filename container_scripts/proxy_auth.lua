@@ -28,10 +28,20 @@ local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
 local USER_INFO_PATH = "/api/auth/user"
 
-local auth_mode = function (private_uri)
-  if ngx.var.uri and (ngx.var.uri == SIGN_IN_PATH or private_uri)
-  then return nil     -- require authentication at the auth endpoint or in the private namespace
-  else return "pass"  -- otherwise pass
+local auth_mode = function (api_uri, private_uri)
+  if ngx.var.uri and (ngx.var.uri == SIGN_IN_PATH or private_uri) then
+    -- require authentication at the auth endpoint or in the private namespace
+    -- (or if we're in private mode)
+    if api_uri then
+      -- We don't want to return any 302 redirects if we're accessing an
+      -- endpoint that needs re-authorization, so deny in this case
+      return "deny"
+    else
+      -- If we're not authenticated, redirect to the OP
+      return nil
+    end
+  else
+    return "pass"  -- otherwise pass
   end
 end
 
@@ -110,6 +120,9 @@ local opts = {
 -- Cache commonly-used ngx.var.uri to save expensive access call
 local ngx_var_uri = ngx.var.uri or ""
 
+-- Track if the current request is to an API
+local is_api_uri = string.find(ngx_var_uri, "^/api")
+
 -- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
 -- All URIs are effectively "private" externally for CHORD_PRIVATE_MODE nodes
 local is_private_uri = chord_permissions and (
@@ -120,7 +133,7 @@ local is_private_uri = chord_permissions and (
 
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
-if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_private_uri) == nil then
+if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_api_uri, is_private_uri) == nil then
   -- Going to attempt a redirect; possibly dealing with the OpenIDC callback
   local after_chord_url = ngx_var_uri:match("^/(.*)")
   if after_chord_url then
@@ -166,7 +179,8 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
   end
 else
   -- If no Bearer token is set, use session cookie to get authentication information
-  local res, err, _, session = openidc.authenticate(opts, auth_target_uri, auth_mode(is_private_uri))
+  local res, err, _, session = openidc.authenticate(
+    opts, auth_target_uri, auth_mode(is_api_uri, is_private_uri))
   if res == nil or err then  -- Authentication wasn't successful
     -- Authentication wasn't successful; clear the session and
     -- re-attempting (for a maximum of 2 times.)
