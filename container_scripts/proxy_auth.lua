@@ -99,7 +99,7 @@ local opts = {
   accept_unsupported_alg = false,
   ssl_verify = opts_ssl_verify,
 
-  refresh_session_interval = 900,
+  -- refresh_session_interval = 900,
   iat_slack = 120,
 }
 
