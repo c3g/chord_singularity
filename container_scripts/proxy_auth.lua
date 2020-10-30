@@ -113,7 +113,8 @@ local opts = {
   -- See https://github.com/zmartzone/lua-resty-openidc/pull/307 for details
   keepalive = "no",
 
-  -- refresh_session_interval = 900,
+  -- TODO: Re-enable this if it doesn't cause sign-out bugs, since it's more secure
+  -- refresh_session_interval = 600,
   iat_slack = 120,
 }
 
