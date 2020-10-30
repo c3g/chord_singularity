@@ -65,6 +65,7 @@ INSTANCE_CONFIG_DEFAULTS = {
     "CHORD_DEBUG": False,
     "CHORD_PERMISSIONS": True,
     "CHORD_PRIVATE_MODE": False,
+    "BENTO_FEDERATION_MODE": True,
     "LISTEN_ON": "unix:/chord/tmp/nginx.sock",
 }
 

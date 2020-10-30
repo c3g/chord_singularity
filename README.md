@@ -242,6 +242,12 @@ using `dev_utils.py`.
       
       **Default:** `false`
       
+    * `BENTO_FEDERATION_MODE` (`boolean`): Whether this node will enable
+      federation functionality, allowing it to connect to other nodes as part
+      of a Bento network.
+      
+      **Default:** `true`
+      
     * `CHORD_URL` (`string`): The URL of the node (for federation), including
       trailing slash, and sub path (if any)
       

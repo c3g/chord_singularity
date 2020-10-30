@@ -2,6 +2,7 @@
   "CHORD_DEBUG": false,
   "CHORD_PERMISSIONS": true,
   "CHORD_PRIVATE_MODE": false,
+  "BENTO_FEDERATION_MODE": true,
   "CHORD_URL": "https://chord.example.org/optional/sub/path/",
   "CHORD_REGISTRY_URL": "https://candig-app.calculquebec.ca/chord1/",
   "LISTEN_ON": "unix:/chord/tmp/nginx.sock"
