@@ -28,23 +28,6 @@ local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
 local USER_INFO_PATH = "/api/auth/user"
 
-local auth_mode = function (api_uri, private_uri)
-  if ngx.var.uri and (ngx.var.uri == SIGN_IN_PATH or private_uri) then
-    -- require authentication at the auth endpoint or in the private namespace
-    -- (or if we're in private mode)
-    if api_uri then
-      -- We don't want to return any 302 redirects if we're accessing an
-      -- endpoint that needs re-authorization, so deny in this case
-      return "deny"
-    else
-      -- If we're not authenticated, redirect to the OP
-      return nil
-    end
-  else
-    return "pass"  -- otherwise pass
-  end
-end
-
 -- Load auth configuration for setting up lua-resty-oidconnect
 local auth_file = assert(io.open(ngx.var.chord_auth_config))
 local auth_params = cjson.decode(auth_file:read("*all"))
@@ -59,6 +42,7 @@ if auth__owner_ids == nil then
   auth__owner_ids = {}
 end
 
+-- TODO: This should probably be procedural instead of a function?
 local get_user_role = function (user_id)
   user_role = "user"
   for _, owner_id in ipairs(auth__owner_ids) do
@@ -132,9 +116,32 @@ local is_private_uri = chord_permissions and (
 )
 
 
+-- Calculate auth_mode for authenticate() calls,
+-- defining the redirect/return behaviour for the OIDC library
+--  - "pass" --> keep going, but not with any auth headers set
+--  - "deny" --> return 401
+--  - nil    --> return 302 to sign-in page
+--           --> always the case if the path requested is SIGN_IN
+local auth_mode = nil
+if ngx_var_uri and ngx_var_uri ~= SIGN_IN_PATH then
+  if is_private_uri then
+    -- require authentication at the auth endpoint or in the private namespace
+    -- (or if we're in private mode)
+    if is_api_uri then
+      -- We don't want to return any 302 redirects if we're accessing an
+      -- endpoint that needs re-authorization, so deny in this case
+      auth_mode = "deny"
+    end
+    -- else: If we're not authenticated, redirect to the OP (leave as nil)
+  else
+    auth_mode = "pass"  -- otherwise pass
+  end
+end
+
+
 -- Need to rewrite target URI for authenticate if we're in a sub-folder
 local auth_target_uri = ngx.var.request_uri
-if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode(is_api_uri, is_private_uri) == nil then
+if ngx_var_uri == OIDC_CALLBACK_PATH or auth_mode == nil then
   -- Going to attempt a redirect; possibly dealing with the OpenIDC callback
   local after_chord_url = ngx_var_uri:match("^/(.*)")
   if after_chord_url then
@@ -181,7 +188,7 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
 else
   -- If no Bearer token is set, use session cookie to get authentication information
   local res, err, _, session = openidc.authenticate(
-    opts, auth_target_uri, auth_mode(is_api_uri, is_private_uri))
+    opts, auth_target_uri, auth_mode(is_private_uri))
   if res == nil or err then  -- Authentication wasn't successful
     -- Authentication wasn't successful; clear the session and
     -- re-attempting (for a maximum of 2 times.)
