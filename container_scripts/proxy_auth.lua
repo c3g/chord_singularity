@@ -188,7 +188,7 @@ if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
 else
   -- If no Bearer token is set, use session cookie to get authentication information
   local res, err, _, session = openidc.authenticate(
-    opts, auth_target_uri, auth_mode(is_private_uri))
+    opts, auth_target_uri, auth_mode)
   if res == nil or err then  -- Authentication wasn't successful
     -- Authentication wasn't successful; clear the session and
     -- re-attempting (for a maximum of 2 times.)
