@@ -26,7 +26,7 @@ fi
 
 # Clone the repository if it hasn't been done already
 if [[ ! -d /chord/data/web ]]; then
-  git clone --quiet --depth 1 "${BENTO_FRONTEND_REPOSITORY}" web
+  git clone --quiet "${BENTO_FRONTEND_REPOSITORY}" web
 fi
 
 # Update the repository if needed
