@@ -376,7 +376,7 @@ def write_nginx_confs(services: ServiceList):
 
 class ContainerSetupJob(ContainerJob):
     def job(self, services: ServiceList):
-        # STEP 1: Install deduplicated apt dependencies.
+        # STEP 1: Install de-duplicated apt dependencies.
         print("[CHORD Container Setup] Installing apt dependencies...")
         install_apt_dependencies(services)
 

@@ -66,6 +66,8 @@ INSTANCE_CONFIG_DEFAULTS = {
     "CHORD_PERMISSIONS": True,
     "CHORD_PRIVATE_MODE": False,
     "BENTO_FEDERATION_MODE": True,
+    "BENTO_FRONTEND_REPOSITORY": "https://github.com/bento-platform/bento_web.git",
+    "BENTO_FRONTEND_VERSION": "master",  # TODO: Pin version by default; load from chord_services??
     "LISTEN_ON": "unix:/chord/tmp/nginx.sock",
 }
 
