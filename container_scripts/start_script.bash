@@ -75,12 +75,24 @@ chord_container_non_wsgi_start
 echo "Installing or updating chord_web..."
 bash /chord/container_scripts/install_web.bash
 
+echo "Generating secure session secret..."
+bash /chord/container_scripts/generate_session_secret.bash
+BENTO_SESSION_SECRET="$(cat /chord/tmp/.session_secret)"
+
 echo "Starting OpenResty NGINX..."
 
 # Copy configuration template to writable location and replace template
 # configuration variables with their set values.
 cp /usr/local/openresty/nginx/conf/nginx_gateway.conf.template /chord/tmp/nginx_gateway.conf
 sed -i "s=LISTEN_ON=${LISTEN_ON}=g" /chord/tmp/nginx_gateway.conf
+sed -i "s=SESSION_SECRET=${BENTO_SESSION_SECRET}=g" /chord/tmp/nginx_gateway.conf
+
+echo "Removing session secret copies..."
+# - Delete filesystem copy
+bash /chord/container_scripts/delete_session_secret.bash
+# - Remove hard-coded copy from NGINX config on disk
+# TODO: Do we bother with this?
+# sed -i "s=${BENTO_SESSION_SECRET}=SESSION_SECRET=g" /chord/tmp/nginx_gateway.conf
 
 # Start the OpenResty NGINX executable
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
