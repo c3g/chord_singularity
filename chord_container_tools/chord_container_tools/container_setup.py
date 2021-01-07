@@ -173,7 +173,8 @@ http {{
 
   resolver 8.8.8.8;  # resolve OIDC URLs with Google DNS
 
-  # Force Lua code cache to be on for session secret preservation:
+  # Force Lua code cache to be on for session secret preservation and
+  # performance reasons:
   lua_code_cache on;  
 
   lua_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
