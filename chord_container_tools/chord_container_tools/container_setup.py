@@ -68,7 +68,7 @@ server {{
   set $session_redis_socket    unix:///chord/tmp/redis.sock;
 
   # - template value, replaced at startup using sed:
-  set $session_secret        "SESSION_SECRET";
+  set $session_secret          "SESSION_SECRET";
 
   # CHORD constants (configuration file locations)
   set $chord_auth_config     "{auth_config}";
