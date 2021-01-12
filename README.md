@@ -2,9 +2,10 @@
 
 ![Build Status](https://travis-ci.org/c3g/chord_singularity.svg?branch=master)
 
-The CanDIG CHORD project was funded by [CANARIE](https://www.canarie.ca/).
+The CanDIG CHORD project, for which the Bento platform was originally 
+developed, was funded by [CANARIE](https://www.canarie.ca/).
 
-What's included in a CHORD Singularity container?
+What's included in a Bento Singularity container?
 
   * NodeJS 12
   * Python 3.7
@@ -42,8 +43,9 @@ What's included in a CHORD Singularity container?
     
 ## Provenance
 
-Releases are authorized by a committee composed of CHORD and shared platform
-software developers and project managers.
+Releases are authorized by a committee composed of 
+[Bento](https://github.com/bento-platform) and shared platform software 
+developers and project managers.
 
 Before publication, release candidates *currently* go through the following 
 validation process:
@@ -86,7 +88,7 @@ software itself, which will pass through the standard release vetting process.
 To install Singularity, follow the
 [Singularity installation guide](https://sylabs.io/guides/3.5/user-guide/quick_start.html).
 
-CHORD requires **Singularity 3.5** (or later compatible versions.)
+Bento requires **Singularity 3.5** (or later compatible versions.)
 
 #### 2. (Optional) Virtual Environment
 
@@ -102,11 +104,11 @@ source env/bin/activate
 #### 3. Reverse Proxy
 
 NGINX can be set up as a reverse proxy outside of the containers to create a
-development CHORD cluster.
+development Bento cluster.
 
 ##### Example Development NGINX Configuration
 
-Configuration for a **development** CHORD cluster, to use with `dev_utils.py`:
+Configuration for a **development** Bento cluster, to use with `dev_utils.py`:
 
 ```nginx
 server {
@@ -159,7 +161,7 @@ You will be asked for your OS password by Singularity.
 
 ### Setting Up Authentication
 
-CHORD uses OpenID Connect (OIDC) to authenticate users. With the **development
+Bento uses OpenID Connect (OIDC) to authenticate users. With the **development
 cluster**, instances' OIDC configurations can be specified in
 `instance_auth.json`.
 
@@ -186,7 +188,7 @@ what configuration values are available for each node in `instance_auth.json`.
 
 Assumes `/tmp/chord` and `~/chord_data` are writable directories.
 
-**Note:** CHORD temporary and data directories can be specified by editing
+**Note:** Bento temporary and data directories can be specified by editing
 `dev_utils.py` (not recommended) or setting `CHORD_DATA_DIRECTORY` and
 `CHORD_TEMP_DIRECTORY` when running `dev_utils.py`.
 
@@ -268,7 +270,7 @@ using `dev_utils.py`.
       
     * `CHORD_REGISTRY_URL` (`string`): The URL of the registry node (for
       federation), with trailing slash, and sub path (if any.) A
-      **registry node** is a trusted CHORD node which is the de-facto reference
+      **registry node** is a trusted Bento node which is the de-facto reference
       for the peer list.
       
       **No default value**
