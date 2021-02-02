@@ -57,12 +57,18 @@ server {{
   # error_log /usr/local/openresty/nginx/logs/error.log debug;
 
   # lua-resty-session configuration
-  # - use Redis for sessions to allow scaling of NGINX
+
+  #  - cookie stuff:
   set $session_cookie_lifetime 7200;
   set $session_cookie_renew    900s;
+
+  #  - use Redis for sessions to allow scaling of NGINX:
   set $session_storage         redis;
   set $session_redis_prefix    oidc;
   set $session_redis_socket    unix:///chord/tmp/redis.sock;
+
+  # - template value, replaced at startup using sed:
+  set $session_secret          "SESSION_SECRET";
 
   # CHORD constants (configuration file locations)
   set $chord_auth_config     "{auth_config}";
@@ -163,12 +169,21 @@ http {{
   index index.html index.htm;
 
   # lua-resty-openidc global configuration
+  # ======================================
+
   resolver 8.8.8.8;  # resolve OIDC URLs with Google DNS
+
+  # Force Lua code cache to be on for session secret preservation and
+  # performance reasons:
+  lua_code_cache on;  
+
   lua_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
   lua_ssl_verify_depth 5;
   lua_shared_dict discovery 1m;
   lua_shared_dict jwks 1m;
   lua_shared_dict introspection 2m;
+
+  # ======================================
 
   # Explicitly prevent underscores in headers from being passed, even though
   # off is the default. This prevents auth header forging.
