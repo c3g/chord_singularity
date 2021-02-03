@@ -2,9 +2,14 @@
   <dictionary name="davidlougheed">
     <words>
       <w>addr</w>
+      <w>appendonly</w>
       <w>bcftools</w>
       <w>chdir</w>
       <w>cors</w>
+      <w>dont</w>
+      <w>hdel</w>
+      <w>hmget</w>
+      <w>hset</w>
       <w>ipairs</w>
       <w>keepalive</w>
       <w>readline</w>
