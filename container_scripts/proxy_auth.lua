@@ -40,8 +40,10 @@ local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
 local USER_INFO_PATH = "/api/auth/user"
 
-local ONE_TIME_TOKENS_GENERATE_PATH = "/api/auth/ott/generate"
-local ONE_TIME_TOKENS_CLEAR_ALL_PATH = "/api/auth/ott/clear_all"
+local ONE_TIME_TOKENS_NAMESPACE = "/api/auth/ott/"
+local ONE_TIME_TOKENS_GENERATE_PATH = ONE_TIME_TOKENS_NAMESPACE .. "generate"
+local ONE_TIME_TOKENS_INVALIDATE_PATH = ONE_TIME_TOKENS_NAMESPACE .. "invalidate"
+local ONE_TIME_TOKENS_INVALIDATE_ALL_PATH = ONE_TIME_TOKENS_NAMESPACE .. "invalidate_all"
 
 local REDIS_SOCKET = "unix:/chord/tmp/redis.sock"
 
@@ -396,6 +398,31 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
   if not scope or type(scope) ~= "string" then
     uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
       cjson.encode({message="Missing or invalid token scope", tag="invalid scope", user_role=user_role}))
+    goto script_end
+  end
+
+  -- Validate that the scope asked for is reasonable
+  --   - Must be in a /api/[a-zA-Z0-9]+/ namespace
+  --   - Cannot be specific to OTT namespace
+  --   - Cannot be specific to the auth namespace
+
+  if (
+    not scope:match("^/api/%a[%w-_]*/") or
+    scope:sub(1, #ONE_TIME_TOKENS_NAMESPACE) == ONE_TIME_TOKENS_NAMESPACE or
+    scope:sub(1, 9) == "/api/auth"
+  ) then
+    uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
+      cjson.encode({message="Bad token scope", tag="bad scope", user_role=user_role}))
+    goto script_end
+  end
+
+  local n_tokens = math.max(req_body["number"] or 1, 1)
+
+  -- Don't let a user request more than 20 OTTs at a time
+  if n_tokens > 20 then
+    uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
+      {message="Too many OTTs requested", tag="too many tokens", user_role=user_role})
+    goto script_end
   end
 
   red_ok, red_err = red:connect(REDIS_SOCKET)
@@ -409,7 +436,6 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   local new_token
   local new_tokens = {}
-  local n_tokens = math.max(req_body["number"] or 1, 1)
 
   -- Generate n_tokens new tokens
   red:init_pipeline(5 * n_tokens)
@@ -436,7 +462,43 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   -- Return the newly-generated tokens to the requester
   uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(new_tokens))
-elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_CLEAR_ALL_PATH then
+elseif REQUEST_METHOD == "DELETE" and URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
+  if user_role ~= "owner" then
+    err_user_not_owner()
+    goto script_end
+  end
+
+  local req_body = cjson.decode(ngx.request.body or "null")
+  if type(req_body) ~= "table" then
+    err_invalid_req_body()
+    goto script_end
+  end
+
+  local token = req_body["token"]
+  if not token or type(token) ~= "string" then
+    uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
+      cjson.encode({message="Missing or invalid token", tag="invalid token", user_role=user_role}))
+    goto script_end
+  end
+
+  red_ok, red_err = red:connect(REDIS_SOCKET)
+  if red_err then
+    err_redis("redis conn")
+    goto script_end
+  end
+
+  invalidate_ott(red, token)
+
+  -- Put Redis connection into a keepalive pool for 30 seconds
+  red_ok, red_err = red:set_keepalive(30000, 100)
+  if red_err then
+    err_redis("redis keepalive failed")
+    goto script_end
+  end
+
+  -- We're good to respond in the affirmative
+  uncached_response(ngx.HTTP_NO_CONTENT)
+elseif REQUEST_METHOD == "DELETE" and URI == ONE_TIME_TOKENS_INVALIDATE_ALL_PATH then
   if user_role ~= "owner" then
     err_user_not_owner()
     goto script_end
