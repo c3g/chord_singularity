@@ -36,6 +36,13 @@ git pull --quiet
 # Switch to the tree we want (tag or branch)
 git checkout "${BENTO_FRONTEND_VERSION}"
 
+# Create a "backup" index.html in case the build fails; otherwise, NGINX will
+# be sent into an infinite loop from redirecting 404s to index.html.
+mkdir -p dist
+BACKUP_INDEX="The most recent attempt to build the front end failed. Please
+ fix the issue and restart the container."
+echo $BACKUP_INDEX > dist/index.html
+
 # Install dependencies and build the bundle
 npm install > /dev/null
 npm run build > /dev/null
