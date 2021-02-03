@@ -17,10 +17,10 @@ local uncached_response = function (status, mime, message)
   -- Helper method to return uncached responses directly from the proxy without
   -- needing an underlying service.
   ngx.status = status
-  ngx.header["Content-Type"] = mime
+  if mime then ngx.header["Content-Type"] = mime end
   ngx.header["Cache-Control"] = "no-store"
   ngx.header["Pragma"] = "no-cache"  -- Backwards-compatibility for no-cache
-  ngx.say(message)
+  if message then ngx.say(message) end
   ngx.exit(status)
 end
 
