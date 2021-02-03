@@ -261,8 +261,8 @@ using `dev_utils.py`.
       
       **Default:** `master`
       
-    * `CHORD_URL` (`string`): The URL of the node (for federation), including
-      trailing slash, and sub path (if any)
+    * `CHORD_URL` (`string`): The URL of the node, including trailing slash, 
+      and sub path (if any)
       
       **No default value**
       

@@ -81,6 +81,8 @@ echo "Starting OpenResty NGINX..."
 # configuration variables with their set values.
 cp /usr/local/openresty/nginx/conf/nginx_gateway.conf.template /chord/tmp/nginx_gateway.conf
 sed -i "s=LISTEN_ON=${LISTEN_ON}=g" /chord/tmp/nginx_gateway.conf
+sed -i "s=SESSION_SECRET=$(bash /chord/container_scripts/generate_session_secret.bash)=g" \
+  /chord/tmp/nginx_gateway.conf
 
 # Start the OpenResty NGINX executable
 export PATH=/usr/local/openresty/bin:/usr/local/openresty/nginx/sbin:$PATH
