@@ -24,6 +24,16 @@ local uncached_response = function (status, mime, message)
   ngx.exit(status)
 end
 
+local invalidate_ott = function (redis_conn, token)
+  -- Helper method to invalidate a one-time token, given a connection to the
+  -- Redis instance being used and the token in question
+  redis_conn:hdel("bento_ott:expiry", token)
+  redis_conn:hdel("bento_ott:scope", token)
+  redis_conn:hdel("bento_ott:user", token)
+  redis_conn:hdel("bento_ott:user_id", token)
+  redis_conn:hdel("bento_ott:user_role", token)
+end
+
 local OIDC_CALLBACK_PATH = "/api/auth/callback"
 local OIDC_CALLBACK_PATH_NO_SLASH = OIDC_CALLBACK_PATH:sub(2, #OIDC_CALLBACK_PATH)
 local SIGN_IN_PATH = "/api/auth/sign-in"
@@ -214,10 +224,7 @@ if ott_header and not URI:match("^" .. ONE_TIME_TOKENS_NAMESPACE) then
   user = cjson.decode(red:hmget("bento_ott:user", ott_header) or "null")
   user_id = red:hmget("bento_ott:user_id", ott_header)
   user_role = red:hmget("bento_ott:user_role", ott_header)
-  red:hdel("bento_ott:expiry", ott_header)
-  red:hdel("bento_ott:scope", ott_header)
-  red:hdel("bento_ott:user_id", ott_header)
-  red:hdel("bento_ott:user_role", ott_header)
+  invalidate_ott(red, ott_header)  -- 5 pipeline actions
   red:commit_pipeline()
 
   -- Update NGINX time (which is cached)
