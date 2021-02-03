@@ -124,14 +124,13 @@ local URI = ngx.var.uri or ""
 local REQUEST_METHOD = ngx.var.request_method or "GET"
 
 -- Track if the current request is to an API
-local is_api_uri = string.find(URI, "^/api")
+local is_api_uri = not (not URI:match("^/api"))
 
 -- Private URIs don't exist if the CHORD_PERMISSIONS flag is off (for dev)
 -- All URIs are effectively "private" externally for CHORD_PRIVATE_MODE nodes
 local is_private_uri = CHORD_PERMISSIONS and (
-  (CHORD_PRIVATE_MODE and not string.find(URI, "^/api/auth")) or
-  string.find(URI, "^/api/%a[%w-_]*/private")
-)
+  (CHORD_PRIVATE_MODE and not URI:match("^/api/auth")) or
+  URI:match("^/api/%a[%w-_]*/private"))
 
 
 -- Calculate auth_mode for authenticate() calls,
@@ -174,26 +173,36 @@ local user_id
 local user_role
 local nested_auth_header
 
-local err_user_not_owner = cjson.encode({message="Forbidden", tag="user not owner", user_role=user_role})
-local err_user_nil = cjson.encode({message="Forbidden", tag="user is nil", user_role=user_role})
+local err_user_not_owner = function ()
+  uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
+    cjson.encode({message="Forbidden", tag="user not owner", user_role=user_role}))
+end
+local err_user_nil = function ()
+  uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
+    cjson.encode({message="Forbidden", tag="user is nil", user_role=user_role}))
+end
+local err_invalid_req_body = function ()
+  uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
+    cjson.encode({message="Missing or invalid body", tag="invalid body", user_role=user_role}))
+end
+local err_redis = function(tag)
+  uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
+      cjson.encode({message=red_err, tag=tag, user_role=user_role}))
+end
 
 local req_headers = ngx.req.get_headers()
 
 -- TODO: OTT headers are technically also a Bearer token (of a different nature)... should be combined
 local ott_header = req_headers["X-OTT"]
-if ott_header and URI ~= ONE_TIME_TOKENS_GENERATE_PATH and URI ~= ONE_TIME_TOKENS_CLEAR_ALL_PATH then
+if ott_header and not URI:match("^" .. ONE_TIME_TOKENS_NAMESPACE) then
   -- Cannot use a one-time token to bootstrap generation of more one-time
   -- tokens or invalidate existing ones
   -- URIs do not include URL parameters, so this is safe from non-exact matches
 
   red_ok, red_err = red:connect(REDIS_SOCKET)
   if red_err then  -- Error occurred while connecting to Redis
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      {message=red_err, tag="redis conn", user_role=nil})
-  end
-  if type(ott_header) ~= "string" then
-    uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
-      {message="Bad one-time token header", tag="ott header bad", user_role=nil})
+    err_redis("redis conn")
+    goto script_end
   end
 
   -- TODO: Error handling for each command? Maybe overkill
@@ -212,6 +221,8 @@ if ott_header and URI ~= ONE_TIME_TOKENS_GENERATE_PATH and URI ~= ONE_TIME_TOKEN
   red:commit_pipeline()
 
   -- Update NGINX time (which is cached)
+  -- This is slow, so OTTs should not be over-used in situations where there's
+  -- a more performant way that likely makes more sense anyway.
   ngx.update_time()
 
   -- Check token validity
@@ -235,14 +246,14 @@ if ott_header and URI ~= ONE_TIME_TOKENS_GENERATE_PATH and URI ~= ONE_TIME_TOKEN
   -- Put Redis connection into a keepalive pool for 30 seconds
   red_ok, red_err = red:set_keepalive(30000, 100)
   if red_err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      {message=red_err, tag="redis keepalive failed", user_role=user_role})
+    err_redis("redis keepalive failed")
+    goto script_end
   end
 else
   -- Check bearer token if set
   -- Adapted from https://github.com/zmartzone/lua-resty-openidc/issues/266#issuecomment-542771402
   local auth_header = ngx.req.get_headers()["Authorization"]
-  if is_private_uri and auth_header and string.find(auth_header, "^Bearer .+") then
+  if is_private_uri and auth_header and auth_header.match("^Bearer .+") then
     -- A Bearer auth header is set, use it instead of session through introspection
     local res, err = openidc.introspect(opts)
     if err == nil and res.active then
@@ -280,8 +291,8 @@ else
         uncached_response(
           ngx.HTTP_INTERNAL_SERVER_ERROR,
           "application/json",
-          cjson.encode({message=err, tag="no bearer, authenticate", user_role=nil})
-        )
+          cjson.encode({message=err, tag="no bearer, authenticate", user_role=nil}))
+        goto script_end
       end
     end
 
@@ -325,6 +336,7 @@ else
     end
   end
 end
+
 -- Either authenticated or not, so from hereon out we:
 --  - Handle scripted virtual endpoints (user info, sign in, OTT stuff)
 --  - Check access given the URL
@@ -333,12 +345,9 @@ end
 if URI == USER_INFO_PATH then
   -- Endpoint: /api/auth/user
   --   Generates a JSON response with user data if the user is authenticated;
-  --   otherwise returns a 403 Forbidden error.
+  --   otherwise returns a 401 Forbidden error.
   if user == nil then
-    uncached_response(
-      ngx.HTTP_FORBIDDEN,
-      "application/json",
-      cjson.encode({message="Forbidden", tag="user nil", user_role=nil}))
+    err_user_nil()
   else
     user["chord_user_role"] = user_role
     uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(user))
@@ -351,21 +360,29 @@ elseif URI == SIGN_IN_PATH then
   --     a redirect parameter and return a redirect if necessary.
   -- TODO: Do the same for sign-out (in certain cases)
   local args, args_error = ngx.req.get_uri_args()
-  if args_error == nil then
+  if args_error == nil then  -- If the redirect argument is set, follow through
     local redirect = args.redirect
-    if redirect and type(redirect) ~= "table" then
+    if type(redirect) == "string" then
+      -- Skip setting the Authorization/user info headers so we don't leak
+      -- anything, although I'm not sure if that would actually happen
       ngx.redirect(redirect)
+      goto script_end
     end
   end
 elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
+  -- Endpoint: /api/auth/ott/generate
+  --   Generates one or more one-time tokens for asynchronous authorization
+  --   purposes if user is authenticated; otherwise returns a 401 Forbidden error.
+
   if user_role == nil then
-    uncached_response(ngx.HTTP_FORBIDDEN, "application/json", err_user_nil)
+    err_user_nil()
+    goto script_end
   end
 
   local req_body = cjson.decode(ngx.request.body or "null")
   if type(req_body) ~= "table" then
-    uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
-      cjson.encode({message="Missing or invalid body", tag="invalid body", user_role=user_role}))
+    err_invalid_req_body()
+    goto script_end
   end
 
   local scope = req_body["scope"]
@@ -376,8 +393,8 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   red_ok, red_err = red:connect(REDIS_SOCKET)
   if red_err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      {message=red_err, tag="redis conn", user_role=user_role})
+    err_redis("redis conn")
+    goto script_end
   end
 
   -- Update NGINX internal time cache
@@ -405,21 +422,23 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
   -- Put Redis connection into a keepalive pool for 30 seconds
   red_ok, red_err = red:set_keepalive(30000, 100)
   if red_err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      cjson.encode({message=red_err, tag="redis keepalive failed", user_role=user_role}))
+    err_redis("redis keepalive failed")
+    -- TODO: Do we need to invalidate the tokens here? They aren't really guessable anyway
+    goto script_end
   end
 
   -- Return the newly-generated tokens to the requester
   uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(new_tokens))
 elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_CLEAR_ALL_PATH then
   if user_role ~= "owner" then
-    uncached_response(ngx.HTTP_FORBIDDEN, "application/json", err_user_not_owner)
+    err_user_not_owner()
+    goto script_end
   end
 
   red_ok, red_err = red:connect(REDIS_SOCKET)
   if red_err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      {message=red_err, tag="redis conn", user_role=user_role})
+    err_redis("redis conn")
+    goto script_end
   end
 
   red:init_pipeline(5)
@@ -433,13 +452,16 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_CLEAR_ALL_PATH then
   -- Put Redis connection into a keepalive pool for 30 seconds
   red_ok, red_err = red:set_keepalive(30000, 100)
   if red_err then
-    uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
-      {message=red_err, tag="redis keepalive failed", user_role=user_role})
+    err_redis("redis keepalive failed")
+    goto script_end
   end
+
+  -- We're good to respond in the affirmative
+  uncached_response(ngx.HTTP_NO_CONTENT)
 elseif is_private_uri and user_role ~= "owner" then
   -- Check owner status before allowing through the proxy
   -- TODO: Check ownership / grants?
-  uncached_response(ngx.HTTP_FORBIDDEN, "application/json", err_user_not_owner)
+  err_user_not_owner()
 end
 
 -- Clear and possibly set internal headers to inform services of user identity
@@ -451,3 +473,7 @@ end
 ngx.req.set_header("X-User", user_id)
 ngx.req.set_header("X-User-Role", user_role)
 ngx.req.set_header("X-Authorization", nested_auth_header)
+
+-- If an unrecoverable error occurred, it will jump here to skip everything and
+-- avoid trying to execute code while in an invalid state.
+::script_end::
