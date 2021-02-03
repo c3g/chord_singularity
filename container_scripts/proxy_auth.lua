@@ -24,8 +24,8 @@ local uncached_response = function (status, mime, message)
   ngx.exit(status)
 end
 
-local OIDC_CALLBACK_PATH_NO_SLASH = "api/auth/callback"
-local OIDC_CALLBACK_PATH = "/" .. OIDC_CALLBACK_PATH_NO_SLASH
+local OIDC_CALLBACK_PATH = "/api/auth/callback"
+local OIDC_CALLBACK_PATH_NO_SLASH = OIDC_CALLBACK_PATH:sub(2, #OIDC_CALLBACK_PATH)
 local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
 local USER_INFO_PATH = "/api/auth/user"
@@ -185,8 +185,9 @@ if ott_header and URI ~= ONE_TIME_TOKENS_GENERATE_PATH and URI ~= ONE_TIME_TOKEN
   -- Cannot use a one-time token to bootstrap generation of more one-time
   -- tokens or invalidate existing ones
   -- URIs do not include URL parameters, so this is safe from non-exact matches
+
   red_ok, red_err = red:connect(REDIS_SOCKET)
-  if red_err then
+  if red_err then  -- Error occurred while connecting to Redis
     uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
       {message=red_err, tag="redis conn", user_role=nil})
   end
@@ -241,17 +242,14 @@ else
   -- Check bearer token if set
   -- Adapted from https://github.com/zmartzone/lua-resty-openidc/issues/266#issuecomment-542771402
   local auth_header = ngx.req.get_headers()["Authorization"]
-  if is_private_uri and auth_header and string.find(auth_header, "^Bearer ") then
+  if is_private_uri and auth_header and string.find(auth_header, "^Bearer .+") then
     -- A Bearer auth header is set, use it instead of session through introspection
-    -- TODO: Ideally this should be somewhat consistent...
     local res, err = openidc.introspect(opts)
     if err == nil and res.active then
       -- If we have a valid access token, try to get the user info
+      --   - Slice out the token from the Authorization header
       user, err = openidc.call_userinfo_endpoint(
-        opts,
-        -- Slice out the access token from the Authorization header
-        auth_header:sub(auth_header:find(" ") + 1)
-      )
+        opts, auth_header:sub(auth_header:find(" ") + 1))
       if err == nil then
         -- User profile fetch was successful, grab the values
         user_id = user.sub
@@ -260,10 +258,8 @@ else
       end
     end
 
-    if err then
-      -- Log any errors that occurred above
-      ngx.log(ngx.ERR, err)
-    end
+    -- Log any errors that occurred above
+    if err then ngx.log(ngx.ERR, err) end
   else
     -- If no Bearer token is set, use session cookie to get authentication information
     local res, err, _, session = openidc.authenticate(
