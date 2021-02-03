@@ -177,8 +177,6 @@ local nested_auth_header
 local err_user_not_owner = cjson.encode({message="Forbidden", tag="user not owner", user_role=user_role})
 local err_user_nil = cjson.encode({message="Forbidden", tag="user is nil", user_role=user_role})
 
--- TODO: OTT GENERATION HANDLING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 local req_headers = ngx.req.get_headers()
 
 -- TODO: OTT headers are technically also a Bearer token (of a different nature)... should be combined
@@ -200,7 +198,7 @@ if ott_header and URI ~= ONE_TIME_TOKENS_GENERATE_PATH and URI ~= ONE_TIME_TOKEN
   -- TODO: Error handling for each command? Maybe overkill
 
   -- Fetch all token data from the Redis store and subsequently delete it
-  red:init_pipeline()
+  red:init_pipeline(10)
   local expiry = red:hmget("bento_ott:expiry", ott_header)
   local scope = red:hmget("bento_ott:scope", ott_header)
   user = cjson.decode(red:hmget("bento_ott:user", ott_header) or "null")
@@ -394,7 +392,7 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
   local n_tokens = math.max(req_body["number"] or 1, 1)
 
   -- Generate n_tokens new tokens
-  red:init_pipeline()
+  red:init_pipeline(5 * n_tokens)
   for _ = 1, n_tokens do
     -- Generate a new token (using OpenSSL via lua-resty-random), 128 characters long
     -- Does not use the token method, since that does not use OpenSSL
@@ -428,7 +426,7 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_CLEAR_ALL_PATH then
       {message=red_err, tag="redis conn", user_role=user_role})
   end
 
-  red:init_pipeline()
+  red:init_pipeline(5)
   red:del("bento_ott:expiry")
   red:del("bento_ott:scope")
   red:del("bento_ott:user")
