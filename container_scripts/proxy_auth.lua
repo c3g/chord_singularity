@@ -200,6 +200,11 @@ local err_redis = function(tag)
   uncached_response(ngx.HTTP_INTERNAL_SERVER_ERROR, "application/json",
       cjson.encode({message=red_err, tag=tag, user_role=user_role}))
 end
+local err_invalid_method = function()
+  uncached_response(ngx.HTTP_NOT_ALLOWED, "application/json",
+      cjson.encode({message="Method not allowed", tag="invalid method", user_role=user_role}))
+end
+
 
 local req_headers = ngx.req.get_headers()
 
@@ -380,7 +385,7 @@ elseif URI == SIGN_IN_PATH then
       goto script_end
     end
   end
-elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
+elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
   -- Endpoint: POST /api/auth/ott/generate
   --   Generates one or more one-time tokens for asynchronous authorization
   --   purposes if user is authenticated; otherwise returns a 401 Forbidden error.
@@ -389,6 +394,11 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
   --   This will generate 5 one-time-use tokens that are only valid on URLs in
   --   the /api/some_service/ namespace.
   --   Scopes cannot be outside /api/ or in /api/auth
+
+  if REQUEST_METHOD ~= "POST" then
+    err_invalid_method()
+    goto script_end
+  end
 
   if user_role == nil then
     err_user_nil()
@@ -464,7 +474,15 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   -- Return the newly-generated tokens to the requester
   uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(new_tokens))
-elseif REQUEST_METHOD == "DELETE" and URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
+elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
+  -- Endpoint: POST /api/auth/ott/invalidate
+  --   TODO
+
+  if REQUEST_METHOD ~= "DELETE" then
+    err_invalid_method()
+    goto script_end
+  end
+
   if user_role ~= "owner" then
     err_user_not_owner()
     goto script_end
@@ -500,7 +518,15 @@ elseif REQUEST_METHOD == "DELETE" and URI == ONE_TIME_TOKENS_INVALIDATE_PATH the
 
   -- We're good to respond in the affirmative
   uncached_response(ngx.HTTP_NO_CONTENT)
-elseif REQUEST_METHOD == "DELETE" and URI == ONE_TIME_TOKENS_INVALIDATE_ALL_PATH then
+elseif URI == ONE_TIME_TOKENS_INVALIDATE_ALL_PATH then
+  -- Endpoint: POST /api/auth/ott/invalidate_all
+  --   TODO
+
+  if REQUEST_METHOD ~= "DELETE" then
+    err_invalid_method()
+    goto script_end
+  end
+
   if user_role ~= "owner" then
     err_user_not_owner()
     goto script_end
