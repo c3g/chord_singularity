@@ -405,7 +405,8 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
     goto script_end
   end
 
-  local req_body = cjson.decode(ngx.request.body or "null")
+  ngx.req.read_body()  -- Read the request body into memory
+  local req_body = cjson.decode(ngx.req.get_body_data() or "null")
   if type(req_body) ~= "table" then
     err_invalid_req_body()
     goto script_end
@@ -488,7 +489,8 @@ elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
     goto script_end
   end
 
-  local req_body = cjson.decode(ngx.request.body or "null")
+  ngx.req.read_body()  -- Read the request body into memory
+  local req_body = cjson.decode(ngx.req.get_body_data() or "null")
   if type(req_body) ~= "table" then
     err_invalid_req_body()
     goto script_end
