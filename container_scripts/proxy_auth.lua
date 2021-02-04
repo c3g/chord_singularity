@@ -228,7 +228,7 @@ if ott_header and not URI:match("^/api/auth") then
   -- TODO: Error handling for each command? Maybe overkill
 
   -- Fetch all token data from the Redis store and subsequently delete it
-  local expiry = red:hget("bento_ott:expiry", ott_header)
+  local expiry = tonumber(red:hget("bento_ott:expiry", ott_header), 10) or 0
   local scope = red:hget("bento_ott:scope", ott_header)
   user = cjson.decode(red:hget("bento_ott:user", ott_header) or "null")
   user_id = red:hget("bento_ott:user_id", ott_header)
