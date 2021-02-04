@@ -12,6 +12,7 @@ local cjson = require("cjson")
 local openidc = require("resty.openidc")
 local random = require("resty.random")
 local redis = require("resty.redis")
+local str = require("resty.string")
 
 local uncached_response = function (status, mime, message)
   -- Helper method to return uncached responses directly from the proxy without
@@ -434,7 +435,7 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
   -- Don't let a user request more than 20 OTTs at a time
   if n_tokens > 20 then
     uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
-      {message="Too many OTTs requested", tag="too many tokens", user_role=user_role})
+      cjson.encode({message="Too many OTTs requested", tag="too many tokens", user_role=user_role}))
     goto script_end
   end
 
@@ -455,7 +456,8 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
   for _ = 1, n_tokens do
     -- Generate a new token (using OpenSSL via lua-resty-random), 128 characters long
     -- Does not use the token method, since that does not use OpenSSL
-    new_token = random.bytes(64, "hex")
+    new_token = str.to_hex(random.bytes(64))
+    -- TODO: RANDOM CAN RETURN NIL, HANDLE THIS
     table.insert(new_tokens, new_token)
     red:hset("bento_ott:expiry", new_token, ngx.time() + 10080)  -- Set expiry to current time + 7 days
     red:hset("bento_ott:scope", new_token, scope)
