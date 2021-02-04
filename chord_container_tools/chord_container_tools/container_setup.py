@@ -59,8 +59,8 @@ server {{
   # lua-resty-session configuration
 
   #  - cookie stuff:
-  set $session_cookie_lifetime 7200;
-  set $session_cookie_renew    900s;
+  set $session_cookie_lifetime 1800s;
+  set $session_cookie_renew    1800s;
 
   #  - use Redis for sessions to allow scaling of NGINX:
   set $session_storage         redis;
