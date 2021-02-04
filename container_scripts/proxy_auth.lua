@@ -247,16 +247,16 @@ if ott_header and not URI:match("^/api/auth") then
   if expiry == nil then
     -- Token cannot be found in the Redis store
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
-      {message="Invalid one-time token", tag="ott invalid", user_role=nil})
+      cjson.encode({message="Invalid one-time token", tag="ott invalid", user_role=nil}))
   elseif expiry < ngx.time() then
     -- Token expiry date is in the past, so it is no longer valid
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
-      {message="Expired one-time token", tag="ott expired", user_role=nil})
+      cjson.encode({message="Expired one-time token", tag="ott expired", user_role=nil}))
   elseif URI:sub(1, #scope) ~= scope then
     -- Invalid call made with the token (out of scope)
     -- We're harsh here and still delete the token out of security concerns
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
-      {message="Out-of-scope one-time token", tag="ott out of scope", user_role=nil})
+      cjson.encode({message="Out-of-scope one-time token", tag="ott out of scope", user_role=nil}))
   end
 
   -- No nested auth header is set; OTTs cannot be used to bootstrap a full bearer token
