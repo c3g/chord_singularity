@@ -40,10 +40,9 @@ local SIGN_IN_PATH = "/api/auth/sign-in"
 local SIGN_OUT_PATH = "/api/auth/sign-out"
 local USER_INFO_PATH = "/api/auth/user"
 
-local ONE_TIME_TOKENS_NAMESPACE = "/api/auth/ott/"
-local ONE_TIME_TOKENS_GENERATE_PATH = ONE_TIME_TOKENS_NAMESPACE .. "generate"
-local ONE_TIME_TOKENS_INVALIDATE_PATH = ONE_TIME_TOKENS_NAMESPACE .. "invalidate"
-local ONE_TIME_TOKENS_INVALIDATE_ALL_PATH = ONE_TIME_TOKENS_NAMESPACE .. "invalidate_all"
+local ONE_TIME_TOKENS_GENERATE_PATH = "/api/auth/ott/generate"
+local ONE_TIME_TOKENS_INVALIDATE_PATH = "/api/auth/ott/invalidate"
+local ONE_TIME_TOKENS_INVALIDATE_ALL_PATH = "/api/auth/ott/invalidate_all"
 
 local REDIS_SOCKET = "unix:/chord/tmp/redis.sock"
 
@@ -206,10 +205,13 @@ local req_headers = ngx.req.get_headers()
 
 -- TODO: OTT headers are technically also a Bearer token (of a different nature)... should be combined
 local ott_header = req_headers["X-OTT"]
-if ott_header and not URI:match("^" .. ONE_TIME_TOKENS_NAMESPACE) then
+if ott_header and not URI:match("^/api/auth") then
   -- Cannot use a one-time token to bootstrap generation of more one-time
   -- tokens or invalidate existing ones
   -- URIs do not include URL parameters, so this is safe from non-exact matches
+
+  -- The auth namespace check should theoretically be handled by the scope
+  -- validation anyway, but manually check it as a last resort
 
   red_ok, red_err = red:connect(REDIS_SOCKET)
   if red_err then  -- Error occurred while connecting to Redis
@@ -379,9 +381,14 @@ elseif URI == SIGN_IN_PATH then
     end
   end
 elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
-  -- Endpoint: /api/auth/ott/generate
+  -- Endpoint: POST /api/auth/ott/generate
   --   Generates one or more one-time tokens for asynchronous authorization
   --   purposes if user is authenticated; otherwise returns a 401 Forbidden error.
+  --   Called with a POST body (in JSON format) of: (for example)
+  --     {"scope": "/api/some_service/", "tokens": 5}
+  --   This will generate 5 one-time-use tokens that are only valid on URLs in
+  --   the /api/some_service/ namespace.
+  --   Scopes cannot be outside /api/ or in /api/auth
 
   if user_role == nil then
     err_user_nil()
@@ -403,14 +410,9 @@ elseif REQUEST_METHOD == "POST" and URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   -- Validate that the scope asked for is reasonable
   --   - Must be in a /api/[a-zA-Z0-9]+/ namespace
-  --   - Cannot be specific to OTT namespace
   --   - Cannot be specific to the auth namespace
 
-  if (
-    not scope:match("^/api/%a[%w-_]*/") or
-    scope:sub(1, #ONE_TIME_TOKENS_NAMESPACE) == ONE_TIME_TOKENS_NAMESPACE or
-    scope:sub(1, 9) == "/api/auth"
-  ) then
+  if not scope:match("^/api/%a[%w-_]*/") or scope:match("^/api/auth") then
     uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
       cjson.encode({message="Bad token scope", tag="bad scope", user_role=user_role}))
     goto script_end
