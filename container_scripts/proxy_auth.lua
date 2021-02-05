@@ -82,6 +82,11 @@ local get_user_role = function (user_id)
   return user_role
 end
 
+local NGX_NULL = ngx.null
+local ngx_null_to_nil = function (v)
+  if v == NGX_NULL then return nil else return v end
+end
+
 -- Set defaults for any possibly-unspecified configuration options, including
 -- some boolean casts
 
@@ -229,10 +234,10 @@ if ott_header and not URI:match("^/api/auth") then
 
   -- Fetch all token data from the Redis store and subsequently delete it
   local expiry = tonumber(red:hget("bento_ott:expiry", ott_header), 10) or 0
-  local scope = red:hget("bento_ott:scope", ott_header)
-  user = cjson.decode(red:hget("bento_ott:user", ott_header) or "null")
-  user_id = red:hget("bento_ott:user_id", ott_header)
-  user_role = red:hget("bento_ott:user_role", ott_header)
+  local scope = ngx_null_to_nil(red:hget("bento_ott:scope", ott_header))
+  user = cjson.decode(ngx_null_to_nil(red:hget("bento_ott:user", ott_header)) or "{}")
+  user_id = ngx_null_to_nil(red:hget("bento_ott:user_id", ott_header))
+  user_role = ngx_null_to_nil(red:hget("bento_ott:user_role", ott_header))
 
   red:init_pipeline(5)
   invalidate_ott(red, ott_header)  -- 5 pipeline actions
