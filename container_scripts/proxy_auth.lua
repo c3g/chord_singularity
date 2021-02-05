@@ -133,7 +133,12 @@ local opts = {
 
   -- TODO: Re-enable this if it doesn't cause sign-out bugs, since it's more secure
   -- refresh_session_interval = 600,
+
   iat_slack = 120,
+  -- access_token_expires_in should be shorter than $session_cookie_lifetime otherwise will never be called:
+  access_token_expires_in = 900,
+  access_token_expires_leeway = 60,
+  renew_access_token_on_expiry = true,
 }
 
 -- Cache commonly-used ngx.var.uri and ngx.var.request_method to save expensive access calls
