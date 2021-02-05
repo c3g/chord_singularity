@@ -48,6 +48,20 @@ NGINX_SERVICES_CONF_LOCATION = "/usr/local/openresty/nginx/conf/chord_services.c
 NGINX_GATEWAY_CONF_TPL_TEMPLATE = """
 limit_req_zone $binary_remote_addr zone=external:10m rate=10r/s;
 
+# lua-resty-session configuration
+
+#  - cookie stuff:
+set $session_cookie_lifetime 1800s;
+set $session_cookie_renew    1800s;
+
+#  - use Redis for sessions to allow scaling of NGINX:
+set $session_storage         redis;
+set $session_redis_prefix    oidc;
+set $session_redis_socket    unix:///chord/tmp/redis.sock;
+
+# - template value, replaced at startup using sed:
+set $session_secret          "SESSION_SECRET";
+
 server {{
   listen LISTEN_ON;  # unix:/chord/tmp/nginx.sock;
   root /chord/data/web/dist;
@@ -55,20 +69,6 @@ server {{
 
   # Enable to show debugging information in the error log:
   # error_log /usr/local/openresty/nginx/logs/error.log debug;
-
-  # lua-resty-session configuration
-
-  #  - cookie stuff:
-  set $session_cookie_lifetime 1800s;
-  set $session_cookie_renew    1800s;
-
-  #  - use Redis for sessions to allow scaling of NGINX:
-  set $session_storage         redis;
-  set $session_redis_prefix    oidc;
-  set $session_redis_socket    unix:///chord/tmp/redis.sock;
-
-  # - template value, replaced at startup using sed:
-  set $session_secret          "SESSION_SECRET";
 
   # CHORD constants (configuration file locations)
   set $chord_auth_config     "{auth_config}";
