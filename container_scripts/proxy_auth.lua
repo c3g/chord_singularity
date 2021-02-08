@@ -238,7 +238,7 @@ if ott_header and not URI:match("^/api/auth") then
   -- TODO: Error handling for each command? Maybe overkill
 
   -- Fetch all token data from the Redis store and subsequently delete it
-  local expiry = tonumber(red:hget("bento_ott:expiry", ott_header), 10) or 0
+  local expiry = tonumber(red:hget("bento_ott:expiry", ott_header), 10) or nil
   local scope = ngx_null_to_nil(red:hget("bento_ott:scope", ott_header))
   user = cjson.decode(ngx_null_to_nil(red:hget("bento_ott:user", ott_header)) or "{}")
   user_id = ngx_null_to_nil(red:hget("bento_ott:user_id", ott_header))
