@@ -490,7 +490,10 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
   uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(new_tokens))
 elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
   -- Endpoint: POST /api/auth/ott/invalidate
-  --   TODO
+  --   Invalidates a token passed in the request body (format: {"token": "..."}) if the
+  --   supplied token exists. This endpoint is idempotent, and will return 204 (assuming
+  --   nothing went wrong on the server) even if the token did not exist. Regardless, the
+  --   end state is that the supplied token is guaranteed not to be valid anymore.
 
   if REQUEST_METHOD ~= "DELETE" then
     err_invalid_method()
