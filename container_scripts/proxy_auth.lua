@@ -443,8 +443,8 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   local n_tokens = math.max(req_body["number"] or 1, 1)
 
-  -- Don't let a user request more than 20 OTTs at a time
-  if n_tokens > 20 then
+  -- Don't let a user request more than 30 OTTs at a time
+  if n_tokens > 30 then
     uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
       cjson.encode({message="Too many OTTs requested", tag="too many tokens", user_role=user_role}))
     goto script_end
