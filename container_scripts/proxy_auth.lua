@@ -489,7 +489,7 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
   -- Return the newly-generated tokens to the requester
   uncached_response(ngx.HTTP_OK, "application/json", cjson.encode(new_tokens))
 elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
-  -- Endpoint: POST /api/auth/ott/invalidate
+  -- Endpoint: DELETE /api/auth/ott/invalidate
   --   Invalidates a token passed in the request body (format: {"token": "..."}) if the
   --   supplied token exists. This endpoint is idempotent, and will return 204 (assuming
   --   nothing went wrong on the server) even if the token did not exist. Regardless, the
@@ -537,8 +537,11 @@ elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
   -- We're good to respond in the affirmative
   uncached_response(ngx.HTTP_NO_CONTENT)
 elseif URI == ONE_TIME_TOKENS_INVALIDATE_ALL_PATH then
-  -- Endpoint: POST /api/auth/ott/invalidate_all
-  --   TODO
+  -- Endpoint: DELETE /api/auth/ott/invalidate_all
+  --   Invalidates all one-time use tokens in the Redis store. This endpoint is
+  --   idempotent, and will return 204 (assuming nothing went wrong on the server) even if
+  --   no tokens currently exist. Regardless, the end state is that all OTTs are
+  --   guaranteed not to be valid anymore.
 
   if REQUEST_METHOD ~= "DELETE" then
     err_invalid_method()
