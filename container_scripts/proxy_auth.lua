@@ -470,7 +470,7 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
     new_token = str.to_hex(random.bytes(64))
     -- TODO: RANDOM CAN RETURN NIL, HANDLE THIS
     table.insert(new_tokens, new_token)
-    red:hset("bento_ott:expiry", new_token, ngx.time() + 10080)  -- Set expiry to current time + 7 days
+    red:hset("bento_ott:expiry", new_token, ngx.time() + 604800)  -- Set expiry to current time + 7 days
     red:hset("bento_ott:scope", new_token, scope)
     red:hset("bento_ott:user", new_token, cjson.encode(user))
     red:hset("bento_ott:user_id", new_token, user_id)
