@@ -250,12 +250,12 @@ using `dev_utils.py`.
       
     * `BENTO_FRONTEND_REPOSITORY` (`string`): The Git URI of the repository to
       host from NGINX as the front end. If left blank, no front end will be
-      hosted and the instance will run in a quasi "headless" mode.
+      hosted, and the instance will run in a quasi "headless" mode.
       
       **Default:** `https://github.com/bento-platform/bento_web.git`
       
     * `BENTO_FRONTEND_VERSION` (`string`): The version (technically, the Git 
-      tree, so it can be a branch or other tag as well) to checkout from
+      tree, so it can be a branch or other tag as well) to check out from
       `BENTO_FRONTEND_REPOSITORY`. If left blank, no front end will be
       hosted and the instance will run in a quasi "headless" mode.
       

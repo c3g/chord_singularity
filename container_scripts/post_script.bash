@@ -118,7 +118,7 @@ rm redis-stable.tar.gz
 rm -r redis-stable
 echo "[CHORD]    Setting up"
 mkdir -p /etc/redis
-# TODO: SECURITY: Make sure redis isn't exposed publically in any way
+# TODO: SECURITY: Make sure redis isn't exposed publicly in any way
 cat > /etc/redis/redis.conf <<- EOC
 # Don't bind a port, listen on localhost
 port 0
