@@ -281,7 +281,7 @@ else
   -- Check bearer token if set
   -- Adapted from https://github.com/zmartzone/lua-resty-openidc/issues/266#issuecomment-542771402
   local auth_header = ngx.req.get_headers()["Authorization"]
-  if is_private_uri and auth_header and auth_header:match("^Bearer .+") then
+  if auth_header and auth_header:match("^Bearer .+") then
     -- A Bearer auth header is set, use it instead of session through introspection
     local res, err = openidc.introspect(opts)
     if err == nil and res.active then
