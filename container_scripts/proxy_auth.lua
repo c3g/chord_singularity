@@ -45,7 +45,35 @@ local ONE_TIME_TOKENS_GENERATE_PATH = "/api/auth/ott/generate"
 local ONE_TIME_TOKENS_INVALIDATE_PATH = "/api/auth/ott/invalidate"
 local ONE_TIME_TOKENS_INVALIDATE_ALL_PATH = "/api/auth/ott/invalidate_all"
 
-local REDIS_SOCKET = "unix:/chord/tmp/redis.sock"
+-- TODO: Make this configurable
+local REDIS_CONNECTION_STRING = "unix:/chord/tmp/redis.sock"
+
+local REDIS_SOCKET
+local REDIS_HOST
+local REDIS_PORT
+
+if REDIS_CONNECTION_STRING:match("^unix") then
+  REDIS_SOCKET = REDIS_CONNECTION_STRING
+else  -- Treat as host/port
+  -- Format: localhost:6379
+  local port_sep = REDIS_CONNECTION_STRING:find(":")
+  if port_sep == nil then
+    REDIS_HOST = REDIS_CONNECTION_STRING
+    REDIS_PORT = 6379  -- Default Redis port
+  else
+    REDIS_HOST = REDIS_CONNECTION_STRING:sub(1, port_sep-1)
+    REDIS_PORT = tonumber(REDIS_CONNECTION_STRING:sub(port_sep+1, #REDIS_CONNECTION_STRING))
+  end
+end
+
+local redis_connect = function (redis_conn)
+  if REDIS_SOCKET then
+    return redis_conn:connect(REDIS_SOCKET)
+  else
+    return redis_conn:connect(REDIS_HOST, REDIS_PORT)
+  end
+end
+
 
 -- Create an un-connected Redis object
 local red_ok
@@ -229,7 +257,7 @@ if ott_header and not URI:match("^/api/auth") then
   -- The auth namespace check should theoretically be handled by the scope
   -- validation anyway, but manually check it as a last resort
 
-  red_ok, red_err = red:connect(REDIS_SOCKET)
+  red_ok, red_err = redis_connect()
   if red_err then  -- Error occurred while connecting to Redis
     err_redis("redis conn")
     goto script_end
@@ -450,7 +478,7 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
     goto script_end
   end
 
-  red_ok, red_err = red:connect(REDIS_SOCKET)
+  red_ok, red_err = redis_connect()
   if red_err then
     err_redis("redis conn")
     goto script_end
@@ -519,7 +547,7 @@ elseif URI == ONE_TIME_TOKENS_INVALIDATE_PATH then
     goto script_end
   end
 
-  red_ok, red_err = red:connect(REDIS_SOCKET)
+  red_ok, red_err = redis_connect()
   if red_err then
     err_redis("redis conn")
     goto script_end
@@ -553,7 +581,7 @@ elseif URI == ONE_TIME_TOKENS_INVALIDATE_ALL_PATH then
     goto script_end
   end
 
-  red_ok, red_err = red:connect(REDIS_SOCKET)
+  red_ok, red_err = redis_connect()
   if red_err then
     err_redis("redis conn")
     goto script_end
