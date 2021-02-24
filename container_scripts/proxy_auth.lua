@@ -437,7 +437,7 @@ elseif URI == ONE_TIME_TOKENS_GENERATE_PATH then
 
   if not scope:match("^/api/%a[%w-_]*/") or scope:match("^/api/auth") then
     uncached_response(ngx.HTTP_BAD_REQUEST, "application/json",
-      cjson.encode({message="Bad token scope", tag="bad scope", user_role=user_role}))
+      cjson.encode({message="Bad token scope: " .. scope, tag="bad scope", user_role=user_role}))
     goto script_end
   end
 
