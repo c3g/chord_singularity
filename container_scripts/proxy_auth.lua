@@ -66,15 +66,6 @@ else  -- Treat as host/port
   end
 end
 
-local redis_connect = function (redis_conn)
-  if REDIS_SOCKET then
-    return redis_conn:connect(REDIS_SOCKET)
-  else
-    return redis_conn:connect(REDIS_HOST, REDIS_PORT)
-  end
-end
-
-
 -- Create an un-connected Redis object
 local red_ok
 local red, red_err = redis:new()
@@ -83,6 +74,15 @@ if red_err then
     ngx.HTTP_INTERNAL_SERVER_ERROR,
     "application/json",
     cjson.encode({message=red_err, tag="ott redis conn", user_role=nil}))
+end
+
+-- Function to handle common Redis connection tasks
+local redis_connect = function ()
+  if REDIS_SOCKET then
+    return red:connect(REDIS_SOCKET)
+  else
+    return red:connect(REDIS_HOST, REDIS_PORT)
+  end
 end
 
 -- Load auth configuration for setting up lua-resty-oidconnect
