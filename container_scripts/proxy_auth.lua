@@ -294,7 +294,10 @@ if ott_header and not URI:match("^/api/auth") then
     -- Invalid call made with the token (out of scope)
     -- We're harsh here and still delete the token out of security concerns
     uncached_response(ngx.HTTP_FORBIDDEN, "application/json",
-      cjson.encode({message="Out-of-scope one-time token", tag="ott out of scope", user_role=nil}))
+      cjson.encode({
+        message="Out-of-scope one-time token (scope: " .. scope .. ", URI prefix: " .. URI:sub(1, #scope) .. ")",
+        tag="ott out of scope",
+        user_role=nil}))
   end
 
   -- No nested auth header is set; OTTs cannot be used to bootstrap a full bearer token
