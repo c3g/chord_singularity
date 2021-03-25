@@ -46,7 +46,7 @@
       "curl -Lso /chord/womtool.jar https://github.com/broadinstitute/cromwell/releases/download/52/womtool-52.jar"
     ],
     "pre_start_commands": [
-      "nohup celery -A bento_wes.app worker &> {SERVICE_LOGS}/celery.log &"
+      "nohup celery -A bento_wes.app worker --loglevel=INFO &> {SERVICE_LOGS}/celery.log &"
     ],
     "post_stop_commands": [
       "pkill -9 -f 'bento_wes.app worker$'"
