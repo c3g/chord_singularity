@@ -335,8 +335,7 @@ else
     local res, err, _, session = openidc.authenticate(
       opts, auth_target_uri, auth_mode)
     if res == nil or err then  -- Authentication wasn't successful
-      -- Authentication wasn't successful; clear the session and
-      -- re-attempting (for a maximum of 2 times.)
+      -- Authentication wasn't successful; clear the session
       if session ~= nil then
         if session.data.user_id ~= nil then
           -- Destroy the current session if it exists and just expired
