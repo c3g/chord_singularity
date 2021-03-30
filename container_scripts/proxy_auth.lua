@@ -354,9 +354,6 @@ else
       end
     end
 
-    -- If authenticate hasn't rejected us above but it's "open", i.e.
-    -- non-authenticated users can see the page, clear X-User and
-    -- X-User-Role by setting the value to nil.
     if res ~= nil then  -- Authentication worked
       if session.data.user_id ~= nil then
         -- Load user_id and user_role from session if available
@@ -617,6 +614,9 @@ end
 -- another type.)
 -- Set an X-Authorization header containing a valid Bearer token for nested
 -- requests to other services.
+-- If authenticate hasn't rejected us above but it's "open", i.e.
+-- non-authenticated users can see the page, we will clear X-User and
+-- X-User-Role by setting the value to nil.
 -- TODO: Pull this from session for performance
 ngx.req.set_header("X-User", user_id)
 ngx.req.set_header("X-User-Role", user_role)
