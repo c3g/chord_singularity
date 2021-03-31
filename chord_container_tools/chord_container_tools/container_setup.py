@@ -57,6 +57,9 @@ server {{
   # error_log /usr/local/openresty/nginx/logs/error.log debug;
 
   # lua-resty-session configuration
+  
+  # - TODO
+  set $session_name bento_session;
 
   #  - cookie stuff:
   set $session_cookie_lifetime 180s;
