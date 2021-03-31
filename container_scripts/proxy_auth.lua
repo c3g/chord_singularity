@@ -356,6 +356,8 @@ else
     end
 
     if res ~= nil then  -- Authentication worked
+      session:close()
+
       -- Set user_id from response (either new, or from session data)
       user_id = res.id_token.sub
 

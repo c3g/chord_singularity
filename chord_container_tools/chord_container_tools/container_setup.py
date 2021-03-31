@@ -69,6 +69,7 @@ server {{
   set $session_storage         redis;
   set $session_redis_prefix    oidc;
   set $session_redis_socket    unix:///chord/tmp/redis.sock;
+  set $session_redis_uselocking off;  # TODO: DO WE WANT THIS
 
   # - template value, replaced at startup using sed:
   set $session_secret          "SESSION_SECRET";
