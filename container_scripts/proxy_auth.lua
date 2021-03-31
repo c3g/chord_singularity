@@ -356,8 +356,6 @@ else
     end
 
     if res ~= nil then  -- Authentication worked
-      session:close()
-
       -- Set user_id from response (either new, or from session data)
       user_id = res.id_token.sub
 
@@ -382,7 +380,9 @@ else
         -- nested authorized requests to be made.
         nested_auth_header = "Bearer " .. auth_token
       end
-    elseif session ~= nil then
+    end
+
+    if session ~= nil then
       -- Close the session, since we don't need it anymore
       session:close()
     end
