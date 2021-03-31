@@ -59,8 +59,8 @@ server {{
   # lua-resty-session configuration
 
   #  - cookie stuff:
-  set $session_cookie_lifetime 1800s;
-  set $session_cookie_renew    1800s;
+  set $session_cookie_lifetime 60s;
+  set $session_cookie_renew    60s;
 
   #  - use Redis for sessions to allow scaling of NGINX:
   set $session_storage         redis;
@@ -69,6 +69,11 @@ server {{
 
   # - template value, replaced at startup using sed:
   set $session_secret          "SESSION_SECRET";
+  
+  # - Per lua-resty-session, the 'regenerate' strategy is more reliable for
+  #   SPAs which make a lot of asynchronous requests, as it does not 
+  #   immediately replace the old records for sessions when making a new one.
+  set $session_strategy        regenerate;
 
   # CHORD constants (configuration file locations)
   set $chord_auth_config     "{auth_config}";
