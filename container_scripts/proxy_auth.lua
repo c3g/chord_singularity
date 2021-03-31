@@ -338,7 +338,7 @@ else
     if res == nil or err then  -- Authentication wasn't successful
       -- Authentication wasn't successful; clear the session
       if session ~= nil then
-        if session.data.user_id ~= nil then
+        if session.data.id_token ~= nil then
           -- Destroy the current session if it exists and just expired
           session:destroy()
         elseif err then
@@ -356,20 +356,13 @@ else
     end
 
     if res ~= nil then  -- Authentication worked
-      if session.data.user_id ~= nil then
-        -- Load user_id and user_role from session if available
-        user_id = session.data.user_id
-        user_role = session.data.user_role
-        -- Close the session, since we're done loading data from it
-        session:close()
-      else
-        -- Save user_id and user_role into session for future use
-        user_id = res.id_token.sub
-        user_role = get_user_role(user_id)
-        session.data.user_id = user_id
-        session.data.user_role = user_role
-        session:save()
-      end
+      -- Set user_id from response (either new, or from session data)
+      user_id = res.id_token.sub
+
+      -- This used to be cached in session, but for easier debugging this
+      -- cache was removed. It was probably premature optimization; if
+      -- requests are all slow then maybe it's time to add that back.
+      user_role = get_user_role(user_id)
 
       -- Set user object for possible /api/auth/user response
       user = res.user
@@ -377,13 +370,14 @@ else
       -- Set Bearer header for nested requests
       --  - First tries to use session-derived access token; if it's unset,
       --    try using the response access token.
-      -- TODO: Maybe only res token needed?
       local auth_token = res.access_token
       if auth_token == nil then
         auth_token, err = openidc.access_token()  -- TODO: Remove this block?
         if err ~= nil then ngx.log(ngx.ERR, err) end
       end
       if auth_token ~= nil then
+        -- Set Authorization header to the access token for any (immediate)
+        -- nested authorized requests to be made.
         nested_auth_header = "Bearer " .. auth_token
       end
     elseif session ~= nil then
