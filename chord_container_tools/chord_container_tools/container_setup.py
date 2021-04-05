@@ -64,6 +64,7 @@ server {{
   #  - cookie stuff:
   set $session_cookie_lifetime 180s;
   set $session_cookie_renew    180s;
+  set $session_cookie_discard  45s;
 
   #  - use Redis for sessions to allow scaling of NGINX:
   set $session_storage         redis;
