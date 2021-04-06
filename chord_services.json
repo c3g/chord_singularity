@@ -49,7 +49,7 @@
       "nohup celery -A bento_wes.app worker --loglevel=INFO &> {SERVICE_LOGS}/celery.log &"
     ],
     "post_stop_commands": [
-      "pkill -9 -f 'bento_wes.app worker$'"
+      "pkill -9 -f 'bento_wes.app worker'"
     ],
     "wsgi": true,
     "python_module": "bento_wes.app",
