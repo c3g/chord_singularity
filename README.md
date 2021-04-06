@@ -6,7 +6,7 @@ The CanDIG CHORD project was funded by [CANARIE](https://www.canarie.ca/).
 
 What's included in a CHORD Singularity container?
 
-  * NodeJS 12
+  * NodeJS 14
   * Python 3.7
   * Java 11
   * A Redis instance running at `/chord/tmp/redis.sock`
