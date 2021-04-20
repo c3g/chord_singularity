@@ -6,7 +6,7 @@ The CanDIG CHORD project was funded by [CANARIE](https://www.canarie.ca/).
 
 What's included in a CHORD Singularity container?
 
-  * NodeJS 12
+  * NodeJS 14
   * Python 3.7
   * Java 11
   * A Redis instance running at `/chord/tmp/redis.sock`
@@ -259,7 +259,7 @@ using `dev_utils.py`.
       `BENTO_FRONTEND_REPOSITORY`. If left blank, no front end will be
       hosted and the instance will run in a quasi "headless" mode.
       
-      **Default:** `master`
+      **Default:** `v0.1.0`
       
     * `CHORD_URL` (`string`): The URL of the node, including trailing slash, 
       and sub path (if any)

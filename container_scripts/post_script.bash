@@ -7,7 +7,7 @@ CPU_COUNT=$(grep -c "^processor" /proc/cpuinfo)
 echo "[CHORD] Using ${CPU_COUNT} cores for compilations"
 
 OPENRESTY_VERSION="1.19.3.1"
-NODE_VERSION="12.x"
+NODE_VERSION="14.x"
 POSTGRES_VERSION="11"
 HTSLIB_VERSION="1.10"
 BCFTOOLS_VERSION="1.10"
