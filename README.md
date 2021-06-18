@@ -387,14 +387,42 @@ singularity instance start \
 	chord1
 ```
 
-**Note:** In some cases timezone issues were encountered in the Singularity
+**Note:** In some cases we encountered timezone issues in the Singularity
 image build; binding the UTC definition from the host is a hack-y fix for this.
+
+
+#### Connecting to the Instance
+
+One can connect to the instance and get an interactive shell by running
+
+```bash
+singularity shell instance://chord1
+```
+
+Change `chord1` to the name of the instance where appropriate.
+
+##### Connecting to Postgres as a Service Account
+
+At initial run-time, `chord_singularity` generates Postgres accounts and 
+databases for each service. The  credentials are visible in 
+`/chord/data/runtime_config.json`, which is why it is **crucial** that 
+permissions are correct for the `/chord/data` mount point. 
+
+One can connect to a database for the metadata service, for example, by running
+the following inside a shell connection to an instance:
+
+```bash
+psql -U metadata_acct --password -d metadata_db
+```
+
+The instance formats accounts as `{service_artifact}_acct` and databases as
+`{service_artifact}_db`.
 
 
 #### Stopping the Instance
 
-An extra step must be taken to stop the new `chord1` instance safely - a stop
-script was written to facilitate this:
+An extra step must be taken to stop the new `chord1` instance safely - we 
+provide a stop script to facilitate this:
 
 ```bash
 singularity exec instance://chord1 bash /chord/container_scripts/stop_script.bash
