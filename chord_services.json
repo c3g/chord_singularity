@@ -146,7 +146,7 @@
       "artifact": "variant",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_variant_service@v0.5.1",
+    "repository": "https://github.com/bento-platform/bento_variant_service@v0.5.3",
     "data_service": true,
     "manageable_tables": true,
     "apt_dependencies": ["samtools"],
