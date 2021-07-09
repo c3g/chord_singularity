@@ -5,7 +5,7 @@
       "artifact": "service-registry",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_service_registry@v0.4.1",
+    "repository": "https://github.com/bento-platform/bento_service_registry@v0.5.1",
     "data_service": false,
     "wsgi": true,
     "python_module": "bento_service_registry.app",
@@ -39,7 +39,7 @@
       "artifact": "wes",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_wes@v0.3.2",
+    "repository": "https://github.com/bento-platform/bento_wes@v0.4.2",
     "data_service": false,
     "apt_dependencies": ["openjdk-11-jre-headless"],
     "pre_install_commands": [
@@ -72,7 +72,7 @@
       "artifact": "federation",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_federation_service@v0.8.0",
+    "repository": "https://github.com/bento-platform/bento_federation_service@v0.9.0",
     "data_service": false,
     "wsgi": false,
     "service_runnable": "bento_federation_service",
@@ -127,7 +127,7 @@
       "artifact": "metadata",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/katsu@v1.3.6",
+    "repository": "https://github.com/bento-platform/katsu@v2.1.1",
     "data_service": true,
     "manageable_tables": true,
     "pre_start_commands": [
@@ -146,7 +146,7 @@
       "artifact": "variant",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_variant_service@v0.4.0",
+    "repository": "https://github.com/bento-platform/bento_variant_service@v0.5.4",
     "data_service": true,
     "manageable_tables": true,
     "apt_dependencies": ["samtools"],
@@ -169,7 +169,7 @@
       "artifact": "drs",
       "language": "python"
     },
-    "repository": "https://github.com/c3g/chord_drs@v0.2.0",
+    "repository": "https://github.com/c3g/chord_drs@v0.3.0",
     "data_service": false,
     "wsgi": true,
     "python_module": "chord_drs.app",
@@ -189,7 +189,7 @@
       "artifact": "log-service",
       "language": "python"
     },
-    "repository": "https://github.com/bento-platform/bento_log_service@v0.1.0",
+    "repository": "https://github.com/bento-platform/bento_log_service@v0.1.1",
     "data_service": false,
     "wsgi": true,
     "python_module": "bento_log_service.app",
